@@ -21,14 +21,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p release
-          gh run download 35895212537 --repo "$GITHUB_REPOSITORY" --name Prisma-Android-debug --dir release
+          gh run download 35898001730 --repo "$GITHUB_REPOSITORY" --name Prisma-Android-debug --dir release
           mv release/app-debug.apk release/Prisma-Android.apk
-          echo 'dce63324667c95a10be48f97c07a2198683dae806cd4a74b92f3d7e907bf1658  release/Prisma-Android.apk' | sha256sum --check
+          echo '982393bcdcf8dfed3d7db7f11d4bbe3b9cded6054702b3f1345fb9cae7986c6b  release/Prisma-Android.apk' | sha256sum --check
       - name: Publish the prerelease
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create v1.0.0-beta.1 release/Prisma-Android.apk \
+          gh release create v1.0.1-beta.2 release/Prisma-Android.apk \
             --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
-            --title 'Prisma beta 1 — Android' --prerelease --latest=false \
+            --title 'Prisma beta 2 — Android' --prerelease --latest=false \
             --notes-file docs/release-beta.md
