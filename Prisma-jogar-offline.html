@@ -45,6 +45,15 @@
 .records-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:0 10px 10px}
 .records section{padding:11px;border-radius:12px;background:#10142a80}.records h2{margin:0 0 8px;color:#fff;font-size:14px}.records dl{margin:0}.records dl div{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-top:1px solid #ffffff0e;font-size:11px}.records dt{color:#a8a5c4}.records dd{margin:0;color:#fff;font-weight:750;font-variant-numeric:tabular-nums}
 @media(max-width:390px){.toolbar-actions{gap:2px}.quiet-button{font-size:12px}.records-grid{grid-template-columns:1fr}}
+
+.header-actions{display:flex;gap:8px;align-items:center}
+.icon-button[hidden],.level-up[hidden]{display:none}
+.icon-button[aria-pressed="true"]{background:#ac9aff38;border-color:#c4b2ff;color:#fff}
+.cell.pressed,.cell.drag-target{z-index:1;background:#e5d8ff3d;box-shadow:inset 0 0 0 2px #d4c5ff}
+.cell.drag-target{background:#c4ffe451;box-shadow:inset 0 0 0 2px #a2f4d7,0 0 12px #6de9d76b}
+.cell.pressed .gem,.cell.drag-target .gem{filter:brightness(1.2)}
+.level-up{position:absolute;z-index:2;top:45%;left:50%;transform:translate(-50%,-50%);pointer-events:none;white-space:nowrap;padding:12px 22px;border:1px solid #f5e9ffa8;border-radius:17px;background:linear-gradient(125deg,#3c4588ed,#7053a8ef);box-shadow:0 10px 40px #191740b8,0 0 36px #b5a3ff85;color:#fff;font-size:clamp(22px,6vw,30px);font-weight:850;letter-spacing:.035em;text-shadow:0 2px 12px #18142e}
+.board.busy ~ .game-over{display:none}
 </style>
   <title>Prisma — combine e relaxe</title>
 </head>
@@ -52,7 +61,10 @@
   <main class="shell">
     <header class="header">
       <div class="brand"><span class="brand-mark">✦</span><div><h1>PRISMA</h1><small>Um instante de brilho</small></div></div>
-      <button class="icon-button" id="sound" type="button" aria-label="Desativar sons" title="Som">♫</button>
+      <div class="header-actions">
+        <button class="icon-button" id="vibration" type="button" aria-label="Ativar vibração" aria-pressed="false" title="Vibração" hidden>〰</button>
+        <button class="icon-button" id="sound" type="button" aria-label="Desativar sons" title="Som">♫</button>
+      </div>
     </header>
 
     <section class="hud" aria-label="Progresso da partida">
@@ -66,6 +78,7 @@
     <div class="board-frame">
       <div class="board" id="board" role="grid" aria-label="Tabuleiro de pedras, oito linhas por oito colunas"><p style="grid-column:1/-1;align-self:center;text-align:center;padding:1rem;color:#ddd">Carregando o jogo… Se o tabuleiro continuar vazio, abra o endereço HTTPS no navegador.</p></div>
       <div class="toast" id="toast" aria-live="polite"></div>
+      <div class="level-up" id="level-up" aria-hidden="true" hidden>Nível 2</div>
       <div class="game-over" id="game-over" hidden role="status" aria-label="Fim de partida">
         <div class="game-over-card">
           <span class="game-over-mark" aria-hidden="true">✦</span>
@@ -449,6 +462,7 @@ const progressLabel = $('#progress-label');
 const combo = $('#combo');
 const toast = $('#toast');
 const gameOver = $('#game-over');
+const levelUp = $('#level-up');
 const game = new Game();
 const names = ['rubi', 'âmbar', 'sol', 'jade', 'água', 'safira', 'ametista'];
 const sessionKey = mode => 'prisma.session.' + mode;
@@ -469,6 +483,10 @@ let busy = false;
 let hintTimer;
 let soundOn = true;
 try { soundOn = localStorage.getItem('prisma.sound') !== 'off'; } catch { /* Some local file views deny storage. */ }
+let vibrationOn = false;
+try { vibrationOn = localStorage.getItem('prisma.vibration') === 'on'; } catch {}
+const canVibrate = typeof navigator.vibrate === 'function';
+$('#vibration').hidden = !canVibrate;
 let audioContext;
 
 function safeRecord(mode) {
@@ -583,6 +601,8 @@ function hud(moveEarned = 0, finishedGame = false) {
   $('#final-level').textContent = String(game.level);
   $('#sound').textContent = soundOn ? '♫' : '♪';
   $('#sound').setAttribute('aria-label', soundOn ? 'Desativar sons' : 'Ativar sons');
+  $('#vibration').setAttribute('aria-pressed', String(vibrationOn));
+  $('#vibration').setAttribute('aria-label', vibrationOn ? 'Desativar vibração' : 'Ativar vibração');
 }
 
 function clearHint() {
@@ -590,8 +610,30 @@ function clearHint() {
   for (const cell of boardElement.querySelectorAll?.('.cell.hinted') ?? []) cell.classList.remove('hinted');
 }
 
-const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
-const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+const reducedMotion = () => document.visibilityState === 'hidden' ||
+  (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
+const activeAnimations = new Set();
+async function waitAnimations(animations) {
+  if (!animations.length) return;
+  animations.forEach(animation => activeAnimations.add(animation));
+  let watchdog;
+  try {
+    await Promise.race([
+      Promise.all(animations.map(animation => animation.finished.catch(() => {}))),
+      new Promise(resolve => { watchdog = setTimeout(resolve, 650); })
+    ]);
+  } finally {
+    clearTimeout(watchdog);
+    animations.forEach(animation => { activeAnimations.delete(animation); animation.cancel?.(); });
+  }
+}
+document.addEventListener?.('visibilitychange', () => {
+  if (document.visibilityState === 'hidden')
+    for (const animation of activeAnimations) animation.cancel?.();
+});
+function vibrate(pattern) {
+  if (vibrationOn && canVibrate) try { navigator.vibrate(pattern); } catch {}
+}
 
 async function animateSwap(a, b, valid) {
   if (reducedMotion()) return;
@@ -607,7 +649,7 @@ async function animateSwap(a, b, valid) {
     : [[{transform: 'translate(0, 0)'}, {transform: `translate(${dx}px, ${dy}px)`, offset: .48}, {transform: 'translate(0, 0)'}],
        [{transform: 'translate(0, 0)'}, {transform: `translate(${-dx}px, ${-dy}px)`, offset: .48}, {transform: 'translate(0, 0)'}]];
   const animations = [a, b].map((index, i) => cells[index].querySelector('.mover').animate(paths[i], options));
-  await Promise.all(animations.map(animation => animation.finished.catch(() => {})));
+  await waitAnimations(animations);
 }
 
 async function animateFall(falls) {
@@ -624,7 +666,7 @@ async function animateFall(falls) {
        {transform: 'translateY(0)', opacity: 1}],
       {duration: Math.min(400, 210 + Math.abs(distance / pitch) * 27), easing: 'cubic-bezier(.2, .78, .24, 1)', fill: 'both'}));
   }
-  await Promise.all(animations.map(animation => animation.finished.catch(() => {})));
+  await waitAnimations(animations);
 }
 
 async function animateClear(frame) {
@@ -685,8 +727,22 @@ async function animateClear(frame) {
         {transform: 'scale(.72)', opacity: 0, filter: 'brightness(1.5)'}],
       {duration: frame.activated.length ? 300 : 225, delay, easing: 'ease-out', fill: 'both'}));
   }
-  try { await Promise.all(effects.map(animation => animation.finished.catch(() => {}))); }
+  try { await waitAnimations(effects); }
   finally { overlays.forEach(element => element.remove()); }
+}
+
+async function animateLevel() {
+  levelUp.textContent = `Nível ${game.level}`;
+  if (reducedMotion()) return;
+  levelUp.hidden = false;
+  try {
+    await waitAnimations([levelUp.animate([
+      {opacity: 0, transform: 'translate(-50%, -42%) scale(.82)'},
+      {opacity: 1, transform: 'translate(-50%, -50%) scale(1)', offset: .25},
+      {opacity: 1, transform: 'translate(-50%, -50%) scale(1)', offset: .7},
+      {opacity: 0, transform: 'translate(-50%, -58%) scale(1.08)'}
+    ], {duration: 580, easing: 'ease-out'})]);
+  } finally { levelUp.hidden = true; }
 }
 
 async function attempt(a, b) {
@@ -695,43 +751,52 @@ async function attempt(a, b) {
   const result = game.move(a, b);
   busy = true;
   boardElement.classList.add('busy');
-  await animateSwap(a, b, result.valid);
-  if (!result.valid) {
-    draw();
-    boardElement.classList.remove('busy');
-    busy = false;
-    return;
+  if (result.valid) {
+    // The engine has already committed all cascades; persist before any visual delay.
+    save();
+    hud(result.earned, result.ended);
+    vibrate(result.levelsGained ? [12, 45, 18] : result.events.some(frame => frame.activated?.length) ? 18 : 10);
   }
-  for (const frame of result.events) {
-    draw(frame.board, frame.type === 'clear' ? frame.cells : []);
-    if (frame.type === 'clear') {
-      playTone(frame.chain);
-      combo.textContent = frame.activated.some(effect => effect.type === 'spectrum') ? 'Explosão de cores!' :
-        frame.activated.length ? 'Reação em cadeia!' :
-        frame.creations.length ? 'Nova pedra especial!' :
-        frame.chain > 1 ? `Cascata ×${frame.chain}!` : 'Boa combinação!';
-      await animateClear(frame);
-    } else if (frame.type === 'fall') await animateFall(frame.falls);
-    else if (frame.type === 'rescue') {
-      combo.textContent = 'Um Espectro abriu uma nova jogada';
-      if (!reducedMotion()) {
-        const mover = boardElement.querySelectorAll('.cell')[frame.index]?.querySelector('.mover');
-        await mover?.animate([{transform: 'scale(.25)', opacity: 0},
-          {transform: 'scale(1.16)', opacity: 1, offset: .65},
-          {transform: 'scale(1)', opacity: 1}], {duration: 300, easing: 'ease-out'}).finished.catch(() => {});
+  try {
+    await animateSwap(a, b, result.valid);
+    if (!result.valid) return;
+    for (const frame of result.events) {
+      if (document.visibilityState === 'hidden') break;
+      draw(frame.board, frame.type === 'clear' ? frame.cells : []);
+      if (frame.type === 'clear') {
+        playTone(frame.chain);
+        combo.textContent = frame.activated.some(effect => effect.type === 'spectrum') ? 'Explosão de cores!' :
+          frame.activated.length ? 'Reação em cadeia!' :
+          frame.creations.length ? 'Nova pedra especial!' :
+          frame.chain > 1 ? `Cascata ×${frame.chain}!` : 'Boa combinação!';
+        await animateClear(frame);
+      } else if (frame.type === 'fall') await animateFall(frame.falls);
+      else if (frame.type === 'rescue') {
+        combo.textContent = 'Um Espectro abriu uma nova jogada';
+        if (!reducedMotion()) {
+          const mover = boardElement.querySelectorAll('.cell')[frame.index]?.querySelector('.mover');
+          if (mover) await waitAnimations([mover.animate([{transform: 'scale(.25)', opacity: 0},
+            {transform: 'scale(1.16)', opacity: 1, offset: .65},
+            {transform: 'scale(1)', opacity: 1}], {duration: 300, easing: 'ease-out'})]);
+        }
       }
     }
+    if (result.levelsGained) await animateLevel();
+  } catch { /* Visual effects are optional; the committed board remains playable. */ }
+  finally {
+    effectLayer.replaceChildren();
+    levelUp.hidden = true;
+    draw();
+    if (result.valid) {
+      showToast(`+${result.earned.toLocaleString('pt-BR')}${result.levelsGained ? ` · Nível ${game.level}!` :
+        result.chain > 1 ? ` · ${result.chain} cascatas` : ''}`);
+      if (result.ended) combo.textContent = 'Sem jogadas restantes';
+      else if (result.levelsGained) combo.textContent = `Nível ${game.level}!`;
+      else if (!result.rescued) setTimeout(() => { if (!busy) combo.textContent = 'Combine três ou mais'; }, 1500);
+    }
+    boardElement.classList.remove('busy');
+    busy = false;
   }
-  draw();
-  hud(result.earned, result.ended);
-  save();
-  showToast(`+${result.earned.toLocaleString('pt-BR')}${result.levelsGained ? ` · Nível ${game.level}!` :
-    result.chain > 1 ? ` · ${result.chain} cascatas` : ''}`);
-  if (result.ended) combo.textContent = 'Sem jogadas restantes';
-  else if (result.levelsGained) combo.textContent = `Nível ${game.level}!`;
-  else if (!result.rescued) setTimeout(() => { if (!busy) combo.textContent = 'Combine três ou mais'; }, 1500);
-  boardElement.classList.remove('busy');
-  busy = false;
 }
 
 function handleIndex(index) {
@@ -744,23 +809,47 @@ function handleIndex(index) {
   draw();
 }
 
-boardElement.addEventListener('pointerdown', event => {
-  const cell = event.target.closest('.cell');
-  if (!cell || busy || game.ended) return;
-  clearHint();
-  pointerStart = {index: Number(cell.dataset.index), x: event.clientX, y: event.clientY};
-});
-boardElement.addEventListener('pointerup', event => {
-  if (!pointerStart || busy) return;
-  const start = pointerStart;
-  pointerStart = null;
-  const dx = event.clientX - start.x, dy = event.clientY - start.y;
-  if (Math.max(Math.abs(dx), Math.abs(dy)) < 15) return handleIndex(start.index);
+function gestureTarget(start, x, y) {
+  const dx = x - start.x, dy = y - start.y;
+  const width = boardElement.querySelectorAll('.cell')[start.index]?.getBoundingClientRect().width || 48;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < Math.max(12, Math.min(24, width * .28))) return null;
   const step = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 1 : -1) : (dy > 0 ? SIZE : -SIZE);
   const end = start.index + step;
-  if (game.adjacent(start.index, end)) attempt(start.index, end);
+  return game.adjacent(start.index, end) ? end : null;
+}
+function clearGesture() {
+  for (const cell of boardElement.querySelectorAll('.cell.pressed, .cell.drag-target'))
+    cell.classList.remove('pressed', 'drag-target');
+  pointerStart = null;
+}
+boardElement.addEventListener('pointerdown', event => {
+  const cell = event.target.closest('.cell');
+  if (!cell || pointerStart || busy || game.ended) return;
+  clearHint();
+  pointerStart = {index: Number(cell.dataset.index), x: event.clientX, y: event.clientY, id: event.pointerId};
+  cell.classList.add('pressed');
+  try { boardElement.setPointerCapture?.(event.pointerId); } catch {}
 });
-boardElement.addEventListener('pointercancel', () => { pointerStart = null; });
+boardElement.addEventListener('pointermove', event => {
+  if (!pointerStart || event.pointerId !== pointerStart.id) return;
+  const end = gestureTarget(pointerStart, event.clientX, event.clientY);
+  for (const cell of boardElement.querySelectorAll('.cell.drag-target')) cell.classList.remove('drag-target');
+  if (end !== null) boardElement.querySelectorAll('.cell')[end]?.classList.add('drag-target');
+});
+boardElement.addEventListener('pointerup', event => {
+  if (!pointerStart || event.pointerId !== pointerStart.id) return;
+  const start = pointerStart;
+  const end = gestureTarget(start, event.clientX, event.clientY);
+  clearGesture();
+  try { boardElement.releasePointerCapture?.(event.pointerId); } catch {}
+  if (busy) return;
+  if (end !== null) attempt(start.index, end);
+  else if (Math.max(Math.abs(event.clientX - start.x), Math.abs(event.clientY - start.y)) < 12)
+    handleIndex(start.index);
+});
+boardElement.addEventListener('pointercancel', event => {
+  if (pointerStart && event.pointerId === pointerStart.id) clearGesture();
+});
 boardElement.addEventListener('keydown', event => {
   const index = Number(event.target.closest('.cell')?.dataset.index);
   if (!Number.isInteger(index)) return;
@@ -822,6 +911,12 @@ $('#sound').addEventListener('click', () => {
   soundOn = !soundOn;
   try { localStorage.setItem('prisma.sound', soundOn ? 'on' : 'off'); } catch {}
   hud();
+});
+$('#vibration').addEventListener('click', () => {
+  vibrationOn = !vibrationOn;
+  try { localStorage.setItem('prisma.vibration', vibrationOn ? 'on' : 'off'); } catch {}
+  hud();
+  vibrate(8);
 });
 
 draw(); hud();

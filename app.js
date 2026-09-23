@@ -1,4 +1,4 @@
-import {Game, SIZE, levelGoal} from './engine.js?v=6';
+import {Game, SIZE, levelGoal} from './engine.js?v=7';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
@@ -17,6 +17,7 @@ const progressLabel = $('#progress-label');
 const combo = $('#combo');
 const toast = $('#toast');
 const gameOver = $('#game-over');
+const levelUp = $('#level-up');
 const game = new Game();
 const names = ['rubi', 'âmbar', 'sol', 'jade', 'água', 'safira', 'ametista'];
 const sessionKey = mode => 'prisma.session.' + mode;
@@ -37,6 +38,10 @@ let busy = false;
 let hintTimer;
 let soundOn = true;
 try { soundOn = localStorage.getItem('prisma.sound') !== 'off'; } catch { /* Some local file views deny storage. */ }
+let vibrationOn = false;
+try { vibrationOn = localStorage.getItem('prisma.vibration') === 'on'; } catch {}
+const canVibrate = typeof navigator.vibrate === 'function';
+$('#vibration').hidden = !canVibrate;
 let audioContext;
 
 function safeRecord(mode) {
@@ -151,6 +156,8 @@ function hud(moveEarned = 0, finishedGame = false) {
   $('#final-level').textContent = String(game.level);
   $('#sound').textContent = soundOn ? '♫' : '♪';
   $('#sound').setAttribute('aria-label', soundOn ? 'Desativar sons' : 'Ativar sons');
+  $('#vibration').setAttribute('aria-pressed', String(vibrationOn));
+  $('#vibration').setAttribute('aria-label', vibrationOn ? 'Desativar vibração' : 'Ativar vibração');
 }
 
 function clearHint() {
@@ -158,8 +165,30 @@ function clearHint() {
   for (const cell of boardElement.querySelectorAll?.('.cell.hinted') ?? []) cell.classList.remove('hinted');
 }
 
-const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
-const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+const reducedMotion = () => document.visibilityState === 'hidden' ||
+  (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
+const activeAnimations = new Set();
+async function waitAnimations(animations) {
+  if (!animations.length) return;
+  animations.forEach(animation => activeAnimations.add(animation));
+  let watchdog;
+  try {
+    await Promise.race([
+      Promise.all(animations.map(animation => animation.finished.catch(() => {}))),
+      new Promise(resolve => { watchdog = setTimeout(resolve, 650); })
+    ]);
+  } finally {
+    clearTimeout(watchdog);
+    animations.forEach(animation => { activeAnimations.delete(animation); animation.cancel?.(); });
+  }
+}
+document.addEventListener?.('visibilitychange', () => {
+  if (document.visibilityState === 'hidden')
+    for (const animation of activeAnimations) animation.cancel?.();
+});
+function vibrate(pattern) {
+  if (vibrationOn && canVibrate) try { navigator.vibrate(pattern); } catch {}
+}
 
 async function animateSwap(a, b, valid) {
   if (reducedMotion()) return;
@@ -175,7 +204,7 @@ async function animateSwap(a, b, valid) {
     : [[{transform: 'translate(0, 0)'}, {transform: `translate(${dx}px, ${dy}px)`, offset: .48}, {transform: 'translate(0, 0)'}],
        [{transform: 'translate(0, 0)'}, {transform: `translate(${-dx}px, ${-dy}px)`, offset: .48}, {transform: 'translate(0, 0)'}]];
   const animations = [a, b].map((index, i) => cells[index].querySelector('.mover').animate(paths[i], options));
-  await Promise.all(animations.map(animation => animation.finished.catch(() => {})));
+  await waitAnimations(animations);
 }
 
 async function animateFall(falls) {
@@ -192,7 +221,7 @@ async function animateFall(falls) {
        {transform: 'translateY(0)', opacity: 1}],
       {duration: Math.min(400, 210 + Math.abs(distance / pitch) * 27), easing: 'cubic-bezier(.2, .78, .24, 1)', fill: 'both'}));
   }
-  await Promise.all(animations.map(animation => animation.finished.catch(() => {})));
+  await waitAnimations(animations);
 }
 
 async function animateClear(frame) {
@@ -253,8 +282,22 @@ async function animateClear(frame) {
         {transform: 'scale(.72)', opacity: 0, filter: 'brightness(1.5)'}],
       {duration: frame.activated.length ? 300 : 225, delay, easing: 'ease-out', fill: 'both'}));
   }
-  try { await Promise.all(effects.map(animation => animation.finished.catch(() => {}))); }
+  try { await waitAnimations(effects); }
   finally { overlays.forEach(element => element.remove()); }
+}
+
+async function animateLevel() {
+  levelUp.textContent = `Nível ${game.level}`;
+  if (reducedMotion()) return;
+  levelUp.hidden = false;
+  try {
+    await waitAnimations([levelUp.animate([
+      {opacity: 0, transform: 'translate(-50%, -42%) scale(.82)'},
+      {opacity: 1, transform: 'translate(-50%, -50%) scale(1)', offset: .25},
+      {opacity: 1, transform: 'translate(-50%, -50%) scale(1)', offset: .7},
+      {opacity: 0, transform: 'translate(-50%, -58%) scale(1.08)'}
+    ], {duration: 580, easing: 'ease-out'})]);
+  } finally { levelUp.hidden = true; }
 }
 
 async function attempt(a, b) {
@@ -263,43 +306,52 @@ async function attempt(a, b) {
   const result = game.move(a, b);
   busy = true;
   boardElement.classList.add('busy');
-  await animateSwap(a, b, result.valid);
-  if (!result.valid) {
-    draw();
-    boardElement.classList.remove('busy');
-    busy = false;
-    return;
+  if (result.valid) {
+    // The engine has already committed all cascades; persist before any visual delay.
+    save();
+    hud(result.earned, result.ended);
+    vibrate(result.levelsGained ? [12, 45, 18] : result.events.some(frame => frame.activated?.length) ? 18 : 10);
   }
-  for (const frame of result.events) {
-    draw(frame.board, frame.type === 'clear' ? frame.cells : []);
-    if (frame.type === 'clear') {
-      playTone(frame.chain);
-      combo.textContent = frame.activated.some(effect => effect.type === 'spectrum') ? 'Explosão de cores!' :
-        frame.activated.length ? 'Reação em cadeia!' :
-        frame.creations.length ? 'Nova pedra especial!' :
-        frame.chain > 1 ? `Cascata ×${frame.chain}!` : 'Boa combinação!';
-      await animateClear(frame);
-    } else if (frame.type === 'fall') await animateFall(frame.falls);
-    else if (frame.type === 'rescue') {
-      combo.textContent = 'Um Espectro abriu uma nova jogada';
-      if (!reducedMotion()) {
-        const mover = boardElement.querySelectorAll('.cell')[frame.index]?.querySelector('.mover');
-        await mover?.animate([{transform: 'scale(.25)', opacity: 0},
-          {transform: 'scale(1.16)', opacity: 1, offset: .65},
-          {transform: 'scale(1)', opacity: 1}], {duration: 300, easing: 'ease-out'}).finished.catch(() => {});
+  try {
+    await animateSwap(a, b, result.valid);
+    if (!result.valid) return;
+    for (const frame of result.events) {
+      if (document.visibilityState === 'hidden') break;
+      draw(frame.board, frame.type === 'clear' ? frame.cells : []);
+      if (frame.type === 'clear') {
+        playTone(frame.chain);
+        combo.textContent = frame.activated.some(effect => effect.type === 'spectrum') ? 'Explosão de cores!' :
+          frame.activated.length ? 'Reação em cadeia!' :
+          frame.creations.length ? 'Nova pedra especial!' :
+          frame.chain > 1 ? `Cascata ×${frame.chain}!` : 'Boa combinação!';
+        await animateClear(frame);
+      } else if (frame.type === 'fall') await animateFall(frame.falls);
+      else if (frame.type === 'rescue') {
+        combo.textContent = 'Um Espectro abriu uma nova jogada';
+        if (!reducedMotion()) {
+          const mover = boardElement.querySelectorAll('.cell')[frame.index]?.querySelector('.mover');
+          if (mover) await waitAnimations([mover.animate([{transform: 'scale(.25)', opacity: 0},
+            {transform: 'scale(1.16)', opacity: 1, offset: .65},
+            {transform: 'scale(1)', opacity: 1}], {duration: 300, easing: 'ease-out'})]);
+        }
       }
     }
+    if (result.levelsGained) await animateLevel();
+  } catch { /* Visual effects are optional; the committed board remains playable. */ }
+  finally {
+    effectLayer.replaceChildren();
+    levelUp.hidden = true;
+    draw();
+    if (result.valid) {
+      showToast(`+${result.earned.toLocaleString('pt-BR')}${result.levelsGained ? ` · Nível ${game.level}!` :
+        result.chain > 1 ? ` · ${result.chain} cascatas` : ''}`);
+      if (result.ended) combo.textContent = 'Sem jogadas restantes';
+      else if (result.levelsGained) combo.textContent = `Nível ${game.level}!`;
+      else if (!result.rescued) setTimeout(() => { if (!busy) combo.textContent = 'Combine três ou mais'; }, 1500);
+    }
+    boardElement.classList.remove('busy');
+    busy = false;
   }
-  draw();
-  hud(result.earned, result.ended);
-  save();
-  showToast(`+${result.earned.toLocaleString('pt-BR')}${result.levelsGained ? ` · Nível ${game.level}!` :
-    result.chain > 1 ? ` · ${result.chain} cascatas` : ''}`);
-  if (result.ended) combo.textContent = 'Sem jogadas restantes';
-  else if (result.levelsGained) combo.textContent = `Nível ${game.level}!`;
-  else if (!result.rescued) setTimeout(() => { if (!busy) combo.textContent = 'Combine três ou mais'; }, 1500);
-  boardElement.classList.remove('busy');
-  busy = false;
 }
 
 function handleIndex(index) {
@@ -312,23 +364,47 @@ function handleIndex(index) {
   draw();
 }
 
-boardElement.addEventListener('pointerdown', event => {
-  const cell = event.target.closest('.cell');
-  if (!cell || busy || game.ended) return;
-  clearHint();
-  pointerStart = {index: Number(cell.dataset.index), x: event.clientX, y: event.clientY};
-});
-boardElement.addEventListener('pointerup', event => {
-  if (!pointerStart || busy) return;
-  const start = pointerStart;
-  pointerStart = null;
-  const dx = event.clientX - start.x, dy = event.clientY - start.y;
-  if (Math.max(Math.abs(dx), Math.abs(dy)) < 15) return handleIndex(start.index);
+function gestureTarget(start, x, y) {
+  const dx = x - start.x, dy = y - start.y;
+  const width = boardElement.querySelectorAll('.cell')[start.index]?.getBoundingClientRect().width || 48;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < Math.max(12, Math.min(24, width * .28))) return null;
   const step = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 1 : -1) : (dy > 0 ? SIZE : -SIZE);
   const end = start.index + step;
-  if (game.adjacent(start.index, end)) attempt(start.index, end);
+  return game.adjacent(start.index, end) ? end : null;
+}
+function clearGesture() {
+  for (const cell of boardElement.querySelectorAll('.cell.pressed, .cell.drag-target'))
+    cell.classList.remove('pressed', 'drag-target');
+  pointerStart = null;
+}
+boardElement.addEventListener('pointerdown', event => {
+  const cell = event.target.closest('.cell');
+  if (!cell || pointerStart || busy || game.ended) return;
+  clearHint();
+  pointerStart = {index: Number(cell.dataset.index), x: event.clientX, y: event.clientY, id: event.pointerId};
+  cell.classList.add('pressed');
+  try { boardElement.setPointerCapture?.(event.pointerId); } catch {}
 });
-boardElement.addEventListener('pointercancel', () => { pointerStart = null; });
+boardElement.addEventListener('pointermove', event => {
+  if (!pointerStart || event.pointerId !== pointerStart.id) return;
+  const end = gestureTarget(pointerStart, event.clientX, event.clientY);
+  for (const cell of boardElement.querySelectorAll('.cell.drag-target')) cell.classList.remove('drag-target');
+  if (end !== null) boardElement.querySelectorAll('.cell')[end]?.classList.add('drag-target');
+});
+boardElement.addEventListener('pointerup', event => {
+  if (!pointerStart || event.pointerId !== pointerStart.id) return;
+  const start = pointerStart;
+  const end = gestureTarget(start, event.clientX, event.clientY);
+  clearGesture();
+  try { boardElement.releasePointerCapture?.(event.pointerId); } catch {}
+  if (busy) return;
+  if (end !== null) attempt(start.index, end);
+  else if (Math.max(Math.abs(event.clientX - start.x), Math.abs(event.clientY - start.y)) < 12)
+    handleIndex(start.index);
+});
+boardElement.addEventListener('pointercancel', event => {
+  if (pointerStart && event.pointerId === pointerStart.id) clearGesture();
+});
 boardElement.addEventListener('keydown', event => {
   const index = Number(event.target.closest('.cell')?.dataset.index);
   if (!Number.isInteger(index)) return;
@@ -390,6 +466,12 @@ $('#sound').addEventListener('click', () => {
   soundOn = !soundOn;
   try { localStorage.setItem('prisma.sound', soundOn ? 'on' : 'off'); } catch {}
   hud();
+});
+$('#vibration').addEventListener('click', () => {
+  vibrationOn = !vibrationOn;
+  try { localStorage.setItem('prisma.vibration', vibrationOn ? 'on' : 'off'); } catch {}
+  hud();
+  vibrate(8);
 });
 
 draw(); hud();

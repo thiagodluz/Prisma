@@ -22,6 +22,10 @@ Ao alternar entre modos, cada partida fica guardada separadamente no navegador. 
 
 Partidas salvas antes desta versão mantêm o nível e o progresso aproximado que já tinham. As sete cores continuam com chances iguais de aparecer; a dificuldade cresce pelo ritmo das metas, sem retirar cores nem reduzir as jogadas disponíveis.
 
+## Toque e apresentação
+
+Ao arrastar, a pedra de destino é destacada antes da troca. A vibração é opcional, começa desligada e aparece apenas em aparelhos compatíveis. A transição de nível respeita a preferência do sistema por menos movimento. Cada jogada válida é salva assim que o motor confirma seu resultado; ao voltar após fechar o navegador durante uma cascata, o tabuleiro abre no resultado concluído.
+
 ## Pedras especiais
 
 - **Pulso:** quatro da mesma cor em linha criam uma pedra que, quando combinada, explode nas oito casas ao redor.
