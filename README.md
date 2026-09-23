@@ -52,7 +52,13 @@ Na pasta do projeto, execute `python3 -m http.server 8080` e abra `http://localh
 
 ## Jogar no Android
 
-Para jogar, abra [a versão HTTPS](https://prisma-jogo-thiago.thiagodluz.chatgpt.site) no navegador do Android. Use **Adicionar à tela inicial** ou **Instalar app** no menu do navegador. O service worker guarda os arquivos para uso offline após a primeira abertura. O arquivo `Prisma-jogar-offline.html` é uma alternativa para navegadores que permitam JavaScript em arquivos locais; alguns navegadores Android abrem downloads em `content://` e bloqueiam a execução ou o armazenamento nesse contexto. O código ainda não gera um APK: para distribuição pela Play Store ou instalação por arquivo, o próximo passo é empacotar a aplicação e assinar o APK/AAB em um ambiente com Android SDK.
+Instale o **APK de teste** gerado pela compilação Android abaixo. O aplicativo traz a interface, os sons sintetizados e todas as imagens dentro do próprio pacote, abre sem conexão e salva partidas, recordes e preferências no armazenamento privado do aplicativo. Ao sair ou trocar de aplicativo, a partida é salva e o áudio do Zen é pausado; ao voltar, a tela retoma a sessão. Para instalar APKs fora da Play Store, o Android pode pedir que você autorize a instalação pelo aplicativo usado para abrir o arquivo. O APK de teste tem assinatura de desenvolvimento: a versão de publicação precisará de uma chave de assinatura própria e estável.
+
+Também é possível abrir [a versão HTTPS](https://prisma-jogo-thiago.thiagodluz.chatgpt.site) no navegador e usar **Adicionar à tela inicial** ou **Instalar app**. O arquivo `Prisma-jogar-offline.html` serve como alternativa nos navegadores que permitam JavaScript em arquivos locais; alguns Androids bloqueiam isso ao abrir downloads em `content://`. As partidas salvas no navegador e as do APK têm armazenamentos separados.
+
+### Compilar o APK
+
+O projeto Android está em `android/` e usa a WebView do sistema com recursos locais. Em um computador com JDK 17, Android SDK Platform 35, Build Tools 35.0.0 e Gradle 8.13, execute `gradle -p android :app:assembleDebug`. O arquivo resultante é `android/app/build/outputs/apk/debug/app-debug.apk`. O workflow `.github/workflows/android-apk.yml` executa os testes, compila e disponibiliza o APK em **Artifacts** nas execuções do GitHub Actions. O aplicativo exige Android 8 ou mais recente e Android System WebView atualizada. O APK não pede acesso à internet; apenas permissão de vibração opcional. Não é necessária uma conta nem um servidor para jogar.
 
 ## Testes
 
