@@ -1,6 +1,6 @@
-import {Game, SIZE, levelGoal} from './engine.js?v=12';
-import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=12';
-import {SoundDesign, cueForFrame} from './sound.js?v=12';
+import {Game, SIZE, levelGoal} from './engine.js?v=13';
+import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=13';
+import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=13';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
@@ -51,6 +51,9 @@ let busy = false;
 let hintTimer;
 let soundOn = true;
 try { soundOn = localStorage.getItem('prisma.sound') !== 'off'; } catch { /* Some local file views deny storage. */ }
+let audioSettings;
+try { audioSettings = normalizeAudioSettings(JSON.parse(localStorage.getItem('prisma.audio.settings'))); }
+catch { audioSettings = normalizeAudioSettings(null); }
 let zenSettings;
 try { zenSettings = normalizeZenSettings(JSON.parse(localStorage.getItem('prisma.zen.settings'))); }
 catch { zenSettings = normalizeZenSettings(null); }
@@ -62,12 +65,15 @@ let audioContext;
 const getAudioContext = () => audioContext ??= new (window.AudioContext || window.webkitAudioContext)();
 const zenAudio = new ZenAudio(getAudioContext);
 const soundDesign = new SoundDesign(getAudioContext);
-function unlockAudio() {
-  if (!soundOn && !(game.mode === 'zen' && (zenSettings.music || zenSettings.ambience))) return;
+soundDesign.setVolume(audioSettings.effects);
+zenAudio.setVolumes(audioSettings);
+async function unlockAudio(force = false) {
+  if (!force && !soundOn && !(game.mode === 'zen' && (zenSettings.music || zenSettings.ambience))) return false;
   try {
     const context = getAudioContext();
-    if (context.state === 'suspended') context.resume().catch?.(() => {});
-  } catch { /* The game stays playable without Web Audio. */ }
+    if (context.state !== 'running') await context.resume();
+    return context.state === 'running';
+  } catch { return false; /* The game stays playable without Web Audio. */ }
 }
 let breathTimer;
 let breathStart = 0;
@@ -122,6 +128,17 @@ function syncZenUI(resetBreath = false) {
 
 function saveZenSettings() {
   try { localStorage.setItem('prisma.zen.settings', JSON.stringify(zenSettings)); } catch {}
+}
+
+function syncAudioSettingsUI() {
+  for (const channel of ['effects', 'music', 'ambience']) {
+    $('#volume-' + channel).value = String(audioSettings[channel]);
+    $('#volume-' + channel + '-value').textContent = `${audioSettings[channel]}%`;
+  }
+}
+
+function saveAudioSettings() {
+  try { localStorage.setItem('prisma.audio.settings', JSON.stringify(audioSettings)); } catch {}
 }
 
 const effectScale = () => game.mode !== 'zen' ? 1 : zenSettings.effects === 'soft' ? .82 :
@@ -220,8 +237,10 @@ function hud(moveEarned = 0, finishedGame = false) {
   gameOver.hidden = !game.ended;
   $('#final-score').textContent = game.score.toLocaleString('pt-BR');
   $('#final-level').textContent = String(game.level);
-  $('#sound').textContent = soundOn ? '♫' : '♪';
-  $('#sound').setAttribute('aria-label', soundOn ? 'Desativar sons do jogo' : 'Ativar sons do jogo');
+  const effectsAudible = soundOn && audioSettings.effects > 0;
+  $('#sound').textContent = effectsAudible ? '♫' : '♪';
+  $('#sound').setAttribute('aria-pressed', String(effectsAudible));
+  $('#sound').setAttribute('aria-label', effectsAudible ? 'Desativar sons do jogo' : 'Ativar sons do jogo');
   $('#vibration').setAttribute('aria-pressed', String(vibrationOn));
   $('#vibration').setAttribute('aria-label', vibrationOn ? 'Desativar vibração' : 'Ativar vibração');
 }
@@ -241,7 +260,7 @@ async function waitAnimations(animations) {
   try {
     await Promise.race([
       Promise.all(animations.map(animation => animation.finished.catch(() => {}))),
-      new Promise(resolve => { watchdog = setTimeout(resolve, 650); })
+      new Promise(resolve => { watchdog = setTimeout(resolve, 900); })
     ]);
   } finally {
     clearTimeout(watchdog);
@@ -265,7 +284,7 @@ async function animateSwap(a, b, valid) {
   const second = cells[b]?.getBoundingClientRect();
   if (!first || !second) return;
   const dx = second.left - first.left, dy = second.top - first.top;
-  const options = {duration: valid ? 170 : 260, easing: 'ease-in-out'};
+  const options = {duration: valid ? 225 : 300, easing: 'ease-in-out'};
   const paths = valid
     ? [[{transform: 'translate(0, 0)'}, {transform: `translate(${dx}px, ${dy}px)`}],
        [{transform: 'translate(0, 0)'}, {transform: `translate(${-dx}px, ${-dy}px)`}]]
@@ -287,7 +306,7 @@ async function animateFall(falls) {
     animations.push(cells[index].querySelector('.mover').animate(
       [{transform: `translateY(${distance}px)`, opacity: spawned ? .45 : 1},
        {transform: 'translateY(0)', opacity: 1}],
-      {duration: Math.min(400, 210 + Math.abs(distance / pitch) * 27), easing: 'cubic-bezier(.2, .78, .24, 1)', fill: 'both'}));
+      {duration: Math.min(470, 250 + Math.abs(distance / pitch) * 32), easing: 'cubic-bezier(.2, .78, .24, 1)', fill: 'both'}));
   }
   await waitAnimations(animations);
 }
@@ -373,7 +392,7 @@ async function animateClear(frame) {
           filter: `brightness(${zenSettings.effects === 'soft' && game.mode === 'zen' ? 1.35 :
             zenSettings.effects === 'vivid' && game.mode === 'zen' ? 2.1 : 1.8})`, offset: .38},
         {transform: 'scale(.72)', opacity: 0, filter: 'brightness(1.5)'}],
-      {duration: (frame.activated.length ? 300 : 225) * scale, delay,
+      {duration: (frame.activated.length ? 340 : 270) * scale, delay,
         easing: 'ease-out', fill: 'both'}));
   }
   try { await waitAnimations(effects); }
@@ -597,11 +616,34 @@ $('#zen-effects').addEventListener('change', event => {
   saveZenSettings();
   boardFrame.dataset.effects = game.mode === 'zen' ? zenSettings.effects : 'normal';
 });
+for (const channel of ['effects', 'music', 'ambience']) {
+  $('#volume-' + channel).addEventListener('input', event => {
+    audioSettings[channel] = normalizeAudioSettings({[channel]: Number(event.target.value)})[channel];
+    if (channel === 'effects') soundDesign.setVolume(audioSettings.effects);
+    else zenAudio.setVolumes(audioSettings);
+    saveAudioSettings();
+    syncAudioSettingsUI();
+    if (channel === 'effects') hud();
+  });
+}
+$('#audio-test').addEventListener('click', async () => {
+  if (audioSettings.effects === 0) { showToast('Aumente o volume dos efeitos'); return; }
+  if (!await unlockAudio(true) || !soundDesign.play('match'))
+    showToast('Verifique o som desta aba e do aparelho');
+});
 $('#sound').addEventListener('click', () => {
-  soundOn = !soundOn;
-  if (soundOn) unlockAudio();
+  if (soundOn && audioSettings.effects === 0) {
+    audioSettings.effects = 80;
+    soundDesign.setVolume(audioSettings.effects);
+    saveAudioSettings();
+    syncAudioSettingsUI();
+  } else soundOn = !soundOn;
   try { localStorage.setItem('prisma.sound', soundOn ? 'on' : 'off'); } catch {}
   hud();
+  if (soundOn) unlockAudio(true).then(ready => {
+    if (ready) soundDesign.play('match');
+    else showToast('Verifique o som desta aba e do aparelho');
+  });
 });
 $('#vibration').addEventListener('click', () => {
   vibrationOn = !vibrationOn;
@@ -610,5 +652,5 @@ $('#vibration').addEventListener('click', () => {
   vibrate(8);
 });
 
-draw(); hud(); syncZenUI(true);
+draw(); hud(); syncAudioSettingsUI(); syncZenUI(true);
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});

@@ -33,7 +33,7 @@ O alinhamento do tabuleiro usa o centro visível dos pixels de cada recorte, med
 
 ## Áudio
 
-`sound.js` sintetiza cues curtos e distintos para troca inválida, combinação, cascata, Pulso, Raio, Espectro, criação, nível e recuperação. `zen.js` mantém um ciclo autoral de quatro acordes com notas espaçadas e camada de ambiente filtrada. Música e ambiente permanecem controles independentes; o botão superior controla apenas os sons do jogo. O áudio é desbloqueado após interação e interrompido ao ocultar a página ou deixar o Zen.
+`sound.js` sintetiza cues curtos e distintos para troca inválida, combinação, cascata, Pulso, Raio, Espectro, criação, nível e recuperação. `zen.js` mantém um ciclo autoral de quatro acordes com notas espaçadas e camada de ambiente filtrada. Os volumes de efeitos, música e ambiente são independentes e persistentes. O ganho inicial dos efeitos foi elevado para melhorar a audibilidade em alto-falantes pequenos; o botão Testar som retoma o Web Audio por gesto do usuário e toca um cue para ajudar a verificar o navegador. O botão superior controla apenas os efeitos, enquanto música e ambiente continuam limitados ao Zen. O áudio é desbloqueado após interação e interrompido ao ocultar a página ou deixar o Zen.
 
 ## Verificação pendente em aparelho
 

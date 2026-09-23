@@ -1,6 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {SoundDesign, cueForFrame} from '../sound.js';
+import {SoundDesign, normalizeAudioSettings, cueForFrame} from '../sound.js';
+
+test('volume preferences are bounded and existing channels respond to changes', () => {
+  assert.deepEqual(normalizeAudioSettings({effects: 160, music: -8, ambience: '80'}),
+    {effects: 100, music: 0, ambience: 65});
+  assert.deepEqual(normalizeAudioSettings(null), {effects: 80, music: 70, ambience: 65});
+  const param = () => ({value: 0, setValueAtTime() {}, exponentialRampToValueAtTime() {},
+    setTargetAtTime(value) { this.value = value; }});
+  const node = () => ({connect() { return this; }, disconnect() {}, start() {}, stop() {}});
+  const context = {state: 'running', currentTime: 2, destination: {},
+    createGain() { return {...node(), context, gain: param()}; },
+    createOscillator() { return {...node(), frequency: param()}; }};
+  const design = new SoundDesign(() => context);
+  assert.equal(design.play('invalid'), true);
+  assert.equal(design.master.gain.value, 1);
+  design.setVolume(40);
+  assert.equal(design.master.gain.value, .5);
+  design.setVolume(0);
+  assert.equal(design.play('match'), false);
+});
 
 test('special reactions get distinct audio cues before regular cascades', () => {
   assert.equal(cueForFrame({chain: 1, activated: []}), 'match');

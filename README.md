@@ -24,7 +24,9 @@ Partidas salvas antes desta versão mantêm o nível e o progresso aproximado qu
 
 ## Toque e apresentação
 
-Ao arrastar, a pedra de destino é destacada antes da troca. A vibração é opcional, começa desligada e aparece apenas em aparelhos compatíveis. A transição de nível respeita a preferência do sistema por menos movimento. Cada jogada válida é salva assim que o motor confirma seu resultado; ao voltar após fechar o navegador durante uma cascata, o tabuleiro abre no resultado concluído.
+Ao arrastar, a pedra de destino é destacada antes da troca. Trocas, quedas e remoções têm um ritmo um pouco mais lento para facilitar a leitura, inclusive no computador. A vibração é opcional, começa desligada e aparece apenas em aparelhos compatíveis. A transição de nível respeita a preferência do sistema por menos movimento. Cada jogada válida é salva assim que o motor confirma seu resultado; ao voltar após fechar o navegador durante uma cascata, o tabuleiro abre no resultado concluído.
+
+Abra **Configurações de som**, em qualquer modo, para ajustar separadamente os volumes dos efeitos, da música do Zen e do ambiente do Zen (0–100%). O botão **Testar som** toca uma combinação e ajuda a conferir se o navegador e o dispositivo estão reproduzindo áudio. Os volumes ficam salvos separadamente das partidas. O botão ♫ no cabeçalho continua ligando ou desligando os efeitos e agora toca um som curto ao ser ligado. Música e ambiente são ligados em **Personalizar Zen**.
 
 ## Personalização do Zen
 

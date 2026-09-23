@@ -18,11 +18,11 @@ test('music and ambience start independently and both stop outside Zen', () => {
   const node = () => ({connect() { return this; }, disconnect() {}, start() { this.started = true; },
     stop(time) { this.stopAt = time; if (time === undefined) { this.stopped = true; this.onended?.(); } }});
   const param = () => ({value: 0, setValueAtTime() {}, linearRampToValueAtTime() {},
-    exponentialRampToValueAtTime() {}, setTargetAtTime() {}});
+    exponentialRampToValueAtTime() {}, setTargetAtTime(value) { this.target = value; }});
   const ctx = {
     state: 'running', currentTime: 0, sampleRate: 32, destination: {},
     createOscillator() { const voice = {...node(), frequency: {value: 0}}; notes.push(voice); return voice; },
-    createGain() { return {...node(), gain: param()}; },
+    createGain() { return {...node(), context: ctx, gain: param()}; },
     createBuffer() { return {getChannelData: () => new Float32Array(96)}; },
     createBufferSource() { const source = node(); noises.push(source); return source; },
     createBiquadFilter() { return {...node(), frequency: {value: 0}}; }
@@ -39,6 +39,9 @@ test('music and ambience start independently and both stop outside Zen', () => {
     assert.equal(audio.musicTimer, null);
     assert.equal(notes.every(note => note.stopAt === .22), true);
     assert.equal(noises.length, 1);
+    audio.setVolumes({music: 40, ambience: 30});
+    assert.equal(audio.musicOutput.gain.target, .8);
+    assert.equal(audio.ambienceSource.volume.gain.target, 30 / 65 * .024);
     audio.sync({active: false, music: true, ambience: true});
     assert.equal(noises[0].stopAt, .22);
     assert.equal(audio.ambienceSource, null);

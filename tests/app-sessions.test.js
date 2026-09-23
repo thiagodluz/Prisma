@@ -68,6 +68,13 @@ test('old Endless session opens as Classic and switching modes keeps both sessio
   assert.equal(elements.get('#zen-panel').hidden, true);
   assert.equal(modes[1].classList.contains('selected'), true);
   assert.equal(JSON.parse(data.get('prisma.session.classic')).score, 2500);
+  const originalSession = data.get('prisma.session.classic');
+  const effectsVolume = elements.get('#volume-effects');
+  effectsVolume.value = '45';
+  effectsVolume.handlers.input({target: effectsVolume});
+  assert.equal(JSON.parse(data.get('prisma.audio.settings')).effects, 45);
+  assert.equal(elements.get('#volume-effects-value').textContent, '45%');
+  assert.equal(data.get('prisma.session.classic'), originalSession);
 
   modes[0].handlers.click();
   assert.equal(elements.get('#score').textContent, '0');

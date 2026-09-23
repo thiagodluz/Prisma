@@ -19,15 +19,32 @@ export class ZenAudio {
     this.musicTimer = null;
     this.voices = new Set();
     this.ambienceSource = null;
+    this.musicOutput = null;
+    this.musicVolume = 70;
+    this.ambienceVolume = 65;
     this.chord = 0;
+  }
+
+  setVolumes({music, ambience}) {
+    this.musicVolume = Math.max(0, Math.min(100, Number(music) || 0));
+    this.ambienceVolume = Math.max(0, Math.min(100, Number(ambience) || 0));
+    if (this.musicOutput) this.musicOutput.gain.setTargetAtTime(
+      this.musicVolume / 50, this.musicOutput.context.currentTime, .04);
+    if (this.ambienceSource) this.ambienceSource.volume.gain.setTargetAtTime(
+      this.ambienceVolume / 65 * .024, this.ambienceSource.ctx.currentTime, .04);
   }
 
   sync({active, music, ambience}) {
     if (!this.armed || !active || (!music && !ambience)) { this.stop(); return; }
     try {
       const ctx = this.getContext();
-      if (ctx.state === 'suspended') ctx.resume().catch?.(() => {});
+      if (ctx.state !== 'running') ctx.resume().catch?.(() => {});
       if (music && !this.musicTimer) {
+        if (!this.musicOutput || this.musicOutput.context !== ctx) {
+          this.musicOutput = ctx.createGain();
+          this.musicOutput.gain.value = this.musicVolume / 50;
+          this.musicOutput.connect(ctx.destination);
+        }
         this.playChord(ctx);
         this.musicTimer = setInterval(() => this.playChord(ctx), 7600);
       } else if (!music) this.stopMusic();
@@ -58,7 +75,7 @@ export class ZenAudio {
     volume.gain.linearRampToValueAtTime(peak, time + attack);
     volume.gain.setValueAtTime(peak, time + duration * .7);
     volume.gain.exponentialRampToValueAtTime(.0001, time + duration);
-    voice.connect(volume).connect(ctx.destination);
+    voice.connect(volume).connect(this.musicOutput);
     const entry = {voice, volume};
     voice.onended = () => { this.voices.delete(entry); voice.disconnect(); volume.disconnect(); };
     this.voices.add(entry);
@@ -81,7 +98,7 @@ export class ZenAudio {
     source.loop = true;
     filter.type = 'lowpass';
     filter.frequency.value = 420;
-    volume.gain.value = .019;
+    volume.gain.value = this.ambienceVolume / 65 * .024;
     source.connect(filter).connect(volume).connect(ctx.destination);
     source.onended = () => { source.disconnect(); filter.disconnect(); volume.disconnect(); };
     source.start();

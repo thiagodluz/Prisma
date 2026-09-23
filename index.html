@@ -11,7 +11,7 @@
   <link rel="preload" href="burst-atlas.webp" as="image">
   <link rel="preload" href="cross-atlas.webp" as="image">
   <link rel="preload" href="spectrum-gem.webp" as="image">
-  <link rel="stylesheet" href="style.css?v=12">
+  <link rel="stylesheet" href="style.css?v=13">
   <title>Prisma — combine e relaxe</title>
 </head>
 <body>
@@ -67,6 +67,19 @@
         <button class="visual-option" data-visual="illustrated" type="button" aria-pressed="true">Novo</button>
       </div>
     </section>
+    <details class="audio-settings">
+      <summary>Configurações de som</summary>
+      <div class="audio-settings-content">
+        <label for="volume-effects"><span>Efeitos</span><output id="volume-effects-value" for="volume-effects">80%</output></label>
+        <input id="volume-effects" type="range" min="0" max="100" step="5" value="80" aria-label="Volume dos efeitos">
+        <label for="volume-music"><span>Música do Zen</span><output id="volume-music-value" for="volume-music">70%</output></label>
+        <input id="volume-music" type="range" min="0" max="100" step="5" value="70" aria-label="Volume da música do Zen">
+        <label for="volume-ambience"><span>Ambiente do Zen</span><output id="volume-ambience-value" for="volume-ambience">65%</output></label>
+        <input id="volume-ambience" type="range" min="0" max="100" step="5" value="65" aria-label="Volume do ambiente do Zen">
+        <button id="audio-test" type="button">▶ Testar som</button>
+        <p>Para ouvir música e ambiente, ative-os em Personalizar Zen.</p>
+      </div>
+    </details>
     <section class="zen-panel" id="zen-panel" aria-label="Personalização do modo Zen">
       <details class="zen-settings">
         <summary>Personalizar Zen</summary>
@@ -107,6 +120,6 @@
       </div>
     </details>
   </main>
-  <script type="module" src="app.js?v=12"></script>
+  <script type="module" src="app.js?v=13"></script>
 </body>
 </html>

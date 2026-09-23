@@ -1,8 +1,28 @@
 // Original short cues assembled at playback time. No network request or sample decoding.
+export const AUDIO_DEFAULTS = Object.freeze({effects: 80, music: 70, ambience: 65});
+
+export function normalizeAudioSettings(value) {
+  return Object.fromEntries(Object.entries(AUDIO_DEFAULTS).map(([channel, fallback]) => {
+    const level = value?.[channel];
+    return [channel, Number.isFinite(level) ? Math.max(0, Math.min(100, Math.round(level))) : fallback];
+  }));
+}
+
 export class SoundDesign {
   constructor(getContext) {
     this.getContext = getContext;
     this.master = null;
+    this.volume = AUDIO_DEFAULTS.effects;
+  }
+
+  outputGain() { return this.volume / 100 * 1.25; }
+
+  setVolume(level) {
+    this.volume = Math.max(0, Math.min(100, Number(level) || 0));
+    if (!this.master) return;
+    const {gain, context} = this.master;
+    if (typeof gain.setTargetAtTime === 'function') gain.setTargetAtTime(this.outputGain(), context.currentTime, .02);
+    else gain.value = this.outputGain();
   }
 
   note(ctx, frequency, time, duration, volume, type = 'sine', endFrequency = frequency) {
@@ -22,19 +42,20 @@ export class SoundDesign {
   }
 
   play(kind, chain = 1) {
+    if (!this.volume) return false;
     try {
       const ctx = this.getContext();
-      if (ctx.state === 'suspended') ctx.resume().catch?.(() => {});
+      if (ctx.state !== 'running') ctx.resume().catch?.(() => {});
       if (!this.master || this.master.context !== ctx) {
         this.master = ctx.createGain();
-        this.master.gain.value = .42;
+        this.master.gain.value = this.outputGain();
         this.master.connect(ctx.destination);
       }
       const now = ctx.currentTime;
       const lift = Math.min(Math.max(chain - 1, 0), 5);
       if (kind === 'invalid') {
         this.note(ctx, 235, now, .09, .028, 'triangle', 205);
-        return;
+        return true;
       }
       if (kind === 'match' || kind === 'cascade') {
         const notes = [523.25, 659.25, 783.99];
@@ -61,7 +82,8 @@ export class SoundDesign {
         [587.33, 783.99, 1174.66].forEach((frequency, i) =>
           this.note(ctx, frequency, now + i * .08, .35, .038, 'sine'));
       }
-    } catch { /* Sound is optional, including when audio is blocked by the browser. */ }
+      return true;
+    } catch { return false; /* The game stays playable if Web Audio is unavailable. */ }
   }
 }
 
