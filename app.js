@@ -1,6 +1,6 @@
-import {Game, SIZE, levelGoal} from './engine.js?v=14';
-import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=14';
-import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=14';
+import {Game, SIZE, levelGoal} from './engine.js?v=15';
+import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=15';
+import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=15';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
@@ -16,6 +16,7 @@ const modeLabel = $('#mode-label');
 const progress = $('#progress');
 const progressFill = $('#progress-fill');
 const progressLabel = $('#progress-label');
+const scoreGain = $('#score-gain');
 const combo = $('#combo');
 const toast = $('#toast');
 const gameOver = $('#game-over');
@@ -177,6 +178,19 @@ function showToast(message) {
   toast.classList.add('visible');
   clearTimeout(showToast.timer);
   showToast.timer = setTimeout(() => toast.classList.remove('visible'), 1250);
+}
+
+function showScoreGain(points) {
+  scoreGain.textContent = `+${points.toLocaleString('pt-BR')}`;
+  scoreGain.classList.add('visible');
+  clearTimeout(showScoreGain.timer);
+  showScoreGain.timer = setTimeout(() => scoreGain.classList.remove('visible'), 1250);
+}
+
+function clearScoreGain() {
+  clearTimeout(showScoreGain.timer);
+  scoreGain.textContent = '';
+  scoreGain.classList.remove('visible');
 }
 
 function draw(board = game.board, matched = []) {
@@ -438,6 +452,7 @@ async function attempt(a, b) {
     // The engine has already committed all cascades; persist before any visual delay.
     save();
     hud(result.earned, result.ended);
+    showScoreGain(result.earned);
     vibrate(result.levelsGained ? [12, 45, 18] : result.events.some(frame => frame.activated?.length) ? 18 : 10);
   } else playTone('invalid');
   try {
@@ -473,8 +488,6 @@ async function attempt(a, b) {
     levelUp.hidden = true;
     draw();
     if (result.valid) {
-      showToast(`+${result.earned.toLocaleString('pt-BR')}${result.levelsGained ? ` · Nível ${game.level}!` :
-        result.chain > 1 ? ` · ${result.chain} cascatas` : ''}`);
       if (result.ended) combo.textContent = 'Sem jogadas restantes';
       else if (result.levelsGained) combo.textContent = `Nível ${game.level}!`;
       else if (!result.rescued) setTimeout(() => { if (!busy) combo.textContent = 'Combine três ou mais'; }, 1500);
@@ -575,6 +588,7 @@ $('#shuffle').addEventListener('click', () => {
 });
 $('#new-game').addEventListener('click', () => {
   if (busy) return;
+  clearScoreGain();
   clearHint();
   selected = null;
   game.newGame();
@@ -583,6 +597,7 @@ $('#new-game').addEventListener('click', () => {
 });
 $('#play-again').addEventListener('click', () => {
   if (busy) return;
+  clearScoreGain();
   clearHint();
   selected = null;
   game.newGame();
@@ -591,6 +606,7 @@ $('#play-again').addEventListener('click', () => {
 });
 document.querySelectorAll('.mode').forEach(button => button.addEventListener('click', () => {
   if (busy || game.mode === button.dataset.mode) return;
+  clearScoreGain();
   clearHint();
   selected = null;
   save();

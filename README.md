@@ -26,6 +26,8 @@ Partidas salvas antes desta versão mantêm o nível e o progresso aproximado qu
 
 Ao arrastar, a pedra de destino é destacada antes da troca. Trocas, quedas e remoções têm um ritmo um pouco mais lento para facilitar a leitura, inclusive no computador. A vibração é opcional, começa desligada e aparece apenas em aparelhos compatíveis. A transição de nível respeita a preferência do sistema por menos movimento. Cada jogada válida é salva assim que o motor confirma seu resultado; ao voltar após fechar o navegador durante uma cascata, o tabuleiro abre no resultado concluído.
 
+Os pontos ganhos aparecem logo ao lado do progresso, fora do tabuleiro, enquanto as pedras terminam de animar. A página continua rolando quando necessário; a WebView Android não apresenta o efeito elástico ao atingir as bordas.
+
 Abra **Configurações de som**, em qualquer modo, para ajustar separadamente os volumes dos efeitos, da música do Zen e do ambiente do Zen (0–100%). O botão **Testar som** toca uma combinação e ajuda a conferir se o navegador e o dispositivo estão reproduzindo áudio. Os volumes ficam salvos separadamente das partidas. O botão ♫ no cabeçalho continua ligando ou desligando os efeitos e agora toca um som curto ao ser ligado. Música e ambiente são ligados em **Personalizar Zen**.
 
 ## Personalização do Zen
@@ -35,6 +37,8 @@ Abra **Personalizar Zen** para ligar separadamente uma melodia sintetizada e um 
 ## Arte e áudio
 
 O seletor **Visual** abaixo dos modos permite alternar entre **Anterior**, com as pedras desenhadas em CSS, e **Novo**, com as pedras ilustradas. A escolha funciona em Zen e Clássico, fica salva no navegador e não altera o tabuleiro, os pontos nem a partida. No visual novo, as imagens são centralizadas conforme o recorte real de cada pedra. Pulso e Raio têm reflexos integrados às facetas, conservam a cor e o formato da pedra que lhes deu origem e continuam combinando com ela. O Espectro é uma pedra multicolorida sem cor própria.
+
+No visual novo, as pedras ocupam um pouco mais da casa, mantendo as correções individuais de centralização. O visual Anterior conserva o tamanho original.
 
 As sete pedras comuns e as variantes coloridas de Pulso e Raio usam três atlas originais; o Espectro tem uma imagem individual centrada. O fundo do jogo foi criado para manter o centro escuro e legível; partículas complementam as reações sem esconder as peças. Os arquivos `gem-atlas.webp`, `burst-atlas.webp`, `cross-atlas.webp`, `spectrum-gem.webp` e `prisma-bg.jpg` foram gerados para este jogo e otimizados para uso móvel. Efeitos sonoros diferentes identificam combinação, cascata, Pulso, Raio, Espectro, nova especial, nível e jogada inválida; a música do Zen tem quatro frases próprias. Todos os sons são sintetizados no dispositivo, sem arquivos externos. O HTML único incorpora as imagens e funciona sem rede. A direção e os prompts dos assets estão em [docs/arte-e-audio.md](docs/arte-e-audio.md).
 
@@ -54,7 +58,7 @@ Na pasta do projeto, execute `python3 -m http.server 8080` e abra `http://localh
 
 Instale o **APK de teste** gerado pela compilação Android abaixo. O aplicativo traz a interface, os sons sintetizados e todas as imagens dentro do próprio pacote, abre sem conexão e salva partidas, recordes e preferências no armazenamento privado do aplicativo. Ao sair ou trocar de aplicativo, a partida é salva e o áudio do Zen é pausado; ao voltar, a tela retoma a sessão. Para instalar APKs fora da Play Store, o Android pode pedir que você autorize a instalação pelo aplicativo usado para abrir o arquivo. O APK de teste tem assinatura de desenvolvimento: a versão de publicação precisará de uma chave de assinatura própria e estável.
 
-No Android 15 ou mais recente, a área do jogo respeita as barras de status e navegação e os recortes da tela, preservando o cabeçalho e os controles. A beta 2 foi recompilada com outra chave temporária do ambiente de testes. Se você instalou a beta 1, talvez seja necessário desinstalá-la antes da beta 2; isso apaga as partidas guardadas no aplicativo.
+No Android 15 ou mais recente, a área do jogo respeita as barras de status e navegação e os recortes da tela, preservando o cabeçalho e os controles. Cada APK beta é recompilado com uma chave temporária do ambiente de testes. Se você instalou outra beta, talvez seja necessário desinstalá-la antes desta; isso apaga as partidas guardadas no aplicativo.
 
 Também é possível abrir [a versão HTTPS](https://prisma-jogo-thiago.thiagodluz.chatgpt.site) no navegador e usar **Adicionar à tela inicial** ou **Instalar app**. O arquivo `Prisma-jogar-offline.html` serve como alternativa nos navegadores que permitam JavaScript em arquivos locais; alguns Androids bloqueiam isso ao abrir downloads em `content://`. As partidas salvas no navegador e as do APK têm armazenamentos separados.
 

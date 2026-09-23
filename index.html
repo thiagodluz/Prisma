@@ -11,7 +11,7 @@
   <link rel="preload" href="burst-atlas.webp" as="image">
   <link rel="preload" href="cross-atlas.webp" as="image">
   <link rel="preload" href="spectrum-gem.webp" as="image">
-  <link rel="stylesheet" href="style.css?v=14">
+  <link rel="stylesheet" href="style.css?v=15">
   <title>Prisma — combine e relaxe</title>
 </head>
 <body>
@@ -30,7 +30,7 @@
       <div class="stat"><span>MELHOR</span><strong id="best">0</strong></div>
     </section>
     <div class="progress" id="progress" role="progressbar" aria-label="Progresso do nível" aria-valuemin="0" aria-valuenow="0" aria-valuemax="1800"><div id="progress-fill"></div></div>
-    <p class="progress-label" id="progress-label">0 / 1.800 para o próximo nível</p>
+    <div class="progress-meta"><span class="score-gain" id="score-gain" aria-live="polite"></span><span class="progress-label" id="progress-label">0 / 1.800 para o próximo nível</span></div>
 
     <div class="board-frame">
       <div class="board" id="board" role="grid" aria-label="Tabuleiro de pedras, oito linhas por oito colunas"><p style="grid-column:1/-1;align-self:center;text-align:center;padding:1rem;color:#ddd">Carregando o jogo… Se o tabuleiro continuar vazio, abra o endereço HTTPS no navegador.</p></div>
@@ -120,6 +120,6 @@
       </div>
     </details>
   </main>
-  <script type="module" src="app.js?v=14"></script>
+  <script type="module" src="app.js?v=15"></script>
 </body>
 </html>

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.graphics.Insets;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 import android.view.WindowInsets;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
@@ -35,6 +36,7 @@ public class MainActivity extends Activity {
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         webView = new WebView(this);
+        webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         webView.setBackgroundColor(0xff101229);
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
