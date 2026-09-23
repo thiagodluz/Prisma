@@ -1,12 +1,16 @@
 package com.thiagodluz.prisma;
 
 import android.app.Activity;
+import android.graphics.Insets;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.WindowInsets;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,7 +62,18 @@ public class MainActivity extends Activity {
                 }
             }
         });
-        setContentView(webView);
+        FrameLayout screen = new FrameLayout(this);
+        screen.setBackgroundColor(0xff101229);
+        screen.addView(webView, new FrameLayout.LayoutParams(-1, -1));
+        if (Build.VERSION.SDK_INT >= 35) {
+            screen.setOnApplyWindowInsetsListener((view, insets) -> {
+                Insets safe = insets.getInsets(WindowInsets.Type.systemBars() |
+                    WindowInsets.Type.displayCutout());
+                view.setPadding(safe.left, safe.top, safe.right, safe.bottom);
+                return WindowInsets.CONSUMED;
+            });
+        }
+        setContentView(screen);
         webView.loadUrl(START);
     }
 

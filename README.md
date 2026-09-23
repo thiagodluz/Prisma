@@ -54,6 +54,8 @@ Na pasta do projeto, execute `python3 -m http.server 8080` e abra `http://localh
 
 Instale o **APK de teste** gerado pela compilação Android abaixo. O aplicativo traz a interface, os sons sintetizados e todas as imagens dentro do próprio pacote, abre sem conexão e salva partidas, recordes e preferências no armazenamento privado do aplicativo. Ao sair ou trocar de aplicativo, a partida é salva e o áudio do Zen é pausado; ao voltar, a tela retoma a sessão. Para instalar APKs fora da Play Store, o Android pode pedir que você autorize a instalação pelo aplicativo usado para abrir o arquivo. O APK de teste tem assinatura de desenvolvimento: a versão de publicação precisará de uma chave de assinatura própria e estável.
 
+No Android 15 ou mais recente, a área do jogo respeita as barras de status e navegação e os recortes da tela, preservando o cabeçalho e os controles. A beta 2 foi recompilada com outra chave temporária do ambiente de testes. Se você instalou a beta 1, talvez seja necessário desinstalá-la antes da beta 2; isso apaga as partidas guardadas no aplicativo.
+
 Também é possível abrir [a versão HTTPS](https://prisma-jogo-thiago.thiagodluz.chatgpt.site) no navegador e usar **Adicionar à tela inicial** ou **Instalar app**. O arquivo `Prisma-jogar-offline.html` serve como alternativa nos navegadores que permitam JavaScript em arquivos locais; alguns Androids bloqueiam isso ao abrir downloads em `content://`. As partidas salvas no navegador e as do APK têm armazenamentos separados.
 
 ### Compilar o APK
