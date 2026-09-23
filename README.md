@@ -24,7 +24,7 @@ Partidas salvas antes desta versão mantêm o nível e o progresso aproximado qu
 
 ## Toque e apresentação
 
-Ao arrastar, a pedra de destino é destacada antes da troca. Trocas, quedas e remoções têm um ritmo um pouco mais lento para facilitar a leitura, inclusive no computador. A vibração é opcional, começa desligada e aparece apenas em aparelhos compatíveis. A transição de nível respeita a preferência do sistema por menos movimento. Cada jogada válida é salva assim que o motor confirma seu resultado; ao voltar após fechar o navegador durante uma cascata, o tabuleiro abre no resultado concluído.
+Ao arrastar, a pedra de destino é destacada antes da troca. Trocas, quedas e remoções têm um ritmo um pouco mais lento para facilitar a leitura, inclusive no computador. A vibração é opcional, começa desligada e aparece apenas em aparelhos compatíveis. No APK, ela usa a API nativa do Android; o botão testa a vibração ao ser ligado. No navegador, depende da API de vibração e das configurações do aparelho. A transição de nível respeita a preferência do sistema por menos movimento. Cada jogada válida é salva assim que o motor confirma seu resultado; ao voltar após fechar o navegador durante uma cascata, o tabuleiro abre no resultado concluído.
 
 Os pontos ganhos aparecem logo ao lado do progresso, fora do tabuleiro, enquanto as pedras terminam de animar. A página continua rolando quando necessário; a WebView Android não apresenta o efeito elástico ao atingir as bordas.
 

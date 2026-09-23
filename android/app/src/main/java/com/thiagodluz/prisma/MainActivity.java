@@ -4,8 +4,12 @@ import android.app.Activity;
 import android.graphics.Insets;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
+import android.os.VibratorManager;
 import android.view.View;
 import android.view.WindowInsets;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
@@ -15,6 +19,8 @@ import android.widget.FrameLayout;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import org.json.JSONArray;
+import org.json.JSONException;
 
 public class MainActivity extends Activity {
     private static final String HOST = "appassets.androidplatform.net";
@@ -33,6 +39,51 @@ public class MainActivity extends Activity {
     private WebView webView;
     private boolean resumed;
 
+    // The packaged game is the only page loaded by this WebView. Expose only
+    // bounded haptic commands; no app data or Android context is shared.
+    private final class HapticsBridge {
+        private final Vibrator vibrator;
+
+        HapticsBridge() {
+            if (Build.VERSION.SDK_INT >= 31) {
+                vibrator = ((VibratorManager) getSystemService(VIBRATOR_MANAGER_SERVICE)).getDefaultVibrator();
+            } else {
+                vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+            }
+        }
+
+        @JavascriptInterface public boolean isAvailable() {
+            return vibrator != null && vibrator.hasVibrator();
+        }
+
+        @JavascriptInterface public boolean vibrate(String jsonPattern) {
+            if (!isAvailable()) return false;
+            try {
+                JSONArray pattern = new JSONArray(jsonPattern);
+                int count = pattern.length();
+                if (count < 1 || count > 5) return false;
+                long[] timings = new long[count + 1];
+                int total = 0;
+                for (int i = 0; i < count; i++) {
+                    int duration = pattern.getInt(i);
+                    if (duration < 1 || duration > 150) return false;
+                    total += duration;
+                    timings[i + 1] = duration;
+                }
+                if (total > 450) return false;
+                if (count == 1) {
+                    vibrator.vibrate(VibrationEffect.createOneShot(timings[1],
+                        VibrationEffect.DEFAULT_AMPLITUDE));
+                } else {
+                    vibrator.vibrate(VibrationEffect.createWaveform(timings, -1));
+                }
+                return true;
+            } catch (JSONException | SecurityException | IllegalArgumentException error) {
+                return false;
+            }
+        }
+    }
+
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         webView = new WebView(this);
@@ -44,6 +95,7 @@ public class MainActivity extends Activity {
         settings.setAllowFileAccess(false);
         settings.setAllowContentAccess(false);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        webView.addJavascriptInterface(new HapticsBridge(), "PrismaHaptics");
         webView.setWebViewClient(new WebViewClient() {
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 return !HOST.equals(request.getUrl().getHost()) ||

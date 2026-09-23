@@ -93,6 +93,8 @@ test('drag commits before animation and settles on Android pause or page hide', 
   assert.notDeepEqual(committed.board, saved.board);
   assert.equal(board.classList.contains('busy'), true);
   assert.ok(vibrations.length >= 2);
+  assert.equal(vibrations[0], 55);
+  assert.ok(vibrations.slice(1).some(value => value === 28 || value === 45 || Array.isArray(value)));
   assert.ok(animations.length > 0);
 
   document.handlers['prisma:pause']();
@@ -106,4 +108,18 @@ test('drag commits before animation and settles on Android pause or page hide', 
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(board.classList.contains('busy'), false);
   assert.deepEqual(board.children.map(cell => Number(cell.dataset.tileId)), committed.board.flat().map(tile => tile.id));
+
+  // The packaged Android WebView must use its native bridge, even when
+  // navigator.vibrate also exists in the page.
+  storage.set('prisma.vibration', 'off');
+  const nativeCalls = [];
+  window.PrismaHaptics = {
+    isAvailable: () => true,
+    vibrate: pattern => { nativeCalls.push(JSON.parse(pattern)); return true; }
+  };
+  const webCalls = vibrations.length;
+  await import('../app.js?native-haptics');
+  elements.get('#vibration').handlers.click();
+  assert.deepEqual(nativeCalls, [[55]]);
+  assert.equal(vibrations.length, webCalls);
 });

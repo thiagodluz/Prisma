@@ -1,6 +1,6 @@
-import {Game, SIZE, levelGoal} from './engine.js?v=15';
-import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=15';
-import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=15';
+import {Game, SIZE, levelGoal} from './engine.js?v=16';
+import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=16';
+import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=16';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
@@ -60,7 +60,9 @@ try { zenSettings = normalizeZenSettings(JSON.parse(localStorage.getItem('prisma
 catch { zenSettings = normalizeZenSettings(null); }
 let vibrationOn = false;
 try { vibrationOn = localStorage.getItem('prisma.vibration') === 'on'; } catch {}
-const canVibrate = typeof navigator.vibrate === 'function';
+const nativeHaptics = globalThis.window?.PrismaHaptics;
+let canVibrate = false;
+try { canVibrate = nativeHaptics ? nativeHaptics.isAvailable() : typeof navigator.vibrate === 'function'; } catch {}
 $('#vibration').hidden = !canVibrate;
 let audioContext;
 const getAudioContext = () => audioContext ??= new (window.AudioContext || window.webkitAudioContext)();
@@ -303,7 +305,11 @@ document.addEventListener?.('prisma:resume', () => {
 });
 globalThis.window?.addEventListener?.('pagehide', save);
 function vibrate(pattern) {
-  if (vibrationOn && canVibrate) try { navigator.vibrate(pattern); } catch {}
+  if (!vibrationOn || !canVibrate) return false;
+  try {
+    if (nativeHaptics) return nativeHaptics.vibrate(JSON.stringify(Array.isArray(pattern) ? pattern : [pattern]));
+    return navigator.vibrate(pattern) !== false;
+  } catch { return false; }
 }
 
 async function animateSwap(a, b, valid) {
@@ -453,7 +459,7 @@ async function attempt(a, b) {
     save();
     hud(result.earned, result.ended);
     showScoreGain(result.earned);
-    vibrate(result.levelsGained ? [12, 45, 18] : result.events.some(frame => frame.activated?.length) ? 18 : 10);
+    vibrate(result.levelsGained ? [28, 55, 35] : result.events.some(frame => frame.activated?.length) ? 45 : 28);
   } else playTone('invalid');
   try {
     await animateSwap(a, b, result.valid);
@@ -680,7 +686,12 @@ $('#vibration').addEventListener('click', () => {
   vibrationOn = !vibrationOn;
   try { localStorage.setItem('prisma.vibration', vibrationOn ? 'on' : 'off'); } catch {}
   hud();
-  vibrate(8);
+  if (vibrationOn && !vibrate(55)) {
+    vibrationOn = false;
+    try { localStorage.setItem('prisma.vibration', 'off'); } catch {}
+    hud();
+    showToast('Vibração indisponível neste aparelho');
+  }
 });
 
 draw(); hud(); syncAudioSettingsUI(); syncZenUI(true);
