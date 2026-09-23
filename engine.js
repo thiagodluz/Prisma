@@ -1,6 +1,8 @@
 export const SIZE = 8;
 export const COLORS = 7;
 export const SPECIALS = ['burst', 'cross', 'spectrum'];
+export const levelGoal = level => Math.min(5300, 1800 + (level - 1) * 350);
+const creationPoints = {burst: 120, cross: 180, spectrum: 240};
 const copy = board => board.map(row => [...row]);
 const position = index => [Math.floor(index / SIZE), index % SIZE];
 
@@ -11,6 +13,7 @@ export class Game {
     this.board = [];
     this.score = 0;
     this.level = 1;
+    this.levelStartScore = 0;
     this.mode = 'zen';
     this.ended = false;
     this.newGame();
@@ -24,6 +27,7 @@ export class Game {
     this.mode = mode;
     this.score = 0;
     this.level = 1;
+    this.levelStartScore = 0;
     this.ended = false;
     this.board = this.freshBoard();
   }
@@ -90,6 +94,31 @@ export class Game {
       if (found) return true;
     }
     return false;
+  }
+
+  hint() {
+    if (this.ended) return null;
+    let best = null;
+    for (let a = 0; a < SIZE * SIZE; a++) for (const b of [a + 1, a + SIZE]) {
+      if (!this.adjacent(a, b)) continue;
+      const first = this.tile(a), second = this.tile(b);
+      const spectra = [first, second].filter(tile => tile.type === 'spectrum').length;
+      let value = 0;
+      if (spectra === 2) value = 100;
+      else if (spectra === 1) {
+        const color = first.type === 'spectrum' ? second.color : first.color;
+        value = 8 + this.board.flat().filter(tile => tile.color === color).length;
+      } else {
+        this.swap(a, b);
+        const match = this.matches();
+        if (match.cells.length)
+          value = match.cells.length + this.creations(match, [b, a]).reduce(
+            (sum, gem) => sum + (gem.type === 'spectrum' ? 10 : gem.type === 'cross' ? 7 : 5), 0);
+        this.swap(a, b);
+      }
+      if (value && (!best || value > best.value)) best = {a, b, value};
+    }
+    return best && {a: best.a, b: best.b};
   }
 
   // Connected same-color runs make one special. Prefer the destination of the
@@ -173,8 +202,13 @@ export class Game {
             if (color === 'all' || this.tile(i)?.color === color) add(i);
         }
       }
-      events.push({type: 'clear', board: copy(this.board), cells: [...cleared], activated, creations, chain});
-      earned += (cleared.size * 20 + creations.length * 80) * chain;
+      const base = cleared.size * 25;
+      const creationBonus = creations.reduce((sum, creation) => sum + creationPoints[creation.type], 0);
+      const comboMultiplier = 1 + Math.min(chain - 1, 5) * .4;
+      const gained = Math.round((base + creationBonus) * comboMultiplier / 5) * 5;
+      events.push({type: 'clear', board: copy(this.board), cells: [...cleared], activated,
+        creations, chain, base, creationBonus, comboMultiplier, earned: gained});
+      earned += gained;
       for (const index of cleared) this.set(index, null);
       for (const creation of creations) this.set(creation.index, creation.tile);
       const falls = Array(SIZE * SIZE);
@@ -193,7 +227,11 @@ export class Game {
       match = this.matches();
     }
     this.score += earned;
-    this.level = 1 + Math.floor(this.score / 2000);
+    const oldLevel = this.level;
+    while (this.score - this.levelStartScore >= levelGoal(this.level)) {
+      this.levelStartScore += levelGoal(this.level);
+      this.level++;
+    }
     let rescued = false;
     if (!this.hasMove()) {
       if (this.mode === 'classic') {
@@ -205,7 +243,8 @@ export class Game {
         rescued = true;
       }
     }
-    return {valid: true, events, earned, chain, rescued, ended: this.ended};
+    return {valid: true, events, earned, chain, rescued, ended: this.ended,
+      levelsGained: this.level - oldLevel};
   }
 
   rescue() {
@@ -251,7 +290,20 @@ export class Game {
     this.board = board;
     this.mode = saved.mode === 'endless' ? 'classic' : saved.mode;
     this.score = saved.score;
-    this.level = 1 + Math.floor(this.score / 2000);
+    if (saved.progressionVersion === 2 && Number.isSafeInteger(saved.level) && saved.level >= 1 &&
+      Number.isSafeInteger(saved.levelStartScore) && saved.levelStartScore >= 0 &&
+      saved.levelStartScore <= this.score) {
+      this.level = saved.level;
+      this.levelStartScore = saved.levelStartScore;
+    } else {
+      // Old sessions keep their reached level and the progress earned in it.
+      this.level = 1 + Math.floor(this.score / 2000);
+      this.levelStartScore = (this.level - 1) * 2000;
+    }
+    while (this.score - this.levelStartScore >= levelGoal(this.level)) {
+      this.levelStartScore += levelGoal(this.level);
+      this.level++;
+    }
     this.ended = false;
     if (this.matches().cells.length) this.board = this.freshBoard();
     if (!this.hasMove()) {

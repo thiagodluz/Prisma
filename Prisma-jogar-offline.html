@@ -7,7 +7,7 @@
   <meta name="description" content="Prisma: um jogo original de combinar pedras para jogar sem pressa.">
   
   
-  <style>:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:#f8f7ff;background:#101229;font-synthesis:none}*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:radial-gradient(ellipse at 50% -18%,#45447d 0%,#1e2141 37%,#101229 76%)}button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}.shell{width:min(100%,540px);padding:20px 18px max(24px,env(safe-area-inset-bottom));margin:auto}.header,.brand,.hud,.toolbar,.mode-picker{display:flex;align-items:center}.header{justify-content:space-between;margin:0 3px 22px}.brand{gap:11px}.brand-mark{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#63e0db,#a680ff);box-shadow:0 5px 23px #9988fc55;color:#202441;font-size:28px}.brand h1{letter-spacing:.22em;font-size:19px;margin:0;font-weight:850;line-height:1.15}.brand small{font-size:11px;letter-spacing:.05em;color:#c2bfdc}.icon-button{width:38px;height:38px;border:1px solid #ffffff27;border-radius:12px;background:#ffffff10;font-size:23px;color:#d7d5f8}.hud{justify-content:space-between;background:#ffffff0d;border:1px solid #ffffff17;border-radius:17px;padding:12px 18px;margin-bottom:12px}.stat{display:flex;flex-direction:column;gap:2px;min-width:72px}.stat:last-child{text-align:right}.stat-center{text-align:center}.stat span{font-size:10px;letter-spacing:.14em;font-weight:750;color:#b3b0d4}.stat strong{font-size:20px;font-variant-numeric:tabular-nums}.stat-center strong{color:#a2eddd}.progress{height:5px;margin:0 7px 11px;border-radius:10px;background:#ffffff17;overflow:hidden}.progress[hidden]{display:none}.progress>div{height:100%;background:linear-gradient(90deg,#6be2d6,#d09cff);transition:width .35s}.board-frame{position:relative;border:1px solid #ffffff38;padding:8px;background:linear-gradient(145deg,#7771b762,#28315e,#655fa962);border-radius:22px;box-shadow:0 23px 55px #0608199c,inset 0 1px #ffffff5b}.board{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;aspect-ratio:1;background:#141930;border-radius:15px;padding:5px;touch-action:none;overflow:hidden}.board.busy{pointer-events:none}.cell{min-width:0;min-height:0;position:relative;display:grid;place-items:center;border:0;border-radius:8px;background:linear-gradient(145deg,#ffffff0c,#ffffff04);padding:7%;outline-offset:-3px;transition:background .1s}.cell:nth-child(odd){background:linear-gradient(145deg,#ffffff13,#ffffff05)}.cell.selected{background:#f7edab5c;box-shadow:inset 0 0 0 2px #ffeab7}.cell:focus-visible{outline:2px solid #fff}.gem{display:block;width:89%;height:89%;border:1px solid #ffffff8a;box-shadow:inset 0 3px 4px #ffffffa3,inset 0 -5px 8px #0004,0 4px 9px #0008;position:relative;transition:transform .15s}.gem:after{content:"";position:absolute;top:13%;left:19%;width:33%;height:16%;background:#fff9;border-radius:50%;filter:blur(2px);transform:rotate(-32deg)}.cell:active .gem,.cell.selected .gem{transform:scale(1.13)}.cell.matched .gem{animation:pop .27s ease-in-out both}@keyframes pop{50%{transform:scale(1.23);filter:brightness(1.8)}100%{transform:scale(.2);opacity:0}}.gem-0{background:linear-gradient(140deg,#ff9ba9 3%,#ea3667 45%,#9c1656);border-radius:31% 31% 48% 48%;transform:rotate(45deg) scale(.78)}.cell.selected .gem-0{transform:rotate(45deg) scale(.88)}.gem-1{background:linear-gradient(140deg,#fff7ad,#f7b93f 48%,#bd6a32);clip-path:polygon(50% 0,94% 23%,94% 75%,50% 100%,6% 75%,6% 23%)}.gem-2{background:linear-gradient(145deg,#fffbd5,#f2e077 43%,#b59430);border-radius:50%}.gem-3{background:linear-gradient(145deg,#b0ffdd,#30dba8 42%,#147b78);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}.gem-4{background:linear-gradient(145deg,#a5fcff,#48c5e6 44%,#2775b4);border-radius:17% 55% 17% 55%;transform:rotate(45deg) scale(.82)}.cell.selected .gem-4{transform:rotate(45deg) scale(.93)}.gem-5{background:linear-gradient(145deg,#c4d8ff,#617fef 42%,#374baf);clip-path:polygon(50% 0,100% 32%,80% 100%,20% 100%,0 32%)}.gem-6{background:linear-gradient(145deg,#ffccfb,#bf75ec 45%,#783baf);border-radius:42% 42% 20% 20%;transform:rotate(-20deg) scale(.85)}.cell.selected .gem-6{transform:rotate(-20deg) scale(.96)}.toast{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%) scale(.85);background:#191d3dde;color:#fff;border:1px solid #ffffff40;padding:9px 17px;border-radius:99px;white-space:nowrap;font-weight:800;letter-spacing:.03em;pointer-events:none;opacity:0;transition:opacity .15s,transform .18s;box-shadow:0 7px 24px #0007}.toast.visible{opacity:1;transform:translate(-50%,-50%) scale(1)}.toolbar{justify-content:space-between;gap:5px;margin:16px 0 25px}.quiet-button{display:flex;align-items:center;gap:5px;padding:8px 4px;background:none;border:0;color:#c7c5e8;font-size:13px}.quiet-button:first-letter{font-size:20px}.combo{color:#afacca;font-size:12px;text-align:center}.mode-picker{gap:10px}.mode{display:flex;align-items:center;gap:11px;text-align:left;width:50%;padding:12px 13px;border:1px solid #ffffff23;background:#ffffff0b;border-radius:16px}.mode.selected{background:#756aad32;border-color:#ad9bff99;box-shadow:inset 0 1px #ffffff25}.mode-icon{display:grid;place-items:center;width:36px;height:36px;flex:0 0 36px;border-radius:11px;background:#9785e438;font-size:22px;color:#cfbdff}.mode strong,.mode small{display:block}.mode strong{font-size:14px}.mode small{font-size:10px;color:#b9b5d4;margin-top:2px}.hint{text-align:center;color:#a6a4c3;font-size:11px;margin:22px 0 0}@media(max-width:370px){.shell{padding-left:10px;padding-right:10px}.board{gap:2px}.mode{padding:9px 7px;gap:6px}.mode-icon{width:28px;height:28px;flex-basis:28px}.mode small{font-size:9px}}@media(max-height:740px){.header{margin-bottom:12px}.toolbar{margin:10px 0 15px}.hint{margin-top:12px}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+  <style>:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:#f8f7ff;background:#101229;font-synthesis:none}*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:radial-gradient(ellipse at 50% -18%,#45447d 0%,#1e2141 37%,#101229 76%)}button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}.shell{width:min(100%,540px);padding:20px 18px max(24px,env(safe-area-inset-bottom));margin:auto}.header,.brand,.hud,.toolbar,.mode-picker{display:flex;align-items:center}.header{justify-content:space-between;margin:0 3px 22px}.brand{gap:11px}.brand-mark{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#63e0db,#a680ff);box-shadow:0 5px 23px #9988fc55;color:#202441;font-size:28px}.brand h1{letter-spacing:.22em;font-size:19px;margin:0;font-weight:850;line-height:1.15}.brand small{font-size:11px;letter-spacing:.05em;color:#c2bfdc}.icon-button{width:38px;height:38px;border:1px solid #ffffff27;border-radius:12px;background:#ffffff10;font-size:23px;color:#d7d5f8}.hud{justify-content:space-between;background:#ffffff0d;border:1px solid #ffffff17;border-radius:17px;padding:12px 18px;margin-bottom:12px}.stat{display:flex;flex-direction:column;gap:2px;min-width:72px}.stat:last-child{text-align:right}.stat-center{text-align:center}.stat span{font-size:10px;letter-spacing:.14em;font-weight:750;color:#b3b0d4}.stat strong{font-size:20px;font-variant-numeric:tabular-nums}.stat-center strong{color:#a2eddd}.progress{height:5px;margin:0 7px 4px;border-radius:10px;background:#ffffff17;overflow:hidden}.progress[hidden]{display:none}.progress>div{height:100%;background:linear-gradient(90deg,#6be2d6,#d09cff);transition:width .35s}.progress-label{margin:0 7px 9px;text-align:right;color:#9996b9;font-size:10px;font-variant-numeric:tabular-nums}.board-frame{position:relative;border:1px solid #ffffff38;padding:8px;background:linear-gradient(145deg,#7771b762,#28315e,#655fa962);border-radius:22px;box-shadow:0 23px 55px #0608199c,inset 0 1px #ffffff5b}.board{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;aspect-ratio:1;background:#141930;border-radius:15px;padding:5px;touch-action:none;overflow:hidden}.board.busy{pointer-events:none}.cell{min-width:0;min-height:0;position:relative;display:grid;place-items:center;border:0;border-radius:8px;background:linear-gradient(145deg,#ffffff0c,#ffffff04);padding:7%;outline-offset:-3px;transition:background .1s}.cell:nth-child(odd){background:linear-gradient(145deg,#ffffff13,#ffffff05)}.cell.selected{background:#f7edab5c;box-shadow:inset 0 0 0 2px #ffeab7}.cell:focus-visible{outline:2px solid #fff}.gem{display:block;width:89%;height:89%;border:1px solid #ffffff8a;box-shadow:inset 0 3px 4px #ffffffa3,inset 0 -5px 8px #0004,0 4px 9px #0008;position:relative;transition:transform .15s}.gem:after{content:"";position:absolute;top:13%;left:19%;width:33%;height:16%;background:#fff9;border-radius:50%;filter:blur(2px);transform:rotate(-32deg)}.cell:active .gem,.cell.selected .gem{transform:scale(1.13)}.cell.matched .gem{animation:pop .27s ease-in-out both}@keyframes pop{50%{transform:scale(1.23);filter:brightness(1.8)}100%{transform:scale(.2);opacity:0}}.gem-0{background:linear-gradient(140deg,#ff9ba9 3%,#ea3667 45%,#9c1656);border-radius:31% 31% 48% 48%;transform:rotate(45deg) scale(.78)}.cell.selected .gem-0{transform:rotate(45deg) scale(.88)}.gem-1{background:linear-gradient(140deg,#fff7ad,#f7b93f 48%,#bd6a32);clip-path:polygon(50% 0,94% 23%,94% 75%,50% 100%,6% 75%,6% 23%)}.gem-2{background:linear-gradient(145deg,#fffbd5,#f2e077 43%,#b59430);border-radius:50%}.gem-3{background:linear-gradient(145deg,#b0ffdd,#30dba8 42%,#147b78);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}.gem-4{background:linear-gradient(145deg,#a5fcff,#48c5e6 44%,#2775b4);border-radius:17% 55% 17% 55%;transform:rotate(45deg) scale(.82)}.cell.selected .gem-4{transform:rotate(45deg) scale(.93)}.gem-5{background:linear-gradient(145deg,#c4d8ff,#617fef 42%,#374baf);clip-path:polygon(50% 0,100% 32%,80% 100%,20% 100%,0 32%)}.gem-6{background:linear-gradient(145deg,#ffccfb,#bf75ec 45%,#783baf);border-radius:42% 42% 20% 20%;transform:rotate(-20deg) scale(.85)}.cell.selected .gem-6{transform:rotate(-20deg) scale(.96)}.toast{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%) scale(.85);background:#191d3dde;color:#fff;border:1px solid #ffffff40;padding:9px 17px;border-radius:99px;white-space:nowrap;font-weight:800;letter-spacing:.03em;pointer-events:none;opacity:0;transition:opacity .15s,transform .18s;box-shadow:0 7px 24px #0007}.toast.visible{opacity:1;transform:translate(-50%,-50%) scale(1)}.toolbar{justify-content:space-between;gap:5px;margin:16px 0 25px}.toolbar-actions{display:flex;align-items:center;gap:8px}.quiet-button{display:flex;align-items:center;gap:5px;padding:8px 4px;background:none;border:0;color:#c7c5e8;font-size:13px}.quiet-button:disabled{opacity:.45;cursor:default}.quiet-button:first-letter{font-size:20px}.combo{color:#afacca;font-size:12px;text-align:center}.mode-picker{gap:10px}.mode{display:flex;align-items:center;gap:11px;text-align:left;width:50%;padding:12px 13px;border:1px solid #ffffff23;background:#ffffff0b;border-radius:16px}.mode.selected{background:#756aad32;border-color:#ad9bff99;box-shadow:inset 0 1px #ffffff25}.mode-icon{display:grid;place-items:center;width:36px;height:36px;flex:0 0 36px;border-radius:11px;background:#9785e438;font-size:22px;color:#cfbdff}.mode strong,.mode small{display:block}.mode strong{font-size:14px}.mode small{font-size:10px;color:#b9b5d4;margin-top:2px}.hint{text-align:center;color:#a6a4c3;font-size:11px;margin:22px 0 0}@media(max-width:370px){.shell{padding-left:10px;padding-right:10px}.board{gap:2px}.mode{padding:9px 7px;gap:6px}.mode-icon{width:28px;height:28px;flex-basis:28px}.mode small{font-size:9px}}@media(max-height:740px){.header{margin-bottom:12px}.toolbar{margin:10px 0 15px}.hint{margin-top:12px}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 .board{grid-template-rows:repeat(8,minmax(0,1fr))}
 .cell{overflow:visible}
 .mover{position:absolute;inset:4%;display:grid;place-items:center;min-width:0;min-height:0}
@@ -35,6 +35,16 @@
 .game-over-results strong{color:#fff}
 .game-over button{border:0;border-radius:12px;padding:12px 18px;background:linear-gradient(120deg,#81e2da,#b69aff);color:#1a2040;font-size:15px;font-weight:800}
 .game-over button:focus-visible{outline:3px solid white;outline-offset:3px}
+
+.cell.hinted{z-index:1;background:#ffe9933d;box-shadow:inset 0 0 0 2px #ffe89b,0 0 13px #f7d47b9c;animation:hintPulse .72s ease-in-out infinite alternate}
+.cell.hinted .gem{filter:brightness(1.22)}
+@keyframes hintPulse{to{box-shadow:inset 0 0 0 2px #fff6c8,0 0 20px #ddc0ffcc}}
+.records{margin:17px 0 0;border:1px solid #ffffff1c;border-radius:16px;background:#ffffff08;color:#c8c5e1}
+.records summary{padding:12px 14px;cursor:pointer;text-align:center;font-size:13px;font-weight:700;list-style:none}.records summary::-webkit-details-marker{display:none}
+.records summary:after{content:"⌄";margin-left:7px;color:#9b91d5}.records[open] summary:after{content:"⌃"}
+.records-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:0 10px 10px}
+.records section{padding:11px;border-radius:12px;background:#10142a80}.records h2{margin:0 0 8px;color:#fff;font-size:14px}.records dl{margin:0}.records dl div{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-top:1px solid #ffffff0e;font-size:11px}.records dt{color:#a8a5c4}.records dd{margin:0;color:#fff;font-weight:750;font-variant-numeric:tabular-nums}
+@media(max-width:390px){.toolbar-actions{gap:2px}.quiet-button{font-size:12px}.records-grid{grid-template-columns:1fr}}
 </style>
   <title>Prisma — combine e relaxe</title>
 </head>
@@ -50,7 +60,8 @@
       <div class="stat stat-center"><span id="mode-label">NÍVEL</span><strong id="level">1</strong></div>
       <div class="stat"><span>MELHOR</span><strong id="best">0</strong></div>
     </section>
-    <div class="progress" id="progress" aria-label="Progresso do nível"><div id="progress-fill"></div></div>
+    <div class="progress" id="progress" role="progressbar" aria-label="Progresso do nível" aria-valuemin="0" aria-valuenow="0" aria-valuemax="1800"><div id="progress-fill"></div></div>
+    <p class="progress-label" id="progress-label">0 / 1.800 para o próximo nível</p>
 
     <div class="board-frame">
       <div class="board" id="board" role="grid" aria-label="Tabuleiro de pedras, oito linhas por oito colunas"><p style="grid-column:1/-1;align-self:center;text-align:center;padding:1rem;color:#ddd">Carregando o jogo… Se o tabuleiro continuar vazio, abra o endereço HTTPS no navegador.</p></div>
@@ -67,7 +78,10 @@
     </div>
 
     <div class="toolbar">
-      <button id="shuffle" class="quiet-button" type="button">⤨ <span>Embaralhar</span></button>
+      <div class="toolbar-actions">
+        <button id="shuffle" class="quiet-button" type="button">⤨ <span>Embaralhar</span></button>
+        <button id="hint" class="quiet-button" type="button">✧ <span>Dica</span></button>
+      </div>
       <div class="combo" id="combo" aria-live="polite">Combine três ou mais</div>
       <button id="new-game" class="quiet-button" type="button">↻ <span>Novo jogo</span></button>
     </div>
@@ -77,10 +91,34 @@
       <button class="mode" data-mode="classic" type="button"><span class="mode-icon">✧</span><span><strong>Clássico</strong><small>Sem tempo · pode acabar</small></span></button>
     </section>
     <p class="hint">Toque duas pedras vizinhas ou arraste para trocar.</p>
+    <details class="records">
+      <summary>Ver recordes</summary>
+      <div class="records-grid">
+        <section aria-label="Recordes Zen">
+          <h2>Zen</h2>
+          <dl>
+            <div><dt>Maior pontuação</dt><dd id="record-zen-score">0</dd></div>
+            <div><dt>Maior nível</dt><dd id="record-zen-level">1</dd></div>
+            <div><dt>Melhor jogada</dt><dd id="record-zen-move">0</dd></div>
+          </dl>
+        </section>
+        <section aria-label="Recordes Clássico">
+          <h2>Clássico</h2>
+          <dl>
+            <div><dt>Maior pontuação</dt><dd id="record-classic-score">0</dd></div>
+            <div><dt>Maior nível</dt><dd id="record-classic-level">1</dd></div>
+            <div><dt>Melhor jogada</dt><dd id="record-classic-move">0</dd></div>
+            <div><dt>Partidas concluídas</dt><dd id="record-classic-finished">0</dd></div>
+          </dl>
+        </section>
+      </div>
+    </details>
   </main>
   <script>const SIZE = 8;
 const COLORS = 7;
 const SPECIALS = ['burst', 'cross', 'spectrum'];
+const levelGoal = level => Math.min(5300, 1800 + (level - 1) * 350);
+const creationPoints = {burst: 120, cross: 180, spectrum: 240};
 const copy = board => board.map(row => [...row]);
 const position = index => [Math.floor(index / SIZE), index % SIZE];
 
@@ -91,6 +129,7 @@ class Game {
     this.board = [];
     this.score = 0;
     this.level = 1;
+    this.levelStartScore = 0;
     this.mode = 'zen';
     this.ended = false;
     this.newGame();
@@ -104,6 +143,7 @@ class Game {
     this.mode = mode;
     this.score = 0;
     this.level = 1;
+    this.levelStartScore = 0;
     this.ended = false;
     this.board = this.freshBoard();
   }
@@ -170,6 +210,31 @@ class Game {
       if (found) return true;
     }
     return false;
+  }
+
+  hint() {
+    if (this.ended) return null;
+    let best = null;
+    for (let a = 0; a < SIZE * SIZE; a++) for (const b of [a + 1, a + SIZE]) {
+      if (!this.adjacent(a, b)) continue;
+      const first = this.tile(a), second = this.tile(b);
+      const spectra = [first, second].filter(tile => tile.type === 'spectrum').length;
+      let value = 0;
+      if (spectra === 2) value = 100;
+      else if (spectra === 1) {
+        const color = first.type === 'spectrum' ? second.color : first.color;
+        value = 8 + this.board.flat().filter(tile => tile.color === color).length;
+      } else {
+        this.swap(a, b);
+        const match = this.matches();
+        if (match.cells.length)
+          value = match.cells.length + this.creations(match, [b, a]).reduce(
+            (sum, gem) => sum + (gem.type === 'spectrum' ? 10 : gem.type === 'cross' ? 7 : 5), 0);
+        this.swap(a, b);
+      }
+      if (value && (!best || value > best.value)) best = {a, b, value};
+    }
+    return best && {a: best.a, b: best.b};
   }
 
   // Connected same-color runs make one special. Prefer the destination of the
@@ -253,8 +318,13 @@ class Game {
             if (color === 'all' || this.tile(i)?.color === color) add(i);
         }
       }
-      events.push({type: 'clear', board: copy(this.board), cells: [...cleared], activated, creations, chain});
-      earned += (cleared.size * 20 + creations.length * 80) * chain;
+      const base = cleared.size * 25;
+      const creationBonus = creations.reduce((sum, creation) => sum + creationPoints[creation.type], 0);
+      const comboMultiplier = 1 + Math.min(chain - 1, 5) * .4;
+      const gained = Math.round((base + creationBonus) * comboMultiplier / 5) * 5;
+      events.push({type: 'clear', board: copy(this.board), cells: [...cleared], activated,
+        creations, chain, base, creationBonus, comboMultiplier, earned: gained});
+      earned += gained;
       for (const index of cleared) this.set(index, null);
       for (const creation of creations) this.set(creation.index, creation.tile);
       const falls = Array(SIZE * SIZE);
@@ -273,7 +343,11 @@ class Game {
       match = this.matches();
     }
     this.score += earned;
-    this.level = 1 + Math.floor(this.score / 2000);
+    const oldLevel = this.level;
+    while (this.score - this.levelStartScore >= levelGoal(this.level)) {
+      this.levelStartScore += levelGoal(this.level);
+      this.level++;
+    }
     let rescued = false;
     if (!this.hasMove()) {
       if (this.mode === 'classic') {
@@ -285,7 +359,8 @@ class Game {
         rescued = true;
       }
     }
-    return {valid: true, events, earned, chain, rescued, ended: this.ended};
+    return {valid: true, events, earned, chain, rescued, ended: this.ended,
+      levelsGained: this.level - oldLevel};
   }
 
   rescue() {
@@ -331,7 +406,20 @@ class Game {
     this.board = board;
     this.mode = saved.mode === 'endless' ? 'classic' : saved.mode;
     this.score = saved.score;
-    this.level = 1 + Math.floor(this.score / 2000);
+    if (saved.progressionVersion === 2 && Number.isSafeInteger(saved.level) && saved.level >= 1 &&
+      Number.isSafeInteger(saved.levelStartScore) && saved.levelStartScore >= 0 &&
+      saved.levelStartScore <= this.score) {
+      this.level = saved.level;
+      this.levelStartScore = saved.levelStartScore;
+    } else {
+      // Old sessions keep their reached level and the progress earned in it.
+      this.level = 1 + Math.floor(this.score / 2000);
+      this.levelStartScore = (this.level - 1) * 2000;
+    }
+    while (this.score - this.levelStartScore >= levelGoal(this.level)) {
+      this.levelStartScore += levelGoal(this.level);
+      this.level++;
+    }
     this.ended = false;
     if (this.matches().cells.length) this.board = this.freshBoard();
     if (!this.hasMove()) {
@@ -357,6 +445,7 @@ const levelElement = $('#level');
 const modeLabel = $('#mode-label');
 const progress = $('#progress');
 const progressFill = $('#progress-fill');
+const progressLabel = $('#progress-label');
 const combo = $('#combo');
 const toast = $('#toast');
 const gameOver = $('#game-over');
@@ -377,20 +466,28 @@ try {
 let selected = null;
 let pointerStart = null;
 let busy = false;
+let hintTimer;
 let soundOn = true;
 try { soundOn = localStorage.getItem('prisma.sound') !== 'off'; } catch { /* Some local file views deny storage. */ }
 let audioContext;
 
-function safeBest(mode) {
-  try { return Number(localStorage.getItem('prisma.best.' + mode)) ||
-    (mode === 'classic' ? Number(localStorage.getItem('prisma.best.endless')) : 0) || 0; }
-  catch { return 0; }
+function safeRecord(mode) {
+  try {
+    const saved = JSON.parse(localStorage.getItem('prisma.records.' + mode)) || {};
+    const legacy = Number(localStorage.getItem('prisma.best.' + mode)) ||
+      (mode === 'classic' ? Number(localStorage.getItem('prisma.best.endless')) : 0) || 0;
+    const safe = value => Number.isSafeInteger(value) && value >= 0 ? value : 0;
+    return {bestScore: Math.max(safe(saved.bestScore), safe(legacy)),
+      bestLevel: Math.max(1, safe(saved.bestLevel)), bestMove: safe(saved.bestMove),
+      finished: safe(saved.finished)};
+  } catch { return {bestScore: 0, bestLevel: 1, bestMove: 0, finished: 0}; }
 }
 
 function save() {
   try {
     localStorage.setItem(sessionKey(game.mode), JSON.stringify({
-      mode: game.mode, score: game.score, board: game.board, ended: game.ended
+      mode: game.mode, score: game.score, board: game.board, ended: game.ended,
+      progressionVersion: 2, level: game.level, levelStartScore: game.levelStartScore
     }));
     localStorage.setItem('prisma.activeMode', game.mode);
   } catch {}
@@ -449,23 +546,48 @@ function draw(board = game.board, matched = []) {
   })));
 }
 
-function hud() {
+function hud(moveEarned = 0, finishedGame = false) {
   scoreElement.textContent = game.score.toLocaleString('pt-BR');
-  const best = Math.max(game.score, safeBest(game.mode));
-  bestElement.textContent = best.toLocaleString('pt-BR');
-  try { if (best > safeBest(game.mode)) localStorage.setItem('prisma.best.' + game.mode, String(best)); } catch {}
+  const record = safeRecord(game.mode);
+  record.bestScore = Math.max(record.bestScore, game.score);
+  record.bestLevel = Math.max(record.bestLevel, game.level);
+  record.bestMove = Math.max(record.bestMove, moveEarned);
+  if (finishedGame && game.mode === 'classic') record.finished++;
+  try {
+    localStorage.setItem('prisma.records.' + game.mode, JSON.stringify(record));
+    localStorage.setItem('prisma.best.' + game.mode, String(record.bestScore));
+  } catch {}
+  bestElement.textContent = record.bestScore.toLocaleString('pt-BR');
   levelElement.textContent = String(game.level);
   modeLabel.textContent = 'NÍVEL';
   progress.hidden = false;
-  progressFill.style.width = `${(game.score % 2000) / 20}%`;
+  const gained = game.score - game.levelStartScore;
+  const goal = levelGoal(game.level);
+  progressFill.style.width = `${Math.min(100, gained / goal * 100)}%`;
+  progress.setAttribute('aria-valuenow', String(gained));
+  progress.setAttribute('aria-valuemax', String(goal));
+  progressLabel.textContent = `${gained.toLocaleString('pt-BR')} / ${goal.toLocaleString('pt-BR')} para o próximo nível`;
+  for (const mode of ['zen', 'classic']) {
+    const value = mode === game.mode ? record : safeRecord(mode);
+    $('#record-' + mode + '-score').textContent = value.bestScore.toLocaleString('pt-BR');
+    $('#record-' + mode + '-level').textContent = String(value.bestLevel);
+    $('#record-' + mode + '-move').textContent = value.bestMove.toLocaleString('pt-BR');
+    if (mode === 'classic') $('#record-classic-finished').textContent = String(value.finished);
+  }
   for (const button of document.querySelectorAll('.mode')) button.classList.toggle('selected', button.dataset.mode === game.mode);
   $('#shuffle').hidden = game.mode === 'classic';
+  $('#hint').disabled = game.ended;
   boardElement.classList.toggle('finished', game.ended);
   gameOver.hidden = !game.ended;
   $('#final-score').textContent = game.score.toLocaleString('pt-BR');
   $('#final-level').textContent = String(game.level);
   $('#sound').textContent = soundOn ? '♫' : '♪';
   $('#sound').setAttribute('aria-label', soundOn ? 'Desativar sons' : 'Ativar sons');
+}
+
+function clearHint() {
+  clearTimeout(hintTimer);
+  for (const cell of boardElement.querySelectorAll?.('.cell.hinted') ?? []) cell.classList.remove('hinted');
 }
 
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -601,10 +723,12 @@ async function attempt(a, b) {
     }
   }
   draw();
-  hud();
+  hud(result.earned, result.ended);
   save();
-  showToast(`+${result.earned.toLocaleString('pt-BR')}${result.chain > 1 ? ` · ${result.chain} cascatas` : ''}`);
+  showToast(`+${result.earned.toLocaleString('pt-BR')}${result.levelsGained ? ` · Nível ${game.level}!` :
+    result.chain > 1 ? ` · ${result.chain} cascatas` : ''}`);
   if (result.ended) combo.textContent = 'Sem jogadas restantes';
+  else if (result.levelsGained) combo.textContent = `Nível ${game.level}!`;
   else if (!result.rescued) setTimeout(() => { if (!busy) combo.textContent = 'Combine três ou mais'; }, 1500);
   boardElement.classList.remove('busy');
   busy = false;
@@ -612,6 +736,7 @@ async function attempt(a, b) {
 
 function handleIndex(index) {
   if (busy || game.ended || index < 0) return;
+  clearHint();
   if (selected === null) selected = index;
   else if (selected === index) selected = null;
   else if (game.adjacent(selected, index)) { attempt(selected, index); return; }
@@ -622,6 +747,7 @@ function handleIndex(index) {
 boardElement.addEventListener('pointerdown', event => {
   const cell = event.target.closest('.cell');
   if (!cell || busy || game.ended) return;
+  clearHint();
   pointerStart = {index: Number(cell.dataset.index), x: event.clientX, y: event.clientY};
 });
 boardElement.addEventListener('pointerup', event => {
@@ -641,8 +767,23 @@ boardElement.addEventListener('keydown', event => {
   if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleIndex(index); }
 });
 
+$('#hint').addEventListener('click', () => {
+  if (busy || game.ended) return;
+  clearHint();
+  const hint = game.hint();
+  if (!hint) return;
+  const cells = boardElement.querySelectorAll('.cell');
+  cells[hint.a]?.classList.add('hinted');
+  cells[hint.b]?.classList.add('hinted');
+  combo.textContent = 'Troque as pedras destacadas';
+  hintTimer = setTimeout(() => {
+    clearHint();
+    if (!busy) combo.textContent = 'Combine três ou mais';
+  }, 2600);
+});
 $('#shuffle').addEventListener('click', () => {
   if (busy) return;
+  clearHint();
   selected = null;
   if (!game.shuffle()) return;
   draw();
@@ -651,6 +792,7 @@ $('#shuffle').addEventListener('click', () => {
 });
 $('#new-game').addEventListener('click', () => {
   if (busy) return;
+  clearHint();
   selected = null;
   game.newGame();
   combo.textContent = 'Combine três ou mais';
@@ -658,6 +800,7 @@ $('#new-game').addEventListener('click', () => {
 });
 $('#play-again').addEventListener('click', () => {
   if (busy) return;
+  clearHint();
   selected = null;
   game.newGame();
   combo.textContent = 'Combine três ou mais';
@@ -665,6 +808,7 @@ $('#play-again').addEventListener('click', () => {
 });
 document.querySelectorAll('.mode').forEach(button => button.addEventListener('click', () => {
   if (busy || game.mode === button.dataset.mode) return;
+  clearHint();
   selected = null;
   save();
   try {

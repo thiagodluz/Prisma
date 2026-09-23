@@ -1,4 +1,4 @@
-import {Game, SIZE} from './engine.js?v=5';
+import {Game, SIZE, levelGoal} from './engine.js?v=6';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
@@ -13,6 +13,7 @@ const levelElement = $('#level');
 const modeLabel = $('#mode-label');
 const progress = $('#progress');
 const progressFill = $('#progress-fill');
+const progressLabel = $('#progress-label');
 const combo = $('#combo');
 const toast = $('#toast');
 const gameOver = $('#game-over');
@@ -33,20 +34,28 @@ try {
 let selected = null;
 let pointerStart = null;
 let busy = false;
+let hintTimer;
 let soundOn = true;
 try { soundOn = localStorage.getItem('prisma.sound') !== 'off'; } catch { /* Some local file views deny storage. */ }
 let audioContext;
 
-function safeBest(mode) {
-  try { return Number(localStorage.getItem('prisma.best.' + mode)) ||
-    (mode === 'classic' ? Number(localStorage.getItem('prisma.best.endless')) : 0) || 0; }
-  catch { return 0; }
+function safeRecord(mode) {
+  try {
+    const saved = JSON.parse(localStorage.getItem('prisma.records.' + mode)) || {};
+    const legacy = Number(localStorage.getItem('prisma.best.' + mode)) ||
+      (mode === 'classic' ? Number(localStorage.getItem('prisma.best.endless')) : 0) || 0;
+    const safe = value => Number.isSafeInteger(value) && value >= 0 ? value : 0;
+    return {bestScore: Math.max(safe(saved.bestScore), safe(legacy)),
+      bestLevel: Math.max(1, safe(saved.bestLevel)), bestMove: safe(saved.bestMove),
+      finished: safe(saved.finished)};
+  } catch { return {bestScore: 0, bestLevel: 1, bestMove: 0, finished: 0}; }
 }
 
 function save() {
   try {
     localStorage.setItem(sessionKey(game.mode), JSON.stringify({
-      mode: game.mode, score: game.score, board: game.board, ended: game.ended
+      mode: game.mode, score: game.score, board: game.board, ended: game.ended,
+      progressionVersion: 2, level: game.level, levelStartScore: game.levelStartScore
     }));
     localStorage.setItem('prisma.activeMode', game.mode);
   } catch {}
@@ -105,23 +114,48 @@ function draw(board = game.board, matched = []) {
   })));
 }
 
-function hud() {
+function hud(moveEarned = 0, finishedGame = false) {
   scoreElement.textContent = game.score.toLocaleString('pt-BR');
-  const best = Math.max(game.score, safeBest(game.mode));
-  bestElement.textContent = best.toLocaleString('pt-BR');
-  try { if (best > safeBest(game.mode)) localStorage.setItem('prisma.best.' + game.mode, String(best)); } catch {}
+  const record = safeRecord(game.mode);
+  record.bestScore = Math.max(record.bestScore, game.score);
+  record.bestLevel = Math.max(record.bestLevel, game.level);
+  record.bestMove = Math.max(record.bestMove, moveEarned);
+  if (finishedGame && game.mode === 'classic') record.finished++;
+  try {
+    localStorage.setItem('prisma.records.' + game.mode, JSON.stringify(record));
+    localStorage.setItem('prisma.best.' + game.mode, String(record.bestScore));
+  } catch {}
+  bestElement.textContent = record.bestScore.toLocaleString('pt-BR');
   levelElement.textContent = String(game.level);
   modeLabel.textContent = 'NÍVEL';
   progress.hidden = false;
-  progressFill.style.width = `${(game.score % 2000) / 20}%`;
+  const gained = game.score - game.levelStartScore;
+  const goal = levelGoal(game.level);
+  progressFill.style.width = `${Math.min(100, gained / goal * 100)}%`;
+  progress.setAttribute('aria-valuenow', String(gained));
+  progress.setAttribute('aria-valuemax', String(goal));
+  progressLabel.textContent = `${gained.toLocaleString('pt-BR')} / ${goal.toLocaleString('pt-BR')} para o próximo nível`;
+  for (const mode of ['zen', 'classic']) {
+    const value = mode === game.mode ? record : safeRecord(mode);
+    $('#record-' + mode + '-score').textContent = value.bestScore.toLocaleString('pt-BR');
+    $('#record-' + mode + '-level').textContent = String(value.bestLevel);
+    $('#record-' + mode + '-move').textContent = value.bestMove.toLocaleString('pt-BR');
+    if (mode === 'classic') $('#record-classic-finished').textContent = String(value.finished);
+  }
   for (const button of document.querySelectorAll('.mode')) button.classList.toggle('selected', button.dataset.mode === game.mode);
   $('#shuffle').hidden = game.mode === 'classic';
+  $('#hint').disabled = game.ended;
   boardElement.classList.toggle('finished', game.ended);
   gameOver.hidden = !game.ended;
   $('#final-score').textContent = game.score.toLocaleString('pt-BR');
   $('#final-level').textContent = String(game.level);
   $('#sound').textContent = soundOn ? '♫' : '♪';
   $('#sound').setAttribute('aria-label', soundOn ? 'Desativar sons' : 'Ativar sons');
+}
+
+function clearHint() {
+  clearTimeout(hintTimer);
+  for (const cell of boardElement.querySelectorAll?.('.cell.hinted') ?? []) cell.classList.remove('hinted');
 }
 
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -257,10 +291,12 @@ async function attempt(a, b) {
     }
   }
   draw();
-  hud();
+  hud(result.earned, result.ended);
   save();
-  showToast(`+${result.earned.toLocaleString('pt-BR')}${result.chain > 1 ? ` · ${result.chain} cascatas` : ''}`);
+  showToast(`+${result.earned.toLocaleString('pt-BR')}${result.levelsGained ? ` · Nível ${game.level}!` :
+    result.chain > 1 ? ` · ${result.chain} cascatas` : ''}`);
   if (result.ended) combo.textContent = 'Sem jogadas restantes';
+  else if (result.levelsGained) combo.textContent = `Nível ${game.level}!`;
   else if (!result.rescued) setTimeout(() => { if (!busy) combo.textContent = 'Combine três ou mais'; }, 1500);
   boardElement.classList.remove('busy');
   busy = false;
@@ -268,6 +304,7 @@ async function attempt(a, b) {
 
 function handleIndex(index) {
   if (busy || game.ended || index < 0) return;
+  clearHint();
   if (selected === null) selected = index;
   else if (selected === index) selected = null;
   else if (game.adjacent(selected, index)) { attempt(selected, index); return; }
@@ -278,6 +315,7 @@ function handleIndex(index) {
 boardElement.addEventListener('pointerdown', event => {
   const cell = event.target.closest('.cell');
   if (!cell || busy || game.ended) return;
+  clearHint();
   pointerStart = {index: Number(cell.dataset.index), x: event.clientX, y: event.clientY};
 });
 boardElement.addEventListener('pointerup', event => {
@@ -297,8 +335,23 @@ boardElement.addEventListener('keydown', event => {
   if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleIndex(index); }
 });
 
+$('#hint').addEventListener('click', () => {
+  if (busy || game.ended) return;
+  clearHint();
+  const hint = game.hint();
+  if (!hint) return;
+  const cells = boardElement.querySelectorAll('.cell');
+  cells[hint.a]?.classList.add('hinted');
+  cells[hint.b]?.classList.add('hinted');
+  combo.textContent = 'Troque as pedras destacadas';
+  hintTimer = setTimeout(() => {
+    clearHint();
+    if (!busy) combo.textContent = 'Combine três ou mais';
+  }, 2600);
+});
 $('#shuffle').addEventListener('click', () => {
   if (busy) return;
+  clearHint();
   selected = null;
   if (!game.shuffle()) return;
   draw();
@@ -307,6 +360,7 @@ $('#shuffle').addEventListener('click', () => {
 });
 $('#new-game').addEventListener('click', () => {
   if (busy) return;
+  clearHint();
   selected = null;
   game.newGame();
   combo.textContent = 'Combine três ou mais';
@@ -314,6 +368,7 @@ $('#new-game').addEventListener('click', () => {
 });
 $('#play-again').addEventListener('click', () => {
   if (busy) return;
+  clearHint();
   selected = null;
   game.newGame();
   combo.textContent = 'Combine três ou mais';
@@ -321,6 +376,7 @@ $('#play-again').addEventListener('click', () => {
 });
 document.querySelectorAll('.mode').forEach(button => button.addEventListener('click', () => {
   if (busy || game.mode === button.dataset.mode) return;
+  clearHint();
   selected = null;
   save();
   try {

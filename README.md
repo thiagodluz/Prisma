@@ -9,7 +9,18 @@ Protótipo original de jogo de combinar pedras, feito para telas de Android. Inc
 - **Clássico:** sem cronômetro, com níveis; termina quando não há mais trocas capazes de formar combinações nem Espectro utilizável. A tela de resultado permite recomeçar. O botão de embaralhar não está disponível neste modo.
 - **Zen:** sem cronômetro nem tela de derrota, também com níveis. Se acabarem as jogadas, surge um Espectro para que a partida continue, sem zerar pontos ou apagar outras especiais. É possível embaralhar manualmente.
 
-Ao alternar entre modos, cada partida fica guardada separadamente no navegador. Sessões e recordes antigos do modo Endless passam para Clássico, com pontos e tabuleiro preservados. Por enquanto ambos usam a meta provisória de 2.000 pontos por nível; a calibragem do ritmo virá em outra etapa.
+Ao alternar entre modos, cada partida fica guardada separadamente no navegador. Sessões e recordes antigos do modo Endless passam para Clássico, com pontos e tabuleiro preservados.
+
+## Pontuação, níveis e recordes
+
+- Cada pedra removida vale 25 pontos.
+- Criar Pulso, Raio ou Espectro acrescenta respectivamente 120, 180 ou 240 pontos.
+- Cascatas multiplicam o valor da etapa: 1×, 1,4×, 1,8×, 2,2×, 2,6× e 3× a partir da sexta etapa.
+- O primeiro nível pede 1.800 pontos. A meta aumenta 350 pontos por nível até o limite de 5.300.
+- O botão **Dica** destaca uma troca válida, priorizando jogadas com maior potencial, sem alterar a pontuação.
+- A seção **Ver recordes** mostra maior pontuação, maior nível e melhor jogada de cada modo, além das partidas clássicas concluídas.
+
+Partidas salvas antes desta versão mantêm o nível e o progresso aproximado que já tinham. As sete cores continuam com chances iguais de aparecer; a dificuldade cresce pelo ritmo das metas, sem retirar cores nem reduzir as jogadas disponíveis.
 
 ## Pedras especiais
 
@@ -33,4 +44,4 @@ Execute `npm test` (Node.js 18+). Para reconstruir o arquivo único depois de ed
 
 ## Situação do protótipo
 
-Clássico e Zen têm regras próprias; ainda faltam a calibragem de pontuação e níveis, mais opções de áudio e efeitos, e os demais modos planejados. Todas as formas, cores, sons gerados e o nome são originais; nenhum arquivo do Bejeweled foi incorporado.
+Clássico e Zen têm regras próprias, pontuação calibrada, níveis progressivos, dicas e recordes. Ainda faltam mais opções de áudio e efeitos e os demais modos planejados. Todas as formas, cores, sons gerados e o nome são originais; nenhum arquivo do Bejeweled foi incorporado.

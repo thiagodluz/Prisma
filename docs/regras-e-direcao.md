@@ -6,6 +6,8 @@ Estado: referência de produto e registro das decisões implementadas. Revisado 
 
 **Etapa 4 implementada:** Clássico sem tempo e com fim por falta de jogadas, Zen sem fim com recuperação por Espectro; níveis em ambos; partidas separadas por modo; migração do antigo Endless para Clássico.
 
+**Etapa 5 implementada:** pontuação por pedras e especiais, multiplicador de cascata, metas de nível crescentes, dica que prioriza jogadas de maior potencial e recordes separados por modo. A calibragem foi baseada em 30 partidas simuladas de 100 jogadas.
+
 ## Objetivo
 
 Criar um jogo de combinar três pedras agradável em sessões longas no Android, com a clareza, as cascatas e a satisfação das pedras especiais que tornam *Bejeweled 3* uma boa referência. Prisma tem nome, identidade visual, áudio, interface, textos e decisões de equilíbrio próprios. Os fatos sobre o jogo de referência abaixo são contexto de pesquisa, não uma exigência de reprodução exata.
@@ -67,12 +69,14 @@ Registro histórico da versão inicial, para comparação com as entregas:
 - Uma combinação conectada da mesma cor cria no máximo uma especial: cinco em linha tem prioridade sobre L/T, que tem prioridade sobre quatro em linha. A peça nasce no destino da troca quando essa casa for uma pedra comum dentro da combinação; caso contrário, na casa comum de maior índice. Nunca substitui uma especial presente na combinação.
 - Pulso atinge a área 3×3; Raio atinge linha e coluna. Uma especial atingida por outra é acionada na mesma etapa, antes da queda. Uma célula atingida várias vezes pontua apenas uma vez.
 - Espectro trocado com uma pedra elimina a cor dela; dois Espectros trocados eliminam o tabuleiro inteiro. Um Espectro atingido indiretamente usa a primeira cor encontrada horizontalmente ao seu lado. São escolhas próprias do Prisma, a reavaliar após jogar no Android.
-- Pontos provisórios: 20 por célula removida, 80 pela criação de cada especial, multiplicados pela profundidade da cascata. Metas de nível, frequência das cores e velocidade dos efeitos ainda precisam ser calibradas.
-- Clássico e Zen progridem provisoriamente a cada 2.000 pontos; sem jogadas, Clássico encerra e Zen põe um Espectro no centro ou na primeira casa comum disponível, mantendo as demais pedras. O embaralhamento manual fica exclusivo do Zen. Ao trocar de modo, cada partida salva permanece intacta.
+- Pontos: 25 por célula removida; bônus de 120 pelo Pulso, 180 pelo Raio e 240 pelo Espectro. Cada etapa da cascata aumenta o multiplicador em 0,4, limitado a 3×.
+- Clássico e Zen começam com meta de 1.800 pontos; ela cresce 350 por nível até 5.300. Sem jogadas, Clássico encerra e Zen põe um Espectro no centro ou na primeira casa comum disponível, mantendo as demais pedras. O embaralhamento manual fica exclusivo do Zen. Ao trocar de modo, cada partida salva permanece intacta.
+- A dica avalia todas as trocas legais, prioriza especiais e combinações maiores e apenas destaca duas casas. Recordes guardam maior pontuação, nível e jogada por modo, além de partidas clássicas concluídas.
+- As sete cores mantêm probabilidades iguais. Em 30 simulações de 100 jogadas, a média foi 141 pontos por jogada, 1,31 etapa por jogada, 7,1 especiais criadas e nível 6 ao final; os resultados variaram do nível 5 ao 7.
 
 ## Decisões ainda abertas
 
-Não tratar como definitivos: fórmula e ritmo da pontuação, metas de nível, velocidade dos efeitos, distribuição das cores e interações adicionais entre especiais. Ajustar com partidas reais e exemplos de tabuleiro antes de fechar essas regras.
+Os valores atuais formam a primeira calibragem mensurável. Ajustar após partidas reais no Android se a progressão parecer rápida ou lenta. Velocidade dos efeitos e interações adicionais entre especiais continuam abertas.
 
 O visual deve priorizar **leitura instantânea das sete cores e das especiais**, bom contraste, movimento fluido e efeitos reguláveis, com linguagem gráfica criada para Prisma. Testar em tela Android real antes de fixar desenho, brilho, tamanho de alvos e duração das animações.
 

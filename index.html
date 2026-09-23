@@ -7,7 +7,7 @@
   <meta name="description" content="Prisma: um jogo original de combinar pedras para jogar sem pressa.">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=6">
   <title>Prisma — combine e relaxe</title>
 </head>
 <body>
@@ -22,7 +22,8 @@
       <div class="stat stat-center"><span id="mode-label">NÍVEL</span><strong id="level">1</strong></div>
       <div class="stat"><span>MELHOR</span><strong id="best">0</strong></div>
     </section>
-    <div class="progress" id="progress" aria-label="Progresso do nível"><div id="progress-fill"></div></div>
+    <div class="progress" id="progress" role="progressbar" aria-label="Progresso do nível" aria-valuemin="0" aria-valuenow="0" aria-valuemax="1800"><div id="progress-fill"></div></div>
+    <p class="progress-label" id="progress-label">0 / 1.800 para o próximo nível</p>
 
     <div class="board-frame">
       <div class="board" id="board" role="grid" aria-label="Tabuleiro de pedras, oito linhas por oito colunas"><p style="grid-column:1/-1;align-self:center;text-align:center;padding:1rem;color:#ddd">Carregando o jogo… Se o tabuleiro continuar vazio, abra o endereço HTTPS no navegador.</p></div>
@@ -39,7 +40,10 @@
     </div>
 
     <div class="toolbar">
-      <button id="shuffle" class="quiet-button" type="button">⤨ <span>Embaralhar</span></button>
+      <div class="toolbar-actions">
+        <button id="shuffle" class="quiet-button" type="button">⤨ <span>Embaralhar</span></button>
+        <button id="hint" class="quiet-button" type="button">✧ <span>Dica</span></button>
+      </div>
       <div class="combo" id="combo" aria-live="polite">Combine três ou mais</div>
       <button id="new-game" class="quiet-button" type="button">↻ <span>Novo jogo</span></button>
     </div>
@@ -49,7 +53,29 @@
       <button class="mode" data-mode="classic" type="button"><span class="mode-icon">✧</span><span><strong>Clássico</strong><small>Sem tempo · pode acabar</small></span></button>
     </section>
     <p class="hint">Toque duas pedras vizinhas ou arraste para trocar.</p>
+    <details class="records">
+      <summary>Ver recordes</summary>
+      <div class="records-grid">
+        <section aria-label="Recordes Zen">
+          <h2>Zen</h2>
+          <dl>
+            <div><dt>Maior pontuação</dt><dd id="record-zen-score">0</dd></div>
+            <div><dt>Maior nível</dt><dd id="record-zen-level">1</dd></div>
+            <div><dt>Melhor jogada</dt><dd id="record-zen-move">0</dd></div>
+          </dl>
+        </section>
+        <section aria-label="Recordes Clássico">
+          <h2>Clássico</h2>
+          <dl>
+            <div><dt>Maior pontuação</dt><dd id="record-classic-score">0</dd></div>
+            <div><dt>Maior nível</dt><dd id="record-classic-level">1</dd></div>
+            <div><dt>Melhor jogada</dt><dd id="record-classic-move">0</dd></div>
+            <div><dt>Partidas concluídas</dt><dd id="record-classic-finished">0</dd></div>
+          </dl>
+        </section>
+      </div>
+    </details>
   </main>
-  <script type="module" src="app.js?v=5"></script>
+  <script type="module" src="app.js?v=6"></script>
 </body>
 </html>

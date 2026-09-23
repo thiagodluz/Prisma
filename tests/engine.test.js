@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {Game, SIZE} from '../engine.js';
+import {Game, SIZE, levelGoal} from '../engine.js';
 
 function fixture() {
   let seed = 7654321;
@@ -64,7 +64,7 @@ test('a long sequence keeps falling IDs, events and board consistent', () => {
 });
 
 test('invalid swaps preserve board and score', () => {
-  const game = fixture();
+  const game = new Game();
   const before = JSON.stringify(game.board);
   assert.equal(game.move(0, 9).valid, false);
   assert.equal(game.move(7, 8).valid, false);
@@ -214,4 +214,53 @@ test('a no-moves save restores as finished Classic or playable Zen', () => {
   assert.equal(zen.ended, false);
   assert.equal(zen.hasMove(), true);
   assert.equal(zen.board.flat().filter(tile => tile.type === 'spectrum').length, 1);
+});
+
+test('score rewards special creation and cascades with a capped multiplier', () => {
+  const game = fixture();
+  for (let c = 0; c < 3; c++) place(game, 3, c, 0);
+  place(game, 3, 3, 1);
+  place(game, 2, 3, 0);
+  const result = game.move(at(2, 3), at(3, 3));
+  const first = result.events[0];
+  assert.equal(first.base, 75);
+  assert.equal(first.creationBonus, 120);
+  assert.equal(first.comboMultiplier, 1);
+  assert.equal(first.earned, 195);
+  assert.equal(result.earned, result.events.filter(event => event.type === 'clear')
+    .reduce((sum, event) => sum + event.earned, 0));
+  for (const event of result.events.filter(event => event.type === 'clear'))
+    assert.ok(event.comboMultiplier >= 1 && event.comboMultiplier <= 3);
+});
+
+test('level goals grow gradually and progress can cross multiple levels', () => {
+  assert.deepEqual([1, 2, 3, 4, 5, 10].map(levelGoal), [1800, 2150, 2500, 2850, 3200, 4950]);
+  assert.equal(levelGoal(20), 5300);
+  const game = new Game();
+  game.score = levelGoal(1) - 50;
+  const move = matchMove(game);
+  const result = game.move(...move);
+  assert.ok(result.levelsGained >= 1);
+  assert.equal(game.level, 2);
+  assert.equal(game.levelStartScore, levelGoal(1));
+  assert.equal(game.score - game.levelStartScore, game.score - levelGoal(1));
+});
+
+test('hint returns a legal move and prioritizes a pair of spectra', () => {
+  const game = fixture();
+  place(game, 1, 1, null, 'spectrum');
+  place(game, 1, 2, null, 'spectrum');
+  assert.deepEqual(game.hint(), {a: at(1, 1), b: at(1, 2)});
+  game.ended = true;
+  assert.equal(game.hint(), null);
+});
+
+test('new progression save restores exact level position', () => {
+  const original = fixture();
+  const copy = new Game();
+  assert.ok(copy.restore({mode: 'zen', score: 4321, board: original.board,
+    progressionVersion: 2, level: 3, levelStartScore: 3950}));
+  assert.equal(copy.level, 3);
+  assert.equal(copy.levelStartScore, 3950);
+  assert.equal(copy.score - copy.levelStartScore, 371);
 });
