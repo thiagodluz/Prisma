@@ -1,5 +1,7 @@
 # Prisma
 
+As regras de referência, decisões próprias e casos de aceitação das próximas etapas estão em [docs/regras-e-direcao.md](docs/regras-e-direcao.md).
+
 Protótipo original de jogo de combinar pedras, feito para telas de Android. Inclui tabuleiro 8×8, trocas e quedas animadas, comandos por toque ou arrasto, validação de combinações, cascatas, pontuação, sons opcionais, embaralhamento, partida e recorde salvos localmente, modo Zen sem limite de tempo e modo Endless com níveis progressivos. Funciona sem internet depois de instalado.
 
 ## Jogar no computador
