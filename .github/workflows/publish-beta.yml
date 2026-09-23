@@ -1,0 +1,34 @@
+name: Publish Android beta
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/publish-beta.yml
+  workflow_dispatch:
+
+jobs:
+  release:
+    if: github.repository == 'thiagodluz/Prisma'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download the verified APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p release
+          gh run download 35895212537 --repo "$GITHUB_REPOSITORY" --name Prisma-Android-debug --dir release
+          mv release/app-debug.apk release/Prisma-Android.apk
+          echo 'dce63324667c95a10be48f97c07a2198683dae806cd4a74b92f3d7e907bf1658  release/Prisma-Android.apk' | sha256sum --check
+      - name: Publish the prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create v1.0.0-beta.1 release/Prisma-Android.apk \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title 'Prisma beta 1 — Android' --prerelease --latest=false \
+            --notes-file docs/release-beta.md
