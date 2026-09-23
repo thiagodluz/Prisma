@@ -1,6 +1,6 @@
-import {Game, SIZE, levelGoal} from './engine.js?v=9';
-import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=9';
-import {SoundDesign, cueForFrame} from './sound.js?v=9';
+import {Game, SIZE, levelGoal} from './engine.js?v=10';
+import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=10';
+import {SoundDesign, cueForFrame} from './sound.js?v=10';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
@@ -22,6 +22,17 @@ const gameOver = $('#game-over');
 const levelUp = $('#level-up');
 const game = new Game();
 const names = ['rubi', 'âmbar', 'sol', 'jade', 'água', 'safira', 'ametista'];
+let visualStyle = 'illustrated';
+try { if (localStorage.getItem('prisma.visualStyle') === 'original') visualStyle = 'original'; } catch {}
+function syncVisualStyle() {
+  document.documentElement.dataset.visualStyle = visualStyle;
+  for (const button of document.querySelectorAll('.visual-option')) {
+    const active = button.dataset.visual === visualStyle;
+    button.classList.toggle('selected', active);
+    button.setAttribute('aria-pressed', String(active));
+  }
+}
+syncVisualStyle();
 const sessionKey = mode => 'prisma.session.' + mode;
 try {
   const legacy = JSON.parse(localStorage.getItem('prisma.session'));
@@ -557,6 +568,12 @@ document.querySelectorAll('.mode').forEach(button => button.addEventListener('cl
   draw(); hud(); save();
   zenAudio.armed = true;
   syncZenUI(true);
+}));
+document.querySelectorAll('.visual-option').forEach(button => button.addEventListener('click', () => {
+  if (button.dataset.visual === visualStyle) return;
+  visualStyle = button.dataset.visual;
+  syncVisualStyle();
+  try { localStorage.setItem('prisma.visualStyle', visualStyle); } catch {}
 }));
 $('#zen-music').addEventListener('change', event => {
   zenSettings.music = event.target.checked;

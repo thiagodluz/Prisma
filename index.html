@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-visual-style="illustrated">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
@@ -9,7 +9,7 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="preload" href="gem-atlas.webp" as="image">
   <link rel="preload" href="special-atlas.webp" as="image">
-  <link rel="stylesheet" href="style.css?v=9">
+  <link rel="stylesheet" href="style.css?v=10">
   <title>Prisma — combine e relaxe</title>
 </head>
 <body>
@@ -58,6 +58,13 @@
       <button class="mode selected" data-mode="zen" type="button"><span class="mode-icon">☾</span><span><strong>Zen</strong><small>Jogue no seu ritmo</small></span></button>
       <button class="mode" data-mode="classic" type="button"><span class="mode-icon">✧</span><span><strong>Clássico</strong><small>Sem tempo · pode acabar</small></span></button>
     </section>
+    <section class="visual-picker" aria-label="Visual do jogo">
+      <span>Visual</span>
+      <div class="visual-options" role="group" aria-label="Escolher visual do jogo">
+        <button class="visual-option" data-visual="original" type="button" aria-pressed="false">Anterior</button>
+        <button class="visual-option" data-visual="illustrated" type="button" aria-pressed="true">Novo</button>
+      </div>
+    </section>
     <section class="zen-panel" id="zen-panel" aria-label="Personalização do modo Zen">
       <details class="zen-settings">
         <summary>Personalizar Zen</summary>
@@ -98,6 +105,6 @@
       </div>
     </details>
   </main>
-  <script type="module" src="app.js?v=9"></script>
+  <script type="module" src="app.js?v=10"></script>
 </body>
 </html>

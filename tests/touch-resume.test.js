@@ -59,6 +59,7 @@ test('drag previews its neighbor, commits before animation and settles when hidd
   board.releasePointerCapture = () => {};
   elements.set('#board', board);
   globalThis.document = {
+    documentElement: {dataset: {}},
     visibilityState: 'visible', handlers: {},
     addEventListener(name, listener) { this.handlers[name] = listener; },
     querySelector(selector) {

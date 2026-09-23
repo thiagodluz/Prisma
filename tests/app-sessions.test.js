@@ -34,17 +34,34 @@ test('old Endless session opens as Classic and switching modes keeps both sessio
     element.dataset.mode = mode;
     return element;
   });
+  const visuals = ['original', 'illustrated'].map(visual => {
+    const element = makeElement();
+    element.dataset.visual = visual;
+    return element;
+  });
   globalThis.document = {
+    documentElement: {dataset: {}},
     querySelector(selector) {
       if (!elements.has(selector)) elements.set(selector, makeElement());
       return elements.get(selector);
     },
-    querySelectorAll(selector) { return selector === '.mode' ? modes : []; },
+    querySelectorAll(selector) { return selector === '.mode' ? modes : selector === '.visual-option' ? visuals : []; },
     createElement() { return makeElement(); }
   };
   Object.defineProperty(globalThis, 'navigator', {value: {}, configurable: true});
 
   await import('../app.js?sessions');
+  assert.equal(document.documentElement.dataset.visualStyle, 'illustrated');
+  const classicBoard = data.get('prisma.session.classic');
+  visuals[0].handlers.click();
+  assert.equal(document.documentElement.dataset.visualStyle, 'original');
+  assert.equal(data.get('prisma.visualStyle'), 'original');
+  assert.equal(data.get('prisma.session.classic'), classicBoard);
+  assert.equal(visuals[0].classList.contains('selected'), true);
+  assert.equal(visuals[1].classList.contains('selected'), false);
+  visuals[1].handlers.click();
+  assert.equal(document.documentElement.dataset.visualStyle, 'illustrated');
+  assert.equal(data.get('prisma.session.classic'), classicBoard);
   assert.equal(elements.get('#score').textContent, '2.500');
   assert.equal(elements.get('#level').textContent, '2');
   assert.equal(elements.get('#shuffle').hidden, true);

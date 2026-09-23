@@ -14,6 +14,7 @@ test('the board initializes when local file storage is denied', async () => {
     replaceChildren(...children) { this.children = children; }
   });
   globalThis.document = {
+    documentElement: {dataset: {}},
     querySelector(selector) {
       if (!elements.has(selector)) elements.set(selector, makeElement());
       return elements.get(selector);

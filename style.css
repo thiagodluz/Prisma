@@ -79,28 +79,40 @@
 @media(max-width:390px){.zen-settings-content{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.breath-orb.phase-in,.breath-orb.phase-out{animation:none}}
 
-/* Prisma's original illustrated stone atlas keeps every tile on a square canvas. */
-body{background-color:#0b1022;background-image:linear-gradient(180deg,#0b102242,#0b10226b),url('prisma-bg.jpg');background-size:cover;background-position:center top}
-.board-frame{background:linear-gradient(145deg,#7790bd65,#202a4e,#785b9b72);border-color:#cee6ff5c;box-shadow:0 19px 54px #030616bd,inset 0 1px #e7f8ff72}
-.board{background:#0d142c;box-shadow:inset 0 0 25px #03081791}
-.cell{background:linear-gradient(155deg,#bfd5ff19,#4d67940b);box-shadow:inset 0 1px #e9e4ff0c}
-.cell:nth-child(odd){background:linear-gradient(155deg,#c8c1ff1b,#4d67940b)}
-.mover .gem{width:100%;height:auto;aspect-ratio:1;transform:none;border:0;outline:0;clip-path:none;border-radius:0;box-shadow:none;background-color:transparent;background-image:url('gem-atlas.webp');background-repeat:no-repeat;background-size:300% 300%;filter:drop-shadow(0 3px 2px #02061db3);transition:transform .16s ease,filter .16s ease}
-.mover .gem:before,.mover .gem:after{display:none;content:none}
-.mover .gem.gem-0{background-position:0 0;transform:none}
-.mover .gem.gem-1{background-position:50% 0;transform:none}
-.mover .gem.gem-2{background-position:100% 0;transform:none}
-.mover .gem.gem-3{background-position:0 50%;transform:scale(.87)}
-.mover .gem.gem-4{background-position:50% 50%;transform:scale(.93)}
-.mover .gem.gem-5{background-position:100% 50%;transform:none}
-.mover .gem.gem-6{background-position:0 100%;transform:none}
-.mover .gem.special{width:100%;height:auto;aspect-ratio:1;border:0;outline:0;border-radius:0;box-shadow:none;background-color:transparent;background-image:url('special-atlas.webp');background-size:300% 300%;filter:drop-shadow(0 0 6px #b5edff9c) drop-shadow(0 3px 3px #01071bbb)}
-.mover .gem.special-burst{background-position:0 0}
-.mover .gem.special-cross{background-position:50% 0}
-.mover .gem.special-spectrum{background-position:100% 0}
-.cell.selected .mover .gem,.cell:active .mover .gem{transform:scale(1.1)}
-.cell.selected .mover .gem.gem-3,.cell:active .mover .gem.gem-3{transform:scale(.97)}
-.cell.selected .mover .gem.gem-4,.cell:active .mover .gem.gem-4{transform:scale(1.03)}
+/* The original CSS stones remain active unless the illustrated visual is selected. */
+:root[data-visual-style="illustrated"] body{background-color:#0b1022;background-image:linear-gradient(180deg,#0b102242,#0b10226b),url('prisma-bg.jpg');background-size:cover;background-position:center top}
+:root[data-visual-style="illustrated"] .board-frame{background:linear-gradient(145deg,#7790bd65,#202a4e,#785b9b72);border-color:#cee6ff5c;box-shadow:0 19px 54px #030616bd,inset 0 1px #e7f8ff72}
+:root[data-visual-style="illustrated"] .board{background:#0d142c;box-shadow:inset 0 0 25px #03081791}
+:root[data-visual-style="illustrated"] .cell{background:linear-gradient(155deg,#bfd5ff19,#4d67940b);box-shadow:inset 0 1px #e9e4ff0c}
+:root[data-visual-style="illustrated"] .cell:nth-child(odd){background:linear-gradient(155deg,#c8c1ff1b,#4d67940b)}
+:root[data-visual-style="illustrated"] .cell.selected{background:#f7edab5c;box-shadow:inset 0 0 0 2px #ffeab7}
+:root[data-visual-style="illustrated"] .cell.hinted{background:#ffe9933d;box-shadow:inset 0 0 0 2px #ffe89b,0 0 13px #f7d47b9c}
+:root[data-visual-style="illustrated"] .cell.pressed{background:#e5d8ff3d;box-shadow:inset 0 0 0 2px #d4c5ff}
+:root[data-visual-style="illustrated"] .cell.drag-target{background:#c4ffe451;box-shadow:inset 0 0 0 2px #a2f4d7,0 0 12px #6de9d76b}
+:root[data-visual-style="illustrated"] .mover{inset:11%}
+:root[data-visual-style="illustrated"] .mover .gem{width:100%;height:100%;aspect-ratio:1;transform:none;border:0;outline:0;clip-path:none;border-radius:0;box-shadow:none;background-color:transparent;background-image:url('gem-atlas.webp');background-repeat:no-repeat;background-size:300% 300%;filter:drop-shadow(0 2px 2px #02061d9c);transition:transform .16s ease,filter .16s ease}
+:root[data-visual-style="illustrated"] .mover .gem:before,:root[data-visual-style="illustrated"] .mover .gem:after{display:none;content:none}
+:root[data-visual-style="illustrated"] .mover .gem.gem-0{background-position:0 0;transform:none}
+:root[data-visual-style="illustrated"] .mover .gem.gem-1{background-position:50% 0;transform:none}
+:root[data-visual-style="illustrated"] .mover .gem.gem-2{background-position:100% 0;transform:none}
+:root[data-visual-style="illustrated"] .mover .gem.gem-3{background-position:0 50%;transform:scale(.87)}
+:root[data-visual-style="illustrated"] .mover .gem.gem-4{background-position:50% 50%;transform:scale(.93)}
+:root[data-visual-style="illustrated"] .mover .gem.gem-5{background-position:100% 50%;transform:none}
+:root[data-visual-style="illustrated"] .mover .gem.gem-6{background-position:0 100%;transform:none}
+:root[data-visual-style="illustrated"] .mover .gem.special{width:100%;height:100%;aspect-ratio:1;border:0;outline:0;border-radius:0;box-shadow:none;background-color:transparent;background-image:url('special-atlas.webp');background-size:300% 300%;filter:drop-shadow(0 0 3px #b5edff9c) drop-shadow(0 2px 2px #01071bbb)}
+:root[data-visual-style="illustrated"] .mover .gem.special-burst{background-position:0 0}
+:root[data-visual-style="illustrated"] .mover .gem.special-cross{background-position:50% 0}
+:root[data-visual-style="illustrated"] .mover .gem.special-spectrum{background-position:100% 0}
+:root[data-visual-style="illustrated"] .cell.selected .mover .gem,:root[data-visual-style="illustrated"] .cell:active .mover .gem{transform:scale(1.06)}
+:root[data-visual-style="illustrated"] .cell.selected .mover .gem.gem-3,:root[data-visual-style="illustrated"] .cell:active .mover .gem.gem-3{transform:scale(.93)}
+:root[data-visual-style="illustrated"] .cell.selected .mover .gem.gem-4,:root[data-visual-style="illustrated"] .cell:active .mover .gem.gem-4{transform:scale(.99)}
+.board{grid-template-columns:repeat(8,minmax(0,1fr))}
+.visual-picker{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 1px 0;padding:9px 12px;border:1px solid #ffffff25;border-radius:14px;background:#ffffff0b;color:#d9d5ee;font-size:13px;font-weight:700}
+.visual-options{display:flex;gap:3px;padding:3px;border:1px solid #ffffff1a;border-radius:10px;background:#0c10255c}
+.visual-option{min-height:34px;padding:5px 13px;border:0;border-radius:7px;background:transparent;color:#c8c3de;font-size:12px;font-weight:700}
+.visual-option.selected{background:#8d78cd85;box-shadow:inset 0 1px #ffffff55;color:#fff}
+.visual-option:focus-visible{outline:2px solid #b1f7e9;outline-offset:2px}
+@media(max-width:370px){.visual-picker{padding:8px}.visual-option{padding:5px 9px}}
 .effect-wave{border:2px solid #ffe9ac;background:radial-gradient(circle,#fff9 0%,#ffe59265 30%,transparent 70%);box-shadow:0 0 17px #ffe1a9c9,0 0 29px #dfb2ff9c}
 .effect-spark{position:absolute;width:6px;height:6px;border-radius:2px;background:#fff6d1;box-shadow:0 0 9px 2px #ffe4a8,0 0 15px #fff}
 .effect-spark.cool{background:#b5faff;box-shadow:0 0 9px 2px #71e9ff,0 0 15px #fff}
