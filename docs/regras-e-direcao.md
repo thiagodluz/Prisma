@@ -8,6 +8,8 @@ Estado: referência de produto e registro das decisões implementadas. Revisado 
 
 **Etapa 5 implementada:** pontuação por pedras e especiais, multiplicador de cascata, metas de nível crescentes, dica que prioriza jogadas de maior potencial e recordes separados por modo. A calibragem foi baseada em 30 partidas simuladas de 100 jogadas.
 
+**Etapas 6 e 7 implementadas:** arrasto com indicação de destino, efeitos resilientes à interrupção, vibração opcional e salvamento antes das animações; Zen com música e ambiente independentes, respiração 4/4 ou 4/6 e intensidade de efeitos Suave, Padrão ou Vibrante. Preferências próprias do Zen, desligadas por padrão quando geram áudio ou movimento contínuo.
+
 ## Objetivo
 
 Criar um jogo de combinar três pedras agradável em sessões longas no Android, com a clareza, as cascatas e a satisfação das pedras especiais que tornam *Bejeweled 3* uma boa referência. Prisma tem nome, identidade visual, áudio, interface, textos e decisões de equilíbrio próprios. Os fatos sobre o jogo de referência abaixo são contexto de pesquisa, não uma exigência de reprodução exata.
@@ -36,7 +38,7 @@ Registro histórico da versão inicial, para comparação com as entregas:
 | --- | --- | --- |
 | Combinação e ritmo | Combinar pedras e criar gemas especiais é parte central da experiência [1][2] | Trocar vizinhas para produzir linha horizontal ou vertical com ≥3 da mesma cor; inválida retorna; resolver simultaneamente as combinações de uma etapa, depois queda e novas cascatas |
 | Clássico | Sem cronômetro; termina quando não restam combinações possíveis [2] | Modo Clássico sem tempo; progressão de níveis; fim de partida quando não houver jogada legal **após** resolver toda a cascata e os efeitos especiais; mostrar resultado e opção de recomeçar |
-| Zen | Partida sem fim, com sons ambientes e opções de respiração na versão para Xbox [2]; a apresentação oficial destaca a personalização [3] | Modo contínuo sem cronômetro, limite de movimentos ou fim por falta de jogadas; manter pontuação e uma progressão discreta; opções separadas para música, sons e intensidade dos efeitos, em etapas posteriores |
+| Zen | Partida sem fim, com sons ambientes e opções de respiração na versão para Xbox [2]; a apresentação oficial destaca a personalização [3] | Modo contínuo sem cronômetro, limite de movimentos ou fim por falta de jogadas; manter pontuação e progressão discreta; opções próprias e independentes de música, ambiente, respiração e efeitos implementadas na etapa 7 |
 | Quatro em linha | Cria gema Flame; ao ser combinada, atinge a própria posição e as oito ao redor [1] | Criar pedra especial de explosão local com arte e nome próprios; testar criação, ativação e reação em cadeia |
 | T ou L | Cria gema Star; ao ser combinada, limpa sua linha e coluna [1] | Criar pedra especial de linhas cruzadas com identidade própria; testar cruzamentos sem contar duas vezes a célula central |
 | Cinco em linha | Cria Hypercube; ao ser trocado com uma gema adjacente, elimina a cor dela [1] | Criar pedra especial que limpa uma cor do tabuleiro; definir visual, regra para trocas com outra especial e critério de pontuação antes de implementar |

@@ -54,6 +54,39 @@
 .cell.pressed .gem,.cell.drag-target .gem{filter:brightness(1.2)}
 .level-up{position:absolute;z-index:2;top:45%;left:50%;transform:translate(-50%,-50%);pointer-events:none;white-space:nowrap;padding:12px 22px;border:1px solid #f5e9ffa8;border-radius:17px;background:linear-gradient(125deg,#3c4588ed,#7053a8ef);box-shadow:0 10px 40px #191740b8,0 0 36px #b5a3ff85;color:#fff;font-size:clamp(22px,6vw,30px);font-weight:850;letter-spacing:.035em;text-shadow:0 2px 12px #18142e}
 .board.busy ~ .game-over{display:none}
+
+.zen-panel{margin:12px 0 0}
+.zen-panel[hidden],.breath-guide[hidden]{display:none}
+.zen-settings{border:1px solid #c1b6fb55;border-radius:15px;background:#6e65aa22}
+.zen-settings summary{padding:12px 15px;list-style:none;cursor:pointer;color:#ebe7ff;font-size:14px;font-weight:750}
+.zen-settings summary::-webkit-details-marker{display:none}
+.zen-settings summary:after{content:"⌄";float:right;color:#b8aff6}
+.zen-settings[open] summary:after{content:"⌃"}
+.zen-settings-content{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:1px 13px 14px}
+.zen-check{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:53px;padding:7px 9px;border-radius:10px;background:#10142b7a;cursor:pointer}
+.zen-check strong,.zen-check small{display:block}
+.zen-check strong,.zen-field span{font-size:14px;font-weight:700;color:#f5f2ff}
+.zen-check small{margin-top:2px;font-size:12px;color:#c5c0e3}
+.zen-check input{width:20px;height:20px;flex:0 0 20px;accent-color:#91eadb}
+.zen-field{display:flex;flex-direction:column;gap:6px;color:#eeeaff}
+.zen-field select{width:100%;min-height:38px;padding:7px 9px;border:1px solid #c1b6fb66;border-radius:9px;background:#252848;color:#fff;font:inherit;font-size:13px}
+.zen-note{grid-column:1/-1;margin:0;color:#bdb8d9;font-size:12px;line-height:1.4}
+.zen-check:focus-within,.zen-settings summary:focus-visible,.zen-field select:focus-visible{outline:2px solid #b1f7e9;outline-offset:2px}
+.breath-guide{display:flex;align-items:center;justify-content:center;gap:13px;margin-top:11px;padding:10px 16px;border:1px solid #a5e9dd55;border-radius:15px;background:linear-gradient(105deg,#2e4b6d6b,#39325f87)}
+.breath-orb{width:33px;height:33px;flex:0 0 33px;border:2px solid #a9f6e2;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d6fff4,#70baca);box-shadow:0 0 17px #8bead677}
+.breath-orb.phase-in{animation:breatheIn var(--breath-duration,4s) ease-in-out both}
+.breath-orb.phase-out{animation:breatheOut var(--breath-duration,4s) ease-in-out both}
+.breath-copy{display:flex;align-items:baseline;gap:9px;min-width:0}
+.breath-copy strong{font-size:15px;color:#e9fff8}
+.breath-copy small{font-size:13px;color:#bfd9dc;font-variant-numeric:tabular-nums}
+@keyframes breatheIn{from{transform:scale(.72);opacity:.64}to{transform:scale(1.15);opacity:1}}
+@keyframes breatheOut{from{transform:scale(1.15);opacity:1}to{transform:scale(.72);opacity:.64}}
+.board-frame[data-effects="soft"] .effect-layer{opacity:.48;filter:saturate(.8)}
+.board-frame[data-effects="vivid"] .effect-layer{filter:saturate(1.35) brightness(1.13)}
+.board-frame[data-effects="soft"] .level-up{box-shadow:0 10px 25px #19174088}
+.board-frame[data-effects="vivid"] .level-up{box-shadow:0 10px 40px #191740b8,0 0 48px #b5a3ffba}
+@media(max-width:390px){.zen-settings-content{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.breath-orb.phase-in,.breath-orb.phase-out{animation:none}}
 </style>
   <title>Prisma — combine e relaxe</title>
 </head>
@@ -63,7 +96,7 @@
       <div class="brand"><span class="brand-mark">✦</span><div><h1>PRISMA</h1><small>Um instante de brilho</small></div></div>
       <div class="header-actions">
         <button class="icon-button" id="vibration" type="button" aria-label="Ativar vibração" aria-pressed="false" title="Vibração" hidden>〰</button>
-        <button class="icon-button" id="sound" type="button" aria-label="Desativar sons" title="Som">♫</button>
+        <button class="icon-button" id="sound" type="button" aria-label="Desativar sons do jogo" title="Sons do jogo">♫</button>
       </div>
     </header>
 
@@ -102,6 +135,22 @@
     <section class="mode-picker" aria-label="Modo de jogo">
       <button class="mode selected" data-mode="zen" type="button"><span class="mode-icon">☾</span><span><strong>Zen</strong><small>Jogue no seu ritmo</small></span></button>
       <button class="mode" data-mode="classic" type="button"><span class="mode-icon">✧</span><span><strong>Clássico</strong><small>Sem tempo · pode acabar</small></span></button>
+    </section>
+    <section class="zen-panel" id="zen-panel" aria-label="Personalização do modo Zen">
+      <details class="zen-settings">
+        <summary>Personalizar Zen</summary>
+        <div class="zen-settings-content">
+          <label class="zen-check"><span><strong>Música</strong><small>Melodia tranquila</small></span><input id="zen-music" type="checkbox"></label>
+          <label class="zen-check"><span><strong>Ambiente</strong><small>Som suave de fundo</small></span><input id="zen-ambience" type="checkbox"></label>
+          <label class="zen-field" for="zen-breath"><span>Respiração guiada</span><select id="zen-breath"><option value="off">Desligada</option><option value="balanced">4 s inspirar · 4 s expirar</option><option value="slow">4 s inspirar · 6 s expirar</option></select></label>
+          <label class="zen-field" for="zen-effects"><span>Intensidade dos efeitos</span><select id="zen-effects"><option value="soft">Suave</option><option value="normal">Padrão</option><option value="vivid">Vibrante</option></select></label>
+          <p class="zen-note">A música e o ambiente começam no primeiro toque depois de abrir o jogo.</p>
+        </div>
+      </details>
+      <div class="breath-guide" id="breath-guide" hidden role="group" aria-label="Guia de respiração">
+        <span class="breath-orb" id="breath-orb" aria-hidden="true"></span>
+        <span class="breath-copy"><strong id="breath-phase" aria-live="polite">Inspire</strong><small id="breath-count" aria-hidden="true">4 segundos</small></span>
+      </div>
     </section>
     <p class="hint">Toque duas pedras vizinhas ou arraste para trocar.</p>
     <details class="records">
@@ -443,6 +492,116 @@ class Game {
   }
 }
 
+const ZEN_DEFAULTS = Object.freeze({music: false, ambience: false, breath: 'off', effects: 'normal'});
+
+function normalizeZenSettings(value) {
+  return {
+    music: value?.music === true,
+    ambience: value?.ambience === true,
+    breath: ['off', 'balanced', 'slow'].includes(value?.breath) ? value.breath : 'off',
+    effects: ['soft', 'normal', 'vivid'].includes(value?.effects) ? value.effects : 'normal'
+  };
+}
+
+const breathTiming = mode => mode === 'balanced' ? [4, 4] : mode === 'slow' ? [4, 6] : null;
+
+// Small synthesized soundscape; no downloaded audio files or continuous timer while inactive.
+class ZenAudio {
+  constructor(getContext) {
+    this.getContext = getContext;
+    this.armed = false;
+    this.musicTimer = null;
+    this.voices = new Set();
+    this.ambienceSource = null;
+    this.chord = 0;
+  }
+
+  sync({active, music, ambience}) {
+    if (!this.armed || !active || (!music && !ambience)) { this.stop(); return; }
+    try {
+      const ctx = this.getContext();
+      if (ctx.state === 'suspended') ctx.resume().catch?.(() => {});
+      if (music && !this.musicTimer) {
+        this.playChord(ctx);
+        this.musicTimer = setInterval(() => this.playChord(ctx), 7600);
+      } else if (!music) this.stopMusic();
+      if (ambience && !this.ambienceSource) this.startAmbience(ctx);
+      else if (!ambience) this.stopAmbience();
+    } catch { this.stop(); /* Audio can be unavailable in local-file views. */ }
+  }
+
+  playChord(ctx) {
+    const notes = [
+      [130.81, 196, 261.63], [174.61, 220, 261.63],
+      [164.81, 196, 246.94], [146.83, 220, 293.66]
+    ][this.chord++ % 4];
+    const now = ctx.currentTime;
+    for (const frequency of notes) {
+      const voice = ctx.createOscillator();
+      const volume = ctx.createGain();
+      voice.type = 'sine';
+      voice.frequency.value = frequency;
+      volume.gain.setValueAtTime(.0001, now);
+      volume.gain.linearRampToValueAtTime(.013, now + 1.1);
+      volume.gain.setValueAtTime(.013, now + 5.8);
+      volume.gain.exponentialRampToValueAtTime(.0001, now + 7.6);
+      voice.connect(volume).connect(ctx.destination);
+      const entry = {voice, volume};
+      voice.onended = () => { this.voices.delete(entry); voice.disconnect(); volume.disconnect(); };
+      this.voices.add(entry);
+      voice.start(now);
+      voice.stop(now + 7.65);
+    }
+  }
+
+  startAmbience(ctx) {
+    const length = Math.floor(ctx.sampleRate * 3);
+    const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+    const samples = buffer.getChannelData(0);
+    for (let i = 0; i < length; i++) {
+      const edge = Math.min(1, i / 512, (length - i - 1) / 512);
+      samples[i] = (Math.random() * 2 - 1) * edge;
+    }
+    const source = ctx.createBufferSource();
+    const filter = ctx.createBiquadFilter();
+    const volume = ctx.createGain();
+    source.buffer = buffer;
+    source.loop = true;
+    filter.type = 'lowpass';
+    filter.frequency.value = 420;
+    volume.gain.value = .019;
+    source.connect(filter).connect(volume).connect(ctx.destination);
+    source.onended = () => { source.disconnect(); filter.disconnect(); volume.disconnect(); };
+    source.start();
+    this.ambienceSource = {source, volume, ctx};
+  }
+
+  stopMusic() {
+    clearInterval(this.musicTimer);
+    this.musicTimer = null;
+    for (const {voice, volume} of this.voices) {
+      volume.gain.cancelScheduledValues?.(voice.context?.currentTime ?? 0);
+      volume.gain.setTargetAtTime(.0001, voice.context?.currentTime ?? 0, .04);
+      try { voice.stop((voice.context?.currentTime ?? 0) + .22); } catch {}
+    }
+    this.voices.clear();
+  }
+
+  stopAmbience() {
+    if (!this.ambienceSource) return;
+    const {source, volume, ctx} = this.ambienceSource;
+    volume.gain.setTargetAtTime(.0001, ctx.currentTime, .04);
+    try { source.stop(ctx.currentTime + .22); } catch {}
+    this.ambienceSource = null;
+  }
+
+  stop() {
+    this.stopMusic();
+    this.stopAmbience();
+  }
+}
+
+
 
 
 const $ = selector => document.querySelector(selector);
@@ -483,11 +642,73 @@ let busy = false;
 let hintTimer;
 let soundOn = true;
 try { soundOn = localStorage.getItem('prisma.sound') !== 'off'; } catch { /* Some local file views deny storage. */ }
+let zenSettings;
+try { zenSettings = normalizeZenSettings(JSON.parse(localStorage.getItem('prisma.zen.settings'))); }
+catch { zenSettings = normalizeZenSettings(null); }
 let vibrationOn = false;
 try { vibrationOn = localStorage.getItem('prisma.vibration') === 'on'; } catch {}
 const canVibrate = typeof navigator.vibrate === 'function';
 $('#vibration').hidden = !canVibrate;
 let audioContext;
+const getAudioContext = () => audioContext ??= new (window.AudioContext || window.webkitAudioContext)();
+const zenAudio = new ZenAudio(getAudioContext);
+let breathTimer;
+let breathStart = 0;
+let breathStage = '';
+
+function syncZenAudio() {
+  zenAudio.sync({active: game.mode === 'zen' && document.visibilityState !== 'hidden',
+    music: zenSettings.music, ambience: zenSettings.ambience});
+}
+
+function updateBreathStep() {
+  const timing = breathTiming(zenSettings.breath);
+  if (!timing) return;
+  const seconds = (Date.now() - breathStart) / 1000;
+  const position = seconds % (timing[0] + timing[1]);
+  const inhale = position < timing[0];
+  const phase = inhale ? 'in' : 'out';
+  const length = inhale ? timing[0] : timing[1];
+  const remaining = Math.max(1, Math.ceil(length - (inhale ? position : position - timing[0])));
+  $('#breath-count').textContent = `${remaining} ${remaining === 1 ? 'segundo' : 'segundos'}`;
+  if (phase !== breathStage) {
+    breathStage = phase;
+    $('#breath-phase').textContent = inhale ? 'Inspire' : 'Expire';
+    const orb = $('#breath-orb');
+    orb.className = `breath-orb phase-${phase}`;
+    orb.style.setProperty('--breath-duration', `${length}s`);
+  }
+}
+
+function syncBreath(reset = false) {
+  clearInterval(breathTimer);
+  breathTimer = null;
+  const active = game.mode === 'zen' && document.visibilityState !== 'hidden' &&
+    breathTiming(zenSettings.breath);
+  $('#breath-guide').hidden = !active;
+  if (!active) { breathStage = ''; return; }
+  if (reset || !breathStart) { breathStart = Date.now(); breathStage = ''; }
+  updateBreathStep();
+  breathTimer = setInterval(updateBreathStep, 250);
+}
+
+function syncZenUI(resetBreath = false) {
+  $('#zen-panel').hidden = game.mode !== 'zen';
+  $('#zen-music').checked = zenSettings.music;
+  $('#zen-ambience').checked = zenSettings.ambience;
+  $('#zen-breath').value = zenSettings.breath;
+  $('#zen-effects').value = zenSettings.effects;
+  boardFrame.dataset.effects = game.mode === 'zen' ? zenSettings.effects : 'normal';
+  syncBreath(resetBreath);
+  syncZenAudio();
+}
+
+function saveZenSettings() {
+  try { localStorage.setItem('prisma.zen.settings', JSON.stringify(zenSettings)); } catch {}
+}
+
+const effectScale = () => game.mode !== 'zen' ? 1 : zenSettings.effects === 'soft' ? .82 :
+  zenSettings.effects === 'vivid' ? 1.1 : 1;
 
 function safeRecord(mode) {
   try {
@@ -514,7 +735,7 @@ function save() {
 function playTone(chain = 1) {
   if (!soundOn) return;
   try {
-    audioContext ??= new (window.AudioContext || window.webkitAudioContext)();
+    audioContext = getAudioContext();
     if (audioContext.state === 'suspended') audioContext.resume();
     const now = audioContext.currentTime;
     for (let i = 0; i < 3; i++) {
@@ -600,7 +821,7 @@ function hud(moveEarned = 0, finishedGame = false) {
   $('#final-score').textContent = game.score.toLocaleString('pt-BR');
   $('#final-level').textContent = String(game.level);
   $('#sound').textContent = soundOn ? '♫' : '♪';
-  $('#sound').setAttribute('aria-label', soundOn ? 'Desativar sons' : 'Ativar sons');
+  $('#sound').setAttribute('aria-label', soundOn ? 'Desativar sons do jogo' : 'Ativar sons do jogo');
   $('#vibration').setAttribute('aria-pressed', String(vibrationOn));
   $('#vibration').setAttribute('aria-label', vibrationOn ? 'Desativar vibração' : 'Ativar vibração');
 }
@@ -630,6 +851,8 @@ async function waitAnimations(animations) {
 document.addEventListener?.('visibilitychange', () => {
   if (document.visibilityState === 'hidden')
     for (const animation of activeAnimations) animation.cancel?.();
+  syncZenAudio();
+  syncBreath(document.visibilityState !== 'hidden');
 });
 function vibrate(pattern) {
   if (vibrationOn && canVibrate) try { navigator.vibrate(pattern); } catch {}
@@ -671,6 +894,7 @@ async function animateFall(falls) {
 
 async function animateClear(frame) {
   if (reducedMotion()) return;
+  const scale = effectScale();
   const cells = boardElement.querySelectorAll('.cell');
   const boardRect = boardElement.getBoundingClientRect();
   const frameRect = boardFrame.getBoundingClientRect();
@@ -696,7 +920,7 @@ async function animateClear(frame) {
         width: `${size}px`, height: `${size}px`},
       [{transform: 'scale(.3)', opacity: 0}, {transform: 'scale(1.2)', opacity: .9, offset: .35},
         {transform: effect.type === 'burst' ? 'scale(3)' : 'scale(2)', opacity: 0}],
-      {duration: 360, easing: 'ease-out'});
+      {duration: 360 * scale, easing: 'ease-out'});
     }
     if (effect.type === 'cross') {
       const left = boardRect.left - frameRect.left;
@@ -704,15 +928,15 @@ async function animateClear(frame) {
       addOverlay('effect-beam', {left: `${left}px`, top: `${y - 4}px`,
         width: `${boardRect.width}px`, height: '8px'},
       [{transform: 'scaleX(0)', opacity: 0}, {transform: 'scaleX(1)', opacity: 1, offset: .45},
-        {transform: 'scaleX(1)', opacity: 0}], {duration: 330, easing: 'ease-out'});
+        {transform: 'scaleX(1)', opacity: 0}], {duration: 330 * scale, easing: 'ease-out'});
       addOverlay('effect-beam', {left: `${x - 4}px`, top: `${top}px`,
         width: '8px', height: `${boardRect.height}px`},
       [{transform: 'scaleY(0)', opacity: 0}, {transform: 'scaleY(1)', opacity: 1, offset: .45},
-        {transform: 'scaleY(1)', opacity: 0}], {duration: 330, easing: 'ease-out'});
+        {transform: 'scaleY(1)', opacity: 0}], {duration: 330 * scale, easing: 'ease-out'});
     }
     if (effect.type === 'spectrum')
       addOverlay('effect-glow', {}, [{opacity: 0}, {opacity: .9, offset: .35}, {opacity: 0}],
-        {duration: 370, easing: 'ease-out'});
+        {duration: 370 * scale, easing: 'ease-out'});
   }
   for (const index of frame.cells) {
     const mover = cells[index]?.querySelector('.mover');
@@ -723,9 +947,12 @@ async function animateClear(frame) {
     const delay = frame.activated.length ? Math.min(100, distance * 22) : 0;
     effects.push(mover.animate(
       [{transform: 'scale(1)', opacity: 1, filter: 'brightness(1)'},
-        {transform: 'scale(1.12)', opacity: 1, filter: 'brightness(1.8)', offset: .38},
+        {transform: `scale(${zenSettings.effects === 'vivid' && game.mode === 'zen' ? 1.18 : 1.1})`, opacity: 1,
+          filter: `brightness(${zenSettings.effects === 'soft' && game.mode === 'zen' ? 1.35 :
+            zenSettings.effects === 'vivid' && game.mode === 'zen' ? 2.1 : 1.8})`, offset: .38},
         {transform: 'scale(.72)', opacity: 0, filter: 'brightness(1.5)'}],
-      {duration: frame.activated.length ? 300 : 225, delay, easing: 'ease-out', fill: 'both'}));
+      {duration: (frame.activated.length ? 300 : 225) * scale, delay,
+        easing: 'ease-out', fill: 'both'}));
   }
   try { await waitAnimations(effects); }
   finally { overlays.forEach(element => element.remove()); }
@@ -741,7 +968,7 @@ async function animateLevel() {
       {opacity: 1, transform: 'translate(-50%, -50%) scale(1)', offset: .25},
       {opacity: 1, transform: 'translate(-50%, -50%) scale(1)', offset: .7},
       {opacity: 0, transform: 'translate(-50%, -58%) scale(1.08)'}
-    ], {duration: 580, easing: 'ease-out'})]);
+    ], {duration: 580 * effectScale(), easing: 'ease-out'})]);
   } finally { levelUp.hidden = true; }
 }
 
@@ -826,6 +1053,8 @@ boardElement.addEventListener('pointerdown', event => {
   const cell = event.target.closest('.cell');
   if (!cell || pointerStart || busy || game.ended) return;
   clearHint();
+  zenAudio.armed = true;
+  syncZenAudio();
   pointerStart = {index: Number(cell.dataset.index), x: event.clientX, y: event.clientY, id: event.pointerId};
   cell.classList.add('pressed');
   try { boardElement.setPointerCapture?.(event.pointerId); } catch {}
@@ -853,7 +1082,12 @@ boardElement.addEventListener('pointercancel', event => {
 boardElement.addEventListener('keydown', event => {
   const index = Number(event.target.closest('.cell')?.dataset.index);
   if (!Number.isInteger(index)) return;
-  if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleIndex(index); }
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    zenAudio.armed = true;
+    syncZenAudio();
+    handleIndex(index);
+  }
 });
 
 $('#hint').addEventListener('click', () => {
@@ -906,7 +1140,31 @@ document.querySelectorAll('.mode').forEach(button => button.addEventListener('cl
   } catch { game.newGame(button.dataset.mode); }
   combo.textContent = game.ended ? 'Sem jogadas restantes' : 'Combine três ou mais';
   draw(); hud(); save();
+  zenAudio.armed = true;
+  syncZenUI(true);
 }));
+$('#zen-music').addEventListener('change', event => {
+  zenSettings.music = event.target.checked;
+  saveZenSettings();
+  zenAudio.armed = true;
+  syncZenAudio();
+});
+$('#zen-ambience').addEventListener('change', event => {
+  zenSettings.ambience = event.target.checked;
+  saveZenSettings();
+  zenAudio.armed = true;
+  syncZenAudio();
+});
+$('#zen-breath').addEventListener('change', event => {
+  zenSettings.breath = normalizeZenSettings({breath: event.target.value}).breath;
+  saveZenSettings();
+  syncBreath(true);
+});
+$('#zen-effects').addEventListener('change', event => {
+  zenSettings.effects = normalizeZenSettings({effects: event.target.value}).effects;
+  saveZenSettings();
+  boardFrame.dataset.effects = game.mode === 'zen' ? zenSettings.effects : 'normal';
+});
 $('#sound').addEventListener('click', () => {
   soundOn = !soundOn;
   try { localStorage.setItem('prisma.sound', soundOn ? 'on' : 'off'); } catch {}
@@ -919,7 +1177,7 @@ $('#vibration').addEventListener('click', () => {
   vibrate(8);
 });
 
-draw(); hud();
+draw(); hud(); syncZenUI(true);
 
 </script>
 </body>

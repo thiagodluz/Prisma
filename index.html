@@ -7,7 +7,7 @@
   <meta name="description" content="Prisma: um jogo original de combinar pedras para jogar sem pressa.">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="style.css?v=8">
   <title>Prisma — combine e relaxe</title>
 </head>
 <body>
@@ -16,7 +16,7 @@
       <div class="brand"><span class="brand-mark">✦</span><div><h1>PRISMA</h1><small>Um instante de brilho</small></div></div>
       <div class="header-actions">
         <button class="icon-button" id="vibration" type="button" aria-label="Ativar vibração" aria-pressed="false" title="Vibração" hidden>〰</button>
-        <button class="icon-button" id="sound" type="button" aria-label="Desativar sons" title="Som">♫</button>
+        <button class="icon-button" id="sound" type="button" aria-label="Desativar sons do jogo" title="Sons do jogo">♫</button>
       </div>
     </header>
 
@@ -56,6 +56,22 @@
       <button class="mode selected" data-mode="zen" type="button"><span class="mode-icon">☾</span><span><strong>Zen</strong><small>Jogue no seu ritmo</small></span></button>
       <button class="mode" data-mode="classic" type="button"><span class="mode-icon">✧</span><span><strong>Clássico</strong><small>Sem tempo · pode acabar</small></span></button>
     </section>
+    <section class="zen-panel" id="zen-panel" aria-label="Personalização do modo Zen">
+      <details class="zen-settings">
+        <summary>Personalizar Zen</summary>
+        <div class="zen-settings-content">
+          <label class="zen-check"><span><strong>Música</strong><small>Melodia tranquila</small></span><input id="zen-music" type="checkbox"></label>
+          <label class="zen-check"><span><strong>Ambiente</strong><small>Som suave de fundo</small></span><input id="zen-ambience" type="checkbox"></label>
+          <label class="zen-field" for="zen-breath"><span>Respiração guiada</span><select id="zen-breath"><option value="off">Desligada</option><option value="balanced">4 s inspirar · 4 s expirar</option><option value="slow">4 s inspirar · 6 s expirar</option></select></label>
+          <label class="zen-field" for="zen-effects"><span>Intensidade dos efeitos</span><select id="zen-effects"><option value="soft">Suave</option><option value="normal">Padrão</option><option value="vivid">Vibrante</option></select></label>
+          <p class="zen-note">A música e o ambiente começam no primeiro toque depois de abrir o jogo.</p>
+        </div>
+      </details>
+      <div class="breath-guide" id="breath-guide" hidden role="group" aria-label="Guia de respiração">
+        <span class="breath-orb" id="breath-orb" aria-hidden="true"></span>
+        <span class="breath-copy"><strong id="breath-phase" aria-live="polite">Inspire</strong><small id="breath-count" aria-hidden="true">4 segundos</small></span>
+      </div>
+    </section>
     <p class="hint">Toque duas pedras vizinhas ou arraste para trocar.</p>
     <details class="records">
       <summary>Ver recordes</summary>
@@ -80,6 +96,6 @@
       </div>
     </details>
   </main>
-  <script type="module" src="app.js?v=7"></script>
+  <script type="module" src="app.js?v=8"></script>
 </body>
 </html>

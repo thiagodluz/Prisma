@@ -1,4 +1,5 @@
-import {Game, SIZE, levelGoal} from './engine.js?v=7';
+import {Game, SIZE, levelGoal} from './engine.js?v=8';
+import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=8';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
@@ -38,11 +39,73 @@ let busy = false;
 let hintTimer;
 let soundOn = true;
 try { soundOn = localStorage.getItem('prisma.sound') !== 'off'; } catch { /* Some local file views deny storage. */ }
+let zenSettings;
+try { zenSettings = normalizeZenSettings(JSON.parse(localStorage.getItem('prisma.zen.settings'))); }
+catch { zenSettings = normalizeZenSettings(null); }
 let vibrationOn = false;
 try { vibrationOn = localStorage.getItem('prisma.vibration') === 'on'; } catch {}
 const canVibrate = typeof navigator.vibrate === 'function';
 $('#vibration').hidden = !canVibrate;
 let audioContext;
+const getAudioContext = () => audioContext ??= new (window.AudioContext || window.webkitAudioContext)();
+const zenAudio = new ZenAudio(getAudioContext);
+let breathTimer;
+let breathStart = 0;
+let breathStage = '';
+
+function syncZenAudio() {
+  zenAudio.sync({active: game.mode === 'zen' && document.visibilityState !== 'hidden',
+    music: zenSettings.music, ambience: zenSettings.ambience});
+}
+
+function updateBreathStep() {
+  const timing = breathTiming(zenSettings.breath);
+  if (!timing) return;
+  const seconds = (Date.now() - breathStart) / 1000;
+  const position = seconds % (timing[0] + timing[1]);
+  const inhale = position < timing[0];
+  const phase = inhale ? 'in' : 'out';
+  const length = inhale ? timing[0] : timing[1];
+  const remaining = Math.max(1, Math.ceil(length - (inhale ? position : position - timing[0])));
+  $('#breath-count').textContent = `${remaining} ${remaining === 1 ? 'segundo' : 'segundos'}`;
+  if (phase !== breathStage) {
+    breathStage = phase;
+    $('#breath-phase').textContent = inhale ? 'Inspire' : 'Expire';
+    const orb = $('#breath-orb');
+    orb.className = `breath-orb phase-${phase}`;
+    orb.style.setProperty('--breath-duration', `${length}s`);
+  }
+}
+
+function syncBreath(reset = false) {
+  clearInterval(breathTimer);
+  breathTimer = null;
+  const active = game.mode === 'zen' && document.visibilityState !== 'hidden' &&
+    breathTiming(zenSettings.breath);
+  $('#breath-guide').hidden = !active;
+  if (!active) { breathStage = ''; return; }
+  if (reset || !breathStart) { breathStart = Date.now(); breathStage = ''; }
+  updateBreathStep();
+  breathTimer = setInterval(updateBreathStep, 250);
+}
+
+function syncZenUI(resetBreath = false) {
+  $('#zen-panel').hidden = game.mode !== 'zen';
+  $('#zen-music').checked = zenSettings.music;
+  $('#zen-ambience').checked = zenSettings.ambience;
+  $('#zen-breath').value = zenSettings.breath;
+  $('#zen-effects').value = zenSettings.effects;
+  boardFrame.dataset.effects = game.mode === 'zen' ? zenSettings.effects : 'normal';
+  syncBreath(resetBreath);
+  syncZenAudio();
+}
+
+function saveZenSettings() {
+  try { localStorage.setItem('prisma.zen.settings', JSON.stringify(zenSettings)); } catch {}
+}
+
+const effectScale = () => game.mode !== 'zen' ? 1 : zenSettings.effects === 'soft' ? .82 :
+  zenSettings.effects === 'vivid' ? 1.1 : 1;
 
 function safeRecord(mode) {
   try {
@@ -69,7 +132,7 @@ function save() {
 function playTone(chain = 1) {
   if (!soundOn) return;
   try {
-    audioContext ??= new (window.AudioContext || window.webkitAudioContext)();
+    audioContext = getAudioContext();
     if (audioContext.state === 'suspended') audioContext.resume();
     const now = audioContext.currentTime;
     for (let i = 0; i < 3; i++) {
@@ -155,7 +218,7 @@ function hud(moveEarned = 0, finishedGame = false) {
   $('#final-score').textContent = game.score.toLocaleString('pt-BR');
   $('#final-level').textContent = String(game.level);
   $('#sound').textContent = soundOn ? '♫' : '♪';
-  $('#sound').setAttribute('aria-label', soundOn ? 'Desativar sons' : 'Ativar sons');
+  $('#sound').setAttribute('aria-label', soundOn ? 'Desativar sons do jogo' : 'Ativar sons do jogo');
   $('#vibration').setAttribute('aria-pressed', String(vibrationOn));
   $('#vibration').setAttribute('aria-label', vibrationOn ? 'Desativar vibração' : 'Ativar vibração');
 }
@@ -185,6 +248,8 @@ async function waitAnimations(animations) {
 document.addEventListener?.('visibilitychange', () => {
   if (document.visibilityState === 'hidden')
     for (const animation of activeAnimations) animation.cancel?.();
+  syncZenAudio();
+  syncBreath(document.visibilityState !== 'hidden');
 });
 function vibrate(pattern) {
   if (vibrationOn && canVibrate) try { navigator.vibrate(pattern); } catch {}
@@ -226,6 +291,7 @@ async function animateFall(falls) {
 
 async function animateClear(frame) {
   if (reducedMotion()) return;
+  const scale = effectScale();
   const cells = boardElement.querySelectorAll('.cell');
   const boardRect = boardElement.getBoundingClientRect();
   const frameRect = boardFrame.getBoundingClientRect();
@@ -251,7 +317,7 @@ async function animateClear(frame) {
         width: `${size}px`, height: `${size}px`},
       [{transform: 'scale(.3)', opacity: 0}, {transform: 'scale(1.2)', opacity: .9, offset: .35},
         {transform: effect.type === 'burst' ? 'scale(3)' : 'scale(2)', opacity: 0}],
-      {duration: 360, easing: 'ease-out'});
+      {duration: 360 * scale, easing: 'ease-out'});
     }
     if (effect.type === 'cross') {
       const left = boardRect.left - frameRect.left;
@@ -259,15 +325,15 @@ async function animateClear(frame) {
       addOverlay('effect-beam', {left: `${left}px`, top: `${y - 4}px`,
         width: `${boardRect.width}px`, height: '8px'},
       [{transform: 'scaleX(0)', opacity: 0}, {transform: 'scaleX(1)', opacity: 1, offset: .45},
-        {transform: 'scaleX(1)', opacity: 0}], {duration: 330, easing: 'ease-out'});
+        {transform: 'scaleX(1)', opacity: 0}], {duration: 330 * scale, easing: 'ease-out'});
       addOverlay('effect-beam', {left: `${x - 4}px`, top: `${top}px`,
         width: '8px', height: `${boardRect.height}px`},
       [{transform: 'scaleY(0)', opacity: 0}, {transform: 'scaleY(1)', opacity: 1, offset: .45},
-        {transform: 'scaleY(1)', opacity: 0}], {duration: 330, easing: 'ease-out'});
+        {transform: 'scaleY(1)', opacity: 0}], {duration: 330 * scale, easing: 'ease-out'});
     }
     if (effect.type === 'spectrum')
       addOverlay('effect-glow', {}, [{opacity: 0}, {opacity: .9, offset: .35}, {opacity: 0}],
-        {duration: 370, easing: 'ease-out'});
+        {duration: 370 * scale, easing: 'ease-out'});
   }
   for (const index of frame.cells) {
     const mover = cells[index]?.querySelector('.mover');
@@ -278,9 +344,12 @@ async function animateClear(frame) {
     const delay = frame.activated.length ? Math.min(100, distance * 22) : 0;
     effects.push(mover.animate(
       [{transform: 'scale(1)', opacity: 1, filter: 'brightness(1)'},
-        {transform: 'scale(1.12)', opacity: 1, filter: 'brightness(1.8)', offset: .38},
+        {transform: `scale(${zenSettings.effects === 'vivid' && game.mode === 'zen' ? 1.18 : 1.1})`, opacity: 1,
+          filter: `brightness(${zenSettings.effects === 'soft' && game.mode === 'zen' ? 1.35 :
+            zenSettings.effects === 'vivid' && game.mode === 'zen' ? 2.1 : 1.8})`, offset: .38},
         {transform: 'scale(.72)', opacity: 0, filter: 'brightness(1.5)'}],
-      {duration: frame.activated.length ? 300 : 225, delay, easing: 'ease-out', fill: 'both'}));
+      {duration: (frame.activated.length ? 300 : 225) * scale, delay,
+        easing: 'ease-out', fill: 'both'}));
   }
   try { await waitAnimations(effects); }
   finally { overlays.forEach(element => element.remove()); }
@@ -296,7 +365,7 @@ async function animateLevel() {
       {opacity: 1, transform: 'translate(-50%, -50%) scale(1)', offset: .25},
       {opacity: 1, transform: 'translate(-50%, -50%) scale(1)', offset: .7},
       {opacity: 0, transform: 'translate(-50%, -58%) scale(1.08)'}
-    ], {duration: 580, easing: 'ease-out'})]);
+    ], {duration: 580 * effectScale(), easing: 'ease-out'})]);
   } finally { levelUp.hidden = true; }
 }
 
@@ -381,6 +450,8 @@ boardElement.addEventListener('pointerdown', event => {
   const cell = event.target.closest('.cell');
   if (!cell || pointerStart || busy || game.ended) return;
   clearHint();
+  zenAudio.armed = true;
+  syncZenAudio();
   pointerStart = {index: Number(cell.dataset.index), x: event.clientX, y: event.clientY, id: event.pointerId};
   cell.classList.add('pressed');
   try { boardElement.setPointerCapture?.(event.pointerId); } catch {}
@@ -408,7 +479,12 @@ boardElement.addEventListener('pointercancel', event => {
 boardElement.addEventListener('keydown', event => {
   const index = Number(event.target.closest('.cell')?.dataset.index);
   if (!Number.isInteger(index)) return;
-  if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleIndex(index); }
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    zenAudio.armed = true;
+    syncZenAudio();
+    handleIndex(index);
+  }
 });
 
 $('#hint').addEventListener('click', () => {
@@ -461,7 +537,31 @@ document.querySelectorAll('.mode').forEach(button => button.addEventListener('cl
   } catch { game.newGame(button.dataset.mode); }
   combo.textContent = game.ended ? 'Sem jogadas restantes' : 'Combine três ou mais';
   draw(); hud(); save();
+  zenAudio.armed = true;
+  syncZenUI(true);
 }));
+$('#zen-music').addEventListener('change', event => {
+  zenSettings.music = event.target.checked;
+  saveZenSettings();
+  zenAudio.armed = true;
+  syncZenAudio();
+});
+$('#zen-ambience').addEventListener('change', event => {
+  zenSettings.ambience = event.target.checked;
+  saveZenSettings();
+  zenAudio.armed = true;
+  syncZenAudio();
+});
+$('#zen-breath').addEventListener('change', event => {
+  zenSettings.breath = normalizeZenSettings({breath: event.target.value}).breath;
+  saveZenSettings();
+  syncBreath(true);
+});
+$('#zen-effects').addEventListener('change', event => {
+  zenSettings.effects = normalizeZenSettings({effects: event.target.value}).effects;
+  saveZenSettings();
+  boardFrame.dataset.effects = game.mode === 'zen' ? zenSettings.effects : 'normal';
+});
 $('#sound').addEventListener('click', () => {
   soundOn = !soundOn;
   try { localStorage.setItem('prisma.sound', soundOn ? 'on' : 'off'); } catch {}
@@ -474,5 +574,5 @@ $('#vibration').addEventListener('click', () => {
   vibrate(8);
 });
 
-draw(); hud();
+draw(); hud(); syncZenUI(true);
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});

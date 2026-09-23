@@ -45,3 +45,36 @@
 .cell.pressed .gem,.cell.drag-target .gem{filter:brightness(1.2)}
 .level-up{position:absolute;z-index:2;top:45%;left:50%;transform:translate(-50%,-50%);pointer-events:none;white-space:nowrap;padding:12px 22px;border:1px solid #f5e9ffa8;border-radius:17px;background:linear-gradient(125deg,#3c4588ed,#7053a8ef);box-shadow:0 10px 40px #191740b8,0 0 36px #b5a3ff85;color:#fff;font-size:clamp(22px,6vw,30px);font-weight:850;letter-spacing:.035em;text-shadow:0 2px 12px #18142e}
 .board.busy ~ .game-over{display:none}
+
+.zen-panel{margin:12px 0 0}
+.zen-panel[hidden],.breath-guide[hidden]{display:none}
+.zen-settings{border:1px solid #c1b6fb55;border-radius:15px;background:#6e65aa22}
+.zen-settings summary{padding:12px 15px;list-style:none;cursor:pointer;color:#ebe7ff;font-size:14px;font-weight:750}
+.zen-settings summary::-webkit-details-marker{display:none}
+.zen-settings summary:after{content:"⌄";float:right;color:#b8aff6}
+.zen-settings[open] summary:after{content:"⌃"}
+.zen-settings-content{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:1px 13px 14px}
+.zen-check{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:53px;padding:7px 9px;border-radius:10px;background:#10142b7a;cursor:pointer}
+.zen-check strong,.zen-check small{display:block}
+.zen-check strong,.zen-field span{font-size:14px;font-weight:700;color:#f5f2ff}
+.zen-check small{margin-top:2px;font-size:12px;color:#c5c0e3}
+.zen-check input{width:20px;height:20px;flex:0 0 20px;accent-color:#91eadb}
+.zen-field{display:flex;flex-direction:column;gap:6px;color:#eeeaff}
+.zen-field select{width:100%;min-height:38px;padding:7px 9px;border:1px solid #c1b6fb66;border-radius:9px;background:#252848;color:#fff;font:inherit;font-size:13px}
+.zen-note{grid-column:1/-1;margin:0;color:#bdb8d9;font-size:12px;line-height:1.4}
+.zen-check:focus-within,.zen-settings summary:focus-visible,.zen-field select:focus-visible{outline:2px solid #b1f7e9;outline-offset:2px}
+.breath-guide{display:flex;align-items:center;justify-content:center;gap:13px;margin-top:11px;padding:10px 16px;border:1px solid #a5e9dd55;border-radius:15px;background:linear-gradient(105deg,#2e4b6d6b,#39325f87)}
+.breath-orb{width:33px;height:33px;flex:0 0 33px;border:2px solid #a9f6e2;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d6fff4,#70baca);box-shadow:0 0 17px #8bead677}
+.breath-orb.phase-in{animation:breatheIn var(--breath-duration,4s) ease-in-out both}
+.breath-orb.phase-out{animation:breatheOut var(--breath-duration,4s) ease-in-out both}
+.breath-copy{display:flex;align-items:baseline;gap:9px;min-width:0}
+.breath-copy strong{font-size:15px;color:#e9fff8}
+.breath-copy small{font-size:13px;color:#bfd9dc;font-variant-numeric:tabular-nums}
+@keyframes breatheIn{from{transform:scale(.72);opacity:.64}to{transform:scale(1.15);opacity:1}}
+@keyframes breatheOut{from{transform:scale(1.15);opacity:1}to{transform:scale(.72);opacity:.64}}
+.board-frame[data-effects="soft"] .effect-layer{opacity:.48;filter:saturate(.8)}
+.board-frame[data-effects="vivid"] .effect-layer{filter:saturate(1.35) brightness(1.13)}
+.board-frame[data-effects="soft"] .level-up{box-shadow:0 10px 25px #19174088}
+.board-frame[data-effects="vivid"] .level-up{box-shadow:0 10px 40px #191740b8,0 0 48px #b5a3ffba}
+@media(max-width:390px){.zen-settings-content{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.breath-orb.phase-in,.breath-orb.phase-out{animation:none}}

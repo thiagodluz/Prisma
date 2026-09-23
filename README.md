@@ -26,6 +26,10 @@ Partidas salvas antes desta versão mantêm o nível e o progresso aproximado qu
 
 Ao arrastar, a pedra de destino é destacada antes da troca. A vibração é opcional, começa desligada e aparece apenas em aparelhos compatíveis. A transição de nível respeita a preferência do sistema por menos movimento. Cada jogada válida é salva assim que o motor confirma seu resultado; ao voltar após fechar o navegador durante uma cascata, o tabuleiro abre no resultado concluído.
 
+## Personalização do Zen
+
+Abra **Personalizar Zen** para ligar separadamente uma melodia sintetizada e um som ambiente suave, escolher respiração guiada (4/4 ou 4/6 segundos) e ajustar os efeitos entre Suave, Padrão e Vibrante. As preferências ficam salvas separadas da partida, enquanto o botão de som no cabeçalho controla apenas os sons das combinações. Música, ambiente e guia vêm desligados; música e ambiente só começam após um toque no jogo e param ao ocultar a página ou entrar no Clássico. A preferência do sistema por menos movimento prevalece sobre a animação do guia, mas seu texto continua funcionando.
+
 ## Pedras especiais
 
 - **Pulso:** quatro da mesma cor em linha criam uma pedra que, quando combinada, explode nas oito casas ao redor.
@@ -40,7 +44,7 @@ Na pasta do projeto, execute `python3 -m http.server 8080` e abra `http://localh
 
 ## Jogar no Android
 
-Para jogar, abra [a versão HTTPS](https://prisma-jogo-thiago.thiagodluz.chatgpt.site) no navegador do Android; ela é privada e pode pedir acesso à conta. Use **Adicionar à tela inicial** ou **Instalar app** no menu do navegador. O service worker guarda os arquivos para uso offline após a primeira abertura. O arquivo `Prisma-jogar-offline.html` é uma alternativa para navegadores que permitam JavaScript em arquivos locais; alguns navegadores Android abrem downloads em `content://` e bloqueiam a execução ou o armazenamento nesse contexto. O código ainda não gera um APK: para distribuição pela Play Store ou instalação por arquivo, o próximo passo é empacotar a aplicação e assinar o APK/AAB em um ambiente com Android SDK.
+Para jogar, abra [a versão HTTPS](https://prisma-jogo-thiago.thiagodluz.chatgpt.site) no navegador do Android. Use **Adicionar à tela inicial** ou **Instalar app** no menu do navegador. O service worker guarda os arquivos para uso offline após a primeira abertura. O arquivo `Prisma-jogar-offline.html` é uma alternativa para navegadores que permitam JavaScript em arquivos locais; alguns navegadores Android abrem downloads em `content://` e bloqueiam a execução ou o armazenamento nesse contexto. O código ainda não gera um APK: para distribuição pela Play Store ou instalação por arquivo, o próximo passo é empacotar a aplicação e assinar o APK/AAB em um ambiente com Android SDK.
 
 ## Testes
 
@@ -48,4 +52,4 @@ Execute `npm test` (Node.js 18+). Para reconstruir o arquivo único depois de ed
 
 ## Situação do protótipo
 
-Clássico e Zen têm regras próprias, pontuação calibrada, níveis progressivos, dicas e recordes. Ainda faltam mais opções de áudio e efeitos e os demais modos planejados. Todas as formas, cores, sons gerados e o nome são originais; nenhum arquivo do Bejeweled foi incorporado.
+Clássico e Zen têm regras próprias, pontuação calibrada, níveis progressivos, dicas e recordes. O Zen tem som, respiração e efeitos configuráveis; testes em aparelho Android ainda são necessários para avaliar o equilíbrio e o acabamento. Todas as formas, cores, sons gerados e o nome são originais; nenhum arquivo do Bejeweled foi incorporado.

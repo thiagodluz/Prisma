@@ -68,7 +68,16 @@ test('invalid swaps preserve board and score', () => {
   const before = JSON.stringify(game.board);
   assert.equal(game.move(0, 9).valid, false);
   assert.equal(game.move(7, 8).valid, false);
-  assert.equal(game.move(0, 1).valid, false);
+  const invalid = Array.from({length: 64}, (_, a) => [a, a + 1])
+    .find(([a, b]) => {
+      if (!game.adjacent(a, b)) return false;
+      game.swap(a, b);
+      const matches = game.matches().cells.length;
+      game.swap(a, b);
+      return matches === 0;
+    });
+  assert.ok(invalid);
+  assert.equal(game.move(...invalid).valid, false);
   assert.equal(JSON.stringify(game.board), before);
   assert.equal(game.score, 0);
 });
