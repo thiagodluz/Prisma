@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Game} from '../engine.js';
 
-test('drag previews its neighbor, commits before animation and settles when hidden', async () => {
+test('drag commits before animation and settles on Android pause or page hide', async () => {
   const seed = new Game();
   const hint = seed.hint();
   assert.ok(hint);
@@ -92,6 +92,11 @@ test('drag previews its neighbor, commits before animation and settles when hidd
   assert.ok(vibrations.length >= 2);
   assert.ok(animations.length > 0);
 
+  document.handlers['prisma:pause']();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(board.classList.contains('busy'), false);
+  assert.deepEqual(JSON.parse(storage.get('prisma.session.zen')).board, committed.board);
+  document.handlers['prisma:resume']();
   document.visibilityState = 'hidden';
   document.handlers.visibilitychange();
   await new Promise(resolve => setImmediate(resolve));

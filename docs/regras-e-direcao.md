@@ -12,6 +12,8 @@ Estado: referência de produto e registro das decisões implementadas. Revisado 
 
 **Etapa 8 implementada:** atlas de sete pedras comuns, variantes coloridas de Pulso e Raio e Espectro multicolorido próprio; fundo cristalino escuro, partículas de reação limitadas para telas móveis, temas sonoros separados por tipo de evento e música original de quatro frases para Zen. Os assets, prompts e os pontos que ainda exigem verificação em Android real estão em [arte-e-audio.md](arte-e-audio.md).
 
+**Etapa 9 implementada no código:** projeto Android com WebView e recursos incluídos no APK, sem permissão de internet; partidas e preferências no armazenamento privado, eventos de pausa/retomada para áudio e animações e compilação automatizada. Verificar instalação, consumo de bateria, som e retomada em um aparelho físico antes de distribuir como versão final.
+
 ## Objetivo
 
 Criar um jogo de combinar três pedras agradável em sessões longas no Android, com a clareza, as cascatas e a satisfação das pedras especiais que tornam *Bejeweled 3* uma boa referência. Prisma tem nome, identidade visual, áudio, interface, textos e decisões de equilíbrio próprios. Os fatos sobre o jogo de referência abaixo são contexto de pesquisa, não uma exigência de reprodução exata.

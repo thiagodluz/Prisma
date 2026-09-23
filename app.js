@@ -1,6 +1,6 @@
-import {Game, SIZE, levelGoal} from './engine.js?v=13';
-import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=13';
-import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=13';
+import {Game, SIZE, levelGoal} from './engine.js?v=14';
+import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=14';
+import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=14';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
@@ -78,9 +78,11 @@ async function unlockAudio(force = false) {
 let breathTimer;
 let breathStart = 0;
 let breathStage = '';
+let nativePaused = false;
+const appPaused = () => nativePaused || document.visibilityState === 'hidden';
 
 function syncZenAudio() {
-  zenAudio.sync({active: game.mode === 'zen' && document.visibilityState !== 'hidden',
+  zenAudio.sync({active: game.mode === 'zen' && !appPaused(),
     music: zenSettings.music, ambience: zenSettings.ambience});
 }
 
@@ -106,7 +108,7 @@ function updateBreathStep() {
 function syncBreath(reset = false) {
   clearInterval(breathTimer);
   breathTimer = null;
-  const active = game.mode === 'zen' && document.visibilityState !== 'hidden' &&
+  const active = game.mode === 'zen' && !appPaused() &&
     breathTiming(zenSettings.breath);
   $('#breath-guide').hidden = !active;
   if (!active) { breathStage = ''; return; }
@@ -167,7 +169,7 @@ function save() {
 }
 
 function playTone(kind, chain = 1) {
-  if (soundOn && document.visibilityState !== 'hidden') soundDesign.play(kind, chain);
+  if (soundOn && !appPaused()) soundDesign.play(kind, chain);
 }
 
 function showToast(message) {
@@ -250,7 +252,7 @@ function clearHint() {
   for (const cell of boardElement.querySelectorAll?.('.cell.hinted') ?? []) cell.classList.remove('hinted');
 }
 
-const reducedMotion = () => document.visibilityState === 'hidden' ||
+const reducedMotion = () => appPaused() ||
   (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
 const activeAnimations = new Set();
 async function waitAnimations(animations) {
@@ -268,11 +270,24 @@ async function waitAnimations(animations) {
   }
 }
 document.addEventListener?.('visibilitychange', () => {
-  if (document.visibilityState === 'hidden')
+  if (appPaused())
     for (const animation of activeAnimations) animation.cancel?.();
   syncZenAudio();
-  syncBreath(document.visibilityState !== 'hidden');
+  syncBreath(!appPaused());
 });
+document.addEventListener?.('prisma:pause', () => {
+  nativePaused = true;
+  save();
+  for (const animation of activeAnimations) animation.cancel?.();
+  syncZenAudio();
+  syncBreath();
+});
+document.addEventListener?.('prisma:resume', () => {
+  nativePaused = false;
+  syncZenAudio();
+  syncBreath(true);
+});
+globalThis.window?.addEventListener?.('pagehide', save);
 function vibrate(pattern) {
   if (vibrationOn && canVibrate) try { navigator.vibrate(pattern); } catch {}
 }
@@ -653,4 +668,5 @@ $('#vibration').addEventListener('click', () => {
 });
 
 draw(); hud(); syncAudioSettingsUI(); syncZenUI(true);
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
+if (!new URLSearchParams(globalThis.location?.search ?? '').has('android') && 'serviceWorker' in navigator)
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
