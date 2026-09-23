@@ -1,4 +1,4 @@
-import {Game, SIZE} from './engine.js?v=4';
+import {Game, SIZE} from './engine.js?v=5';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
@@ -15,11 +15,20 @@ const progress = $('#progress');
 const progressFill = $('#progress-fill');
 const combo = $('#combo');
 const toast = $('#toast');
+const gameOver = $('#game-over');
 const game = new Game();
 const names = ['rubi', 'âmbar', 'sol', 'jade', 'água', 'safira', 'ametista'];
+const sessionKey = mode => 'prisma.session.' + mode;
 try {
-  const saved = JSON.parse(localStorage.getItem('prisma.session'));
-  game.restore(saved);
+  const legacy = JSON.parse(localStorage.getItem('prisma.session'));
+  const legacyMode = legacy?.mode === 'endless' ? 'classic' : legacy?.mode;
+  if (['zen', 'classic'].includes(legacyMode) && !localStorage.getItem(sessionKey(legacyMode))) {
+    localStorage.setItem(sessionKey(legacyMode), JSON.stringify({...legacy, mode: legacyMode}));
+    if (!localStorage.getItem('prisma.activeMode')) localStorage.setItem('prisma.activeMode', legacyMode);
+  }
+  const active = localStorage.getItem('prisma.activeMode');
+  const mode = ['zen', 'classic'].includes(active) ? active : 'zen';
+  if (!game.restore(JSON.parse(localStorage.getItem(sessionKey(mode))))) game.newGame(mode);
 } catch { /* A corrupted or unavailable save starts a new game. */ }
 let selected = null;
 let pointerStart = null;
@@ -29,12 +38,18 @@ try { soundOn = localStorage.getItem('prisma.sound') !== 'off'; } catch { /* Som
 let audioContext;
 
 function safeBest(mode) {
-  try { return Number(localStorage.getItem('prisma.best.' + mode)) || 0; }
+  try { return Number(localStorage.getItem('prisma.best.' + mode)) ||
+    (mode === 'classic' ? Number(localStorage.getItem('prisma.best.endless')) : 0) || 0; }
   catch { return 0; }
 }
 
 function save() {
-  try { localStorage.setItem('prisma.session', JSON.stringify({mode: game.mode, score: game.score, board: game.board})); } catch {}
+  try {
+    localStorage.setItem(sessionKey(game.mode), JSON.stringify({
+      mode: game.mode, score: game.score, board: game.board, ended: game.ended
+    }));
+    localStorage.setItem('prisma.activeMode', game.mode);
+  } catch {}
 }
 
 function playTone(chain = 1) {
@@ -95,11 +110,16 @@ function hud() {
   const best = Math.max(game.score, safeBest(game.mode));
   bestElement.textContent = best.toLocaleString('pt-BR');
   try { if (best > safeBest(game.mode)) localStorage.setItem('prisma.best.' + game.mode, String(best)); } catch {}
-  levelElement.textContent = game.mode === 'zen' ? 'ZEN' : String(game.level);
-  modeLabel.textContent = game.mode === 'zen' ? 'MODO' : 'NÍVEL';
-  progress.hidden = game.mode === 'zen';
+  levelElement.textContent = String(game.level);
+  modeLabel.textContent = 'NÍVEL';
+  progress.hidden = false;
   progressFill.style.width = `${(game.score % 2000) / 20}%`;
   for (const button of document.querySelectorAll('.mode')) button.classList.toggle('selected', button.dataset.mode === game.mode);
+  $('#shuffle').hidden = game.mode === 'classic';
+  boardElement.classList.toggle('finished', game.ended);
+  gameOver.hidden = !game.ended;
+  $('#final-score').textContent = game.score.toLocaleString('pt-BR');
+  $('#final-level').textContent = String(game.level);
   $('#sound').textContent = soundOn ? '♫' : '♪';
   $('#sound').setAttribute('aria-label', soundOn ? 'Desativar sons' : 'Ativar sons');
 }
@@ -226,20 +246,28 @@ async function attempt(a, b) {
         frame.chain > 1 ? `Cascata ×${frame.chain}!` : 'Boa combinação!';
       await animateClear(frame);
     } else if (frame.type === 'fall') await animateFall(frame.falls);
-    else if (frame.type === 'shuffle' && !reducedMotion()) await pause(120);
+    else if (frame.type === 'rescue') {
+      combo.textContent = 'Um Espectro abriu uma nova jogada';
+      if (!reducedMotion()) {
+        const mover = boardElement.querySelectorAll('.cell')[frame.index]?.querySelector('.mover');
+        await mover?.animate([{transform: 'scale(.25)', opacity: 0},
+          {transform: 'scale(1.16)', opacity: 1, offset: .65},
+          {transform: 'scale(1)', opacity: 1}], {duration: 300, easing: 'ease-out'}).finished.catch(() => {});
+      }
+    }
   }
   draw();
   hud();
   save();
   showToast(`+${result.earned.toLocaleString('pt-BR')}${result.chain > 1 ? ` · ${result.chain} cascatas` : ''}`);
-  if (result.shuffled) combo.textContent = 'Novas jogadas disponíveis';
-  else setTimeout(() => { if (!busy) combo.textContent = 'Combine três ou mais'; }, 1500);
+  if (result.ended) combo.textContent = 'Sem jogadas restantes';
+  else if (!result.rescued) setTimeout(() => { if (!busy) combo.textContent = 'Combine três ou mais'; }, 1500);
   boardElement.classList.remove('busy');
   busy = false;
 }
 
 function handleIndex(index) {
-  if (busy || index < 0) return;
+  if (busy || game.ended || index < 0) return;
   if (selected === null) selected = index;
   else if (selected === index) selected = null;
   else if (game.adjacent(selected, index)) { attempt(selected, index); return; }
@@ -249,7 +277,7 @@ function handleIndex(index) {
 
 boardElement.addEventListener('pointerdown', event => {
   const cell = event.target.closest('.cell');
-  if (!cell || busy) return;
+  if (!cell || busy || game.ended) return;
   pointerStart = {index: Number(cell.dataset.index), x: event.clientX, y: event.clientY};
 });
 boardElement.addEventListener('pointerup', event => {
@@ -272,7 +300,7 @@ boardElement.addEventListener('keydown', event => {
 $('#shuffle').addEventListener('click', () => {
   if (busy) return;
   selected = null;
-  game.shuffle();
+  if (!game.shuffle()) return;
   draw();
   save();
   showToast('Tabuleiro embaralhado');
@@ -284,11 +312,22 @@ $('#new-game').addEventListener('click', () => {
   combo.textContent = 'Combine três ou mais';
   draw(); hud(); save();
 });
+$('#play-again').addEventListener('click', () => {
+  if (busy) return;
+  selected = null;
+  game.newGame();
+  combo.textContent = 'Combine três ou mais';
+  draw(); hud(); save();
+});
 document.querySelectorAll('.mode').forEach(button => button.addEventListener('click', () => {
   if (busy || game.mode === button.dataset.mode) return;
   selected = null;
-  game.newGame(button.dataset.mode);
-  combo.textContent = 'Combine três ou mais';
+  save();
+  try {
+    const saved = JSON.parse(localStorage.getItem(sessionKey(button.dataset.mode)));
+    if (!game.restore(saved)) game.newGame(button.dataset.mode);
+  } catch { game.newGame(button.dataset.mode); }
+  combo.textContent = game.ended ? 'Sem jogadas restantes' : 'Combine três ou mais';
   draw(); hud(); save();
 }));
 $('#sound').addEventListener('click', () => {

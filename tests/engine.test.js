@@ -145,6 +145,7 @@ test('old numeric save migrates, specials persist, IDs remain unique', () => {
   const game = new Game();
   assert.ok(game.restore({mode: 'endless', score: 2120,
     board: old.board.map(row => row.map(tile => tile.color))}));
+  assert.equal(game.mode, 'classic');
   assert.equal(game.level, 2);
   const special = game.gem(2, 'burst');
   game.set(0, special);
@@ -153,4 +154,64 @@ test('old numeric save migrates, specials persist, IDs remain unique', () => {
   assert.equal(copy.tile(0).id, special.id);
   assert.equal(copy.tile(0).type, 'burst');
   assert.ok(copy.gem().id > Math.max(...copy.board.flat().map(tile => tile.id)));
+});
+
+test('Classic ends without moves, preserves the final board and forbids shuffling', () => {
+  const game = fixture();
+  game.newGame('classic');
+  const move = matchMove(game);
+  const originalHasMove = game.hasMove.bind(game);
+  game.hasMove = () => false; // A deterministic no-moves state after the cascade.
+  const result = game.move(...move);
+  assert.equal(result.ended, true);
+  assert.equal(result.events.at(-1).type, 'gameover');
+  assert.equal(JSON.stringify(result.events.at(-1).board), JSON.stringify(game.board));
+  const board = JSON.stringify(game.board);
+  assert.equal(game.shuffle(), false);
+  assert.equal(game.move(...move).valid, false);
+  assert.equal(JSON.stringify(game.board), board);
+  game.hasMove = originalHasMove;
+  game.newGame();
+  assert.equal(game.ended, false);
+});
+
+test('Zen recovers a move without resetting progress or other specials', () => {
+  const game = fixture();
+  game.score = 1990;
+  const move = [at(2, 3), at(3, 3)];
+  place(game, 3, 1, 0);
+  place(game, 3, 2, 0, 'burst');
+  place(game, 3, 3, 1);
+  place(game, 2, 3, 0);
+  const originalHasMove = game.hasMove.bind(game);
+  game.hasMove = () => false;
+  const result = game.move(...move);
+  game.hasMove = originalHasMove;
+  assert.equal(result.ended, false);
+  assert.equal(result.rescued, true);
+  assert.equal(result.events.at(-1).type, 'rescue');
+  const previous = result.events.at(-2).board.flat();
+  const index = result.events.at(-1).index;
+  assert.equal(game.tile(index).type, 'spectrum');
+  assert.equal(game.hasMove(), true);
+  assert.ok(game.score > 1990 && game.level >= 2);
+  for (let i = 0; i < 64; i++) if (i !== index)
+    assert.equal(game.board.flat()[i].id, previous[i].id);
+});
+
+test('a no-moves save restores as finished Classic or playable Zen', () => {
+  const original = fixture();
+  assert.equal(original.hasMove(), false);
+  const saved = {score: 2400, board: original.board};
+  const classic = new Game();
+  assert.equal(classic.restore({...saved, mode: 'classic'}), true);
+  assert.equal(classic.level, 2);
+  assert.equal(classic.ended, true);
+  assert.equal(classic.hasMove(), false);
+  const zen = new Game();
+  assert.equal(zen.restore({...saved, mode: 'zen'}), true);
+  assert.equal(zen.level, 2);
+  assert.equal(zen.ended, false);
+  assert.equal(zen.hasMove(), true);
+  assert.equal(zen.board.flat().filter(tile => tile.type === 'spectrum').length, 1);
 });

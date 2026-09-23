@@ -2,7 +2,9 @@
 
 Estado: referência de produto e registro das decisões implementadas. Revisado em 23/09/2026.
 
-**Etapas 2 e 3 implementadas:** pedras com `id`, cor e tipo; eventos de limpeza/queda; Pulso (quatro), Raio (L/T) e Espectro (cinco); reações em cadeia, inclusive dois Espectros; migração de saves numéricos. Os modos Clássico e Zen descritos como alvo adiante ainda não foram alterados.
+**Etapas 2 e 3 implementadas:** pedras com `id`, cor e tipo; eventos de limpeza/queda; Pulso (quatro), Raio (L/T) e Espectro (cinco); reações em cadeia, inclusive dois Espectros; migração de saves numéricos.
+
+**Etapa 4 implementada:** Clássico sem tempo e com fim por falta de jogadas, Zen sem fim com recuperação por Espectro; níveis em ambos; partidas separadas por modo; migração do antigo Endless para Clássico.
 
 ## Objetivo
 
@@ -66,6 +68,7 @@ Registro histórico da versão inicial, para comparação com as entregas:
 - Pulso atinge a área 3×3; Raio atinge linha e coluna. Uma especial atingida por outra é acionada na mesma etapa, antes da queda. Uma célula atingida várias vezes pontua apenas uma vez.
 - Espectro trocado com uma pedra elimina a cor dela; dois Espectros trocados eliminam o tabuleiro inteiro. Um Espectro atingido indiretamente usa a primeira cor encontrada horizontalmente ao seu lado. São escolhas próprias do Prisma, a reavaliar após jogar no Android.
 - Pontos provisórios: 20 por célula removida, 80 pela criação de cada especial, multiplicados pela profundidade da cascata. Metas de nível, frequência das cores e velocidade dos efeitos ainda precisam ser calibradas.
+- Clássico e Zen progridem provisoriamente a cada 2.000 pontos; sem jogadas, Clássico encerra e Zen põe um Espectro no centro ou na primeira casa comum disponível, mantendo as demais pedras. O embaralhamento manual fica exclusivo do Zen. Ao trocar de modo, cada partida salva permanece intacta.
 
 ## Decisões ainda abertas
 

@@ -28,5 +28,6 @@ test('the board initializes when local file storage is denied', async () => {
   };
   await import('../app.js');
   assert.equal(elements.get('#board').children.length, 64);
-  assert.equal(elements.get('#progress').hidden, true);
+  assert.equal(elements.get('#progress').hidden, false);
+  assert.equal(elements.get('#game-over').hidden, true);
 });

@@ -2,7 +2,14 @@
 
 As regras de referência, decisões próprias e casos de aceitação das próximas etapas estão em [docs/regras-e-direcao.md](docs/regras-e-direcao.md).
 
-Protótipo original de jogo de combinar pedras, feito para telas de Android. Inclui tabuleiro 8×8, trocas e quedas animadas, comandos por toque ou arrasto, cascatas, pontuação, pedras especiais, sons opcionais, embaralhamento, partida e recorde salvos localmente, modo Zen sem limite de tempo e modo Endless com níveis progressivos. Funciona sem internet depois de instalado.
+Protótipo original de jogo de combinar pedras, feito para telas de Android. Inclui tabuleiro 8×8, trocas e quedas animadas, comandos por toque ou arrasto, cascatas, pontuação, pedras especiais, sons opcionais, partidas e recordes salvos localmente. Funciona sem internet depois de instalado.
+
+## Modos
+
+- **Clássico:** sem cronômetro, com níveis; termina quando não há mais trocas capazes de formar combinações nem Espectro utilizável. A tela de resultado permite recomeçar. O botão de embaralhar não está disponível neste modo.
+- **Zen:** sem cronômetro nem tela de derrota, também com níveis. Se acabarem as jogadas, surge um Espectro para que a partida continue, sem zerar pontos ou apagar outras especiais. É possível embaralhar manualmente.
+
+Ao alternar entre modos, cada partida fica guardada separadamente no navegador. Sessões e recordes antigos do modo Endless passam para Clássico, com pontos e tabuleiro preservados. Por enquanto ambos usam a meta provisória de 2.000 pontos por nível; a calibragem do ritmo virá em outra etapa.
 
 ## Pedras especiais
 
@@ -26,4 +33,4 @@ Execute `npm test` (Node.js 18+). Para reconstruir o arquivo único depois de ed
 
 ## Situação do protótipo
 
-As duas opções permitem jogar sem prazo e sem fim; Endless mostra evolução de nível a cada 2.000 pontos, e Zen omite essa progressão. Ainda faltam o modo Clássico, objetivos e ajustes de pontuação, áudio e animação. Todas as formas, cores, sons gerados e o nome são originais; nenhum arquivo do Bejeweled foi incorporado.
+Clássico e Zen têm regras próprias; ainda faltam a calibragem de pontuação e níveis, mais opções de áudio e efeitos, e os demais modos planejados. Todas as formas, cores, sons gerados e o nome são originais; nenhum arquivo do Bejeweled foi incorporado.

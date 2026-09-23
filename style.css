@@ -15,3 +15,14 @@
 .effect-wave{position:absolute;border:2px solid #fff9d9;border-radius:50%;background:radial-gradient(circle,#fff7,transparent 68%);box-shadow:0 0 18px #ffdfa9,0 0 32px #d6a5ff}
 .effect-beam{position:absolute;background:linear-gradient(90deg,transparent,#eafcffdf,transparent);box-shadow:0 0 14px #8ae9ff;border-radius:100px;transform-origin:center}
 .effect-glow{position:absolute;inset:0;background:radial-gradient(circle,#f3d2ff66,transparent 68%)}
+.quiet-button[hidden],.game-over[hidden]{display:none}
+.board.finished{pointer-events:none}
+.game-over{position:absolute;inset:0;z-index:3;display:grid;place-items:center;padding:22px;border-radius:22px;background:#0c1020bf;backdrop-filter:blur(7px)}
+.game-over-card{width:min(100%,320px);padding:27px 24px;text-align:center;border:1px solid #c2aeff8a;border-radius:20px;background:linear-gradient(160deg,#353454,#1a1e39);box-shadow:0 24px 50px #060813b9}
+.game-over-mark{display:grid;place-items:center;margin:0 auto 10px;width:48px;height:48px;border-radius:16px;background:#9281df;color:#fff;font-size:29px}
+.game-over h2{font-size:23px;line-height:1.2;margin:0 0 7px}
+.game-over p{font-size:14px;color:#d2cee9;margin:0 0 19px}
+.game-over-results{display:flex;justify-content:center;gap:19px;margin-bottom:20px;color:#d4d2ea;font-size:14px}
+.game-over-results strong{color:#fff}
+.game-over button{border:0;border-radius:12px;padding:12px 18px;background:linear-gradient(120deg,#81e2da,#b69aff);color:#1a2040;font-size:15px;font-weight:800}
+.game-over button:focus-visible{outline:3px solid white;outline-offset:3px}

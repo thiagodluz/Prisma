@@ -12,6 +12,7 @@ export class Game {
     this.score = 0;
     this.level = 1;
     this.mode = 'zen';
+    this.ended = false;
     this.newGame();
   }
 
@@ -23,6 +24,7 @@ export class Game {
     this.mode = mode;
     this.score = 0;
     this.level = 1;
+    this.ended = false;
     this.board = this.freshBoard();
   }
 
@@ -116,7 +118,7 @@ export class Game {
   }
 
   move(a, b) {
-    if (!this.adjacent(a, b)) return {valid: false, events: []};
+    if (this.ended || !this.adjacent(a, b)) return {valid: false, events: []};
     this.swap(a, b);
     let match = this.matches();
     const spectrum = [a, b].filter(index => this.tile(index)?.type === 'spectrum');
@@ -191,14 +193,28 @@ export class Game {
       match = this.matches();
     }
     this.score += earned;
-    if (this.mode === 'endless') this.level = 1 + Math.floor(this.score / 2000);
-    let shuffled = false;
+    this.level = 1 + Math.floor(this.score / 2000);
+    let rescued = false;
     if (!this.hasMove()) {
-      this.board = this.freshBoard();
-      events.push({type: 'shuffle', board: copy(this.board), chain});
-      shuffled = true;
+      if (this.mode === 'classic') {
+        this.ended = true;
+        events.push({type: 'gameover', board: copy(this.board), chain});
+      } else {
+        const index = this.rescue();
+        events.push({type: 'rescue', board: copy(this.board), index, chain});
+        rescued = true;
+      }
     }
-    return {valid: true, events, earned, chain, shuffled};
+    return {valid: true, events, earned, chain, rescued, ended: this.ended};
+  }
+
+  rescue() {
+    // A new Espectro guarantees a move and keeps every other tile in place.
+    const index = [27, 28, 35, 36, ...Array.from({length: SIZE * SIZE}, (_, i) => i)]
+      .find(cell => this.tile(cell)?.type === 'normal');
+    if (index === undefined) throw new Error('Não há posição para recuperar o tabuleiro');
+    this.set(index, this.gem(null, 'spectrum'));
+    return index;
   }
 
   nearbyColor(index) {
@@ -209,14 +225,19 @@ export class Game {
     return null;
   }
 
-  shuffle() { this.board = this.freshBoard(); }
+  shuffle() {
+    if (this.mode === 'classic' || this.ended) return false;
+    this.board = this.freshBoard();
+    return true;
+  }
 
   restore(saved) {
     const validTile = tile => Number.isInteger(tile) && tile >= 0 && tile < COLORS ||
       tile && typeof tile === 'object' && Number.isInteger(tile.id) && tile.id > 0 &&
       (tile.type === 'spectrum' && tile.color === null ||
         ['normal', 'burst', 'cross'].includes(tile.type) && Number.isInteger(tile.color) && tile.color >= 0 && tile.color < COLORS);
-    if (!saved || !['zen', 'endless'].includes(saved.mode) || !Number.isSafeInteger(saved.score) || saved.score < 0 ||
+    if (!saved || !['zen', 'classic', 'endless'].includes(saved.mode) ||
+      !Number.isSafeInteger(saved.score) || saved.score < 0 ||
       !Array.isArray(saved.board) || saved.board.length !== SIZE ||
       !saved.board.every(row => Array.isArray(row) && row.length === SIZE && row.every(validTile))) return false;
     const ids = new Set();
@@ -228,10 +249,15 @@ export class Game {
       return gem;
     }));
     this.board = board;
-    this.mode = saved.mode;
+    this.mode = saved.mode === 'endless' ? 'classic' : saved.mode;
     this.score = saved.score;
-    this.level = this.mode === 'endless' ? 1 + Math.floor(this.score / 2000) : 1;
-    if (this.matches().cells.length || !this.hasMove()) this.board = this.freshBoard();
+    this.level = 1 + Math.floor(this.score / 2000);
+    this.ended = false;
+    if (this.matches().cells.length) this.board = this.freshBoard();
+    if (!this.hasMove()) {
+      if (this.mode === 'classic') this.ended = true;
+      else this.rescue();
+    } else if (this.mode === 'classic' && saved.ended === true) this.ended = true;
     return true;
   }
 }
