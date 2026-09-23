@@ -11,7 +11,7 @@ export function normalizeZenSettings(value) {
 
 export const breathTiming = mode => mode === 'balanced' ? [4, 4] : mode === 'slow' ? [4, 6] : null;
 
-// Small synthesized soundscape; no downloaded audio files or continuous timer while inactive.
+// A four-phrase original soundscape; no downloaded audio files or active timer while paused.
 export class ZenAudio {
   constructor(getContext) {
     this.getContext = getContext;
@@ -37,27 +37,33 @@ export class ZenAudio {
   }
 
   playChord(ctx) {
-    const notes = [
-      [130.81, 196, 261.63], [174.61, 220, 261.63],
-      [164.81, 196, 246.94], [146.83, 220, 293.66]
+    const phrase = [
+      {pad: [130.81, 196, 261.63], melody: [523.25, 392, 440, 523.25]},
+      {pad: [174.61, 220, 261.63], melody: [440, 523.25, 659.25, 523.25]},
+      {pad: [164.81, 196, 246.94], melody: [493.88, 392, 329.63, 392]},
+      {pad: [146.83, 220, 293.66], melody: [440, 587.33, 523.25, 392]}
     ][this.chord++ % 4];
     const now = ctx.currentTime;
-    for (const frequency of notes) {
-      const voice = ctx.createOscillator();
-      const volume = ctx.createGain();
-      voice.type = 'sine';
-      voice.frequency.value = frequency;
-      volume.gain.setValueAtTime(.0001, now);
-      volume.gain.linearRampToValueAtTime(.013, now + 1.1);
-      volume.gain.setValueAtTime(.013, now + 5.8);
-      volume.gain.exponentialRampToValueAtTime(.0001, now + 7.6);
-      voice.connect(volume).connect(ctx.destination);
-      const entry = {voice, volume};
-      voice.onended = () => { this.voices.delete(entry); voice.disconnect(); volume.disconnect(); };
-      this.voices.add(entry);
-      voice.start(now);
-      voice.stop(now + 7.65);
-    }
+    phrase.pad.forEach(frequency => this.scheduleVoice(ctx, frequency, now, 7.6, .013, 1.1));
+    phrase.melody.forEach((frequency, i) =>
+      this.scheduleVoice(ctx, frequency, now + [.55, 2.25, 4.15, 6.05][i], .92, .009, .07));
+  }
+
+  scheduleVoice(ctx, frequency, time, duration, peak, attack) {
+    const voice = ctx.createOscillator();
+    const volume = ctx.createGain();
+    voice.type = 'sine';
+    voice.frequency.value = frequency;
+    volume.gain.setValueAtTime(.0001, time);
+    volume.gain.linearRampToValueAtTime(peak, time + attack);
+    volume.gain.setValueAtTime(peak, time + duration * .7);
+    volume.gain.exponentialRampToValueAtTime(.0001, time + duration);
+    voice.connect(volume).connect(ctx.destination);
+    const entry = {voice, volume};
+    voice.onended = () => { this.voices.delete(entry); voice.disconnect(); volume.disconnect(); };
+    this.voices.add(entry);
+    voice.start(time);
+    voice.stop(time + duration + .05);
   }
 
   startAmbience(ctx) {

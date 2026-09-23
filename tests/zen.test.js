@@ -33,7 +33,7 @@ test('music and ambience start independently and both stop outside Zen', () => {
     assert.equal(notes.length, 0); // Restored choices never autoplay on page load.
     audio.armed = true;
     audio.sync({active: true, music: true, ambience: false});
-    assert.equal(notes.length, 3);
+    assert.equal(notes.length, 7);
     assert.equal(noises.length, 0);
     audio.sync({active: true, music: false, ambience: true});
     assert.equal(audio.musicTimer, null);

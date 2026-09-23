@@ -10,6 +10,8 @@ Estado: referência de produto e registro das decisões implementadas. Revisado 
 
 **Etapas 6 e 7 implementadas:** arrasto com indicação de destino, efeitos resilientes à interrupção, vibração opcional e salvamento antes das animações; Zen com música e ambiente independentes, respiração 4/4 ou 4/6 e intensidade de efeitos Suave, Padrão ou Vibrante. Preferências próprias do Zen, desligadas por padrão quando geram áudio ou movimento contínuo.
 
+**Etapa 8 implementada:** atlas de sete pedras comuns e três especiais com silhuetas distintas, fundo cristalino escuro, partículas de reação limitadas para telas móveis, temas sonoros separados por tipo de evento e música original de quatro frases para Zen. Os assets, prompts e os pontos que ainda exigem verificação em Android real estão em [arte-e-audio.md](arte-e-audio.md).
+
 ## Objetivo
 
 Criar um jogo de combinar três pedras agradável em sessões longas no Android, com a clareza, as cascatas e a satisfação das pedras especiais que tornam *Bejeweled 3* uma boa referência. Prisma tem nome, identidade visual, áudio, interface, textos e decisões de equilíbrio próprios. Os fatos sobre o jogo de referência abaixo são contexto de pesquisa, não uma exigência de reprodução exata.

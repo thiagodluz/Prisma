@@ -30,6 +30,10 @@ Ao arrastar, a pedra de destino é destacada antes da troca. A vibração é opc
 
 Abra **Personalizar Zen** para ligar separadamente uma melodia sintetizada e um som ambiente suave, escolher respiração guiada (4/4 ou 4/6 segundos) e ajustar os efeitos entre Suave, Padrão e Vibrante. As preferências ficam salvas separadas da partida, enquanto o botão de som no cabeçalho controla apenas os sons das combinações. Música, ambiente e guia vêm desligados; música e ambiente só começam após um toque no jogo e param ao ocultar a página ou entrar no Clássico. A preferência do sistema por menos movimento prevalece sobre a animação do guia, mas seu texto continua funcionando.
 
+## Arte e áudio
+
+As sete pedras comuns e as três especiais usam atlas originais com recortes quadrados consistentes. O fundo do jogo foi criado para manter o centro escuro e legível; partículas complementam as reações sem esconder as peças. Os arquivos `gem-atlas.webp`, `special-atlas.webp` e `prisma-bg.jpg` foram gerados para este jogo e otimizados para uso móvel. Efeitos sonoros diferentes identificam combinação, cascata, Pulso, Raio, Espectro, nova especial, nível e jogada inválida; a música do Zen tem quatro frases próprias. Todos os sons são sintetizados no dispositivo, sem arquivos externos. O HTML único incorpora as imagens e funciona sem rede. A direção e os prompts dos assets estão em [docs/arte-e-audio.md](docs/arte-e-audio.md).
+
 ## Pedras especiais
 
 - **Pulso:** quatro da mesma cor em linha criam uma pedra que, quando combinada, explode nas oito casas ao redor.
@@ -52,4 +56,4 @@ Execute `npm test` (Node.js 18+). Para reconstruir o arquivo único depois de ed
 
 ## Situação do protótipo
 
-Clássico e Zen têm regras próprias, pontuação calibrada, níveis progressivos, dicas e recordes. O Zen tem som, respiração e efeitos configuráveis; testes em aparelho Android ainda são necessários para avaliar o equilíbrio e o acabamento. Todas as formas, cores, sons gerados e o nome são originais; nenhum arquivo do Bejeweled foi incorporado.
+Clássico e Zen têm regras próprias, pontuação calibrada, níveis progressivos, dicas e recordes. O Zen tem som, respiração e efeitos configuráveis. A arte e o áudio têm identidade própria; testes em aparelho Android ainda são necessários para avaliar equilíbrio, cor, desempenho e volume. Nenhum arquivo do Bejeweled foi incorporado.

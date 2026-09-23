@@ -1,5 +1,6 @@
-import {Game, SIZE, levelGoal} from './engine.js?v=8';
-import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=8';
+import {Game, SIZE, levelGoal} from './engine.js?v=9';
+import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=9';
+import {SoundDesign, cueForFrame} from './sound.js?v=9';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
@@ -49,6 +50,14 @@ $('#vibration').hidden = !canVibrate;
 let audioContext;
 const getAudioContext = () => audioContext ??= new (window.AudioContext || window.webkitAudioContext)();
 const zenAudio = new ZenAudio(getAudioContext);
+const soundDesign = new SoundDesign(getAudioContext);
+function unlockAudio() {
+  if (!soundOn && !(game.mode === 'zen' && (zenSettings.music || zenSettings.ambience))) return;
+  try {
+    const context = getAudioContext();
+    if (context.state === 'suspended') context.resume().catch?.(() => {});
+  } catch { /* The game stays playable without Web Audio. */ }
+}
 let breathTimer;
 let breathStart = 0;
 let breathStage = '';
@@ -129,25 +138,8 @@ function save() {
   } catch {}
 }
 
-function playTone(chain = 1) {
-  if (!soundOn) return;
-  try {
-    audioContext = getAudioContext();
-    if (audioContext.state === 'suspended') audioContext.resume();
-    const now = audioContext.currentTime;
-    for (let i = 0; i < 3; i++) {
-      const osc = audioContext.createOscillator();
-      const gain = audioContext.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(440 * 2 ** ((i * 4 + Math.min(chain, 5) * 2) / 12), now + i * .07);
-      gain.gain.setValueAtTime(.0001, now + i * .07);
-      gain.gain.exponentialRampToValueAtTime(.05, now + i * .07 + .015);
-      gain.gain.exponentialRampToValueAtTime(.0001, now + i * .07 + .19);
-      osc.connect(gain).connect(audioContext.destination);
-      osc.start(now + i * .07);
-      osc.stop(now + i * .07 + .2);
-    }
-  } catch { /* Audio is optional. */ }
+function playTone(kind, chain = 1) {
+  if (soundOn && document.visibilityState !== 'hidden') soundDesign.play(kind, chain);
 }
 
 function showToast(message) {
@@ -306,7 +298,22 @@ async function animateClear(frame) {
     overlays.push(element);
     effects.push(element.animate(keyframes, {fill: 'both', ...options}));
   };
-  for (const effect of frame.activated) {
+  const spray = (x, y, type, count) => {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.PI * 2 * i / count + .18;
+      const radius = pitch * (type === 'spectrum' ? 2.2 : type === 'cross' ? 1.65 : 1.25);
+      const dx = Math.cos(angle) * radius;
+      const dy = Math.sin(angle) * radius;
+      addOverlay(`effect-spark${type === 'cross' ? ' cool' : type === 'spectrum' ? ' rainbow' : ''}`,
+        {left: `${x - 3}px`, top: `${y - 3}px`,
+          ...(type === 'spectrum' ? {background: `hsl(${i * 360 / count} 100% 77%)`} : {})},
+        [{transform: 'translate(0,0) scale(.35)', opacity: 0},
+          {transform: `translate(${dx * .32}px,${dy * .32}px) scale(1.15)`, opacity: 1, offset: .25},
+          {transform: `translate(${dx}px,${dy}px) scale(.35)`, opacity: 0}],
+        {duration: 380 * scale, easing: 'cubic-bezier(.13,.65,.27,1)'});
+    }
+  };
+  for (const effect of frame.activated.slice(0, 3)) {
     const rect = cells[effect.index]?.getBoundingClientRect();
     if (!rect) continue;
     const x = rect.left + rect.width / 2 - frameRect.left;
@@ -334,6 +341,13 @@ async function animateClear(frame) {
     if (effect.type === 'spectrum')
       addOverlay('effect-glow', {}, [{opacity: 0}, {opacity: .9, offset: .35}, {opacity: 0}],
         {duration: 370 * scale, easing: 'ease-out'});
+    spray(x, y, effect.type, zenSettings.effects === 'soft' && game.mode === 'zen' ? 5 :
+      effect.type === 'spectrum' ? 12 : 8);
+  }
+  if (!frame.activated.length && frame.cells.length) {
+    const rect = cells[frame.cells[Math.floor(frame.cells.length / 2)]]?.getBoundingClientRect();
+    if (rect) spray(rect.left + rect.width / 2 - frameRect.left,
+      rect.top + rect.height / 2 - frameRect.top, 'match', zenSettings.effects === 'soft' && game.mode === 'zen' ? 3 : 5);
   }
   for (const index of frame.cells) {
     const mover = cells[index]?.querySelector('.mover');
@@ -380,7 +394,7 @@ async function attempt(a, b) {
     save();
     hud(result.earned, result.ended);
     vibrate(result.levelsGained ? [12, 45, 18] : result.events.some(frame => frame.activated?.length) ? 18 : 10);
-  }
+  } else playTone('invalid');
   try {
     await animateSwap(a, b, result.valid);
     if (!result.valid) return;
@@ -388,15 +402,17 @@ async function attempt(a, b) {
       if (document.visibilityState === 'hidden') break;
       draw(frame.board, frame.type === 'clear' ? frame.cells : []);
       if (frame.type === 'clear') {
-        playTone(frame.chain);
+        playTone(cueForFrame(frame), frame.chain);
         combo.textContent = frame.activated.some(effect => effect.type === 'spectrum') ? 'Explosão de cores!' :
           frame.activated.length ? 'Reação em cadeia!' :
           frame.creations.length ? 'Nova pedra especial!' :
           frame.chain > 1 ? `Cascata ×${frame.chain}!` : 'Boa combinação!';
         await animateClear(frame);
+        if (frame.creations.length) playTone('create');
       } else if (frame.type === 'fall') await animateFall(frame.falls);
       else if (frame.type === 'rescue') {
         combo.textContent = 'Um Espectro abriu uma nova jogada';
+        playTone('rescue');
         if (!reducedMotion()) {
           const mover = boardElement.querySelectorAll('.cell')[frame.index]?.querySelector('.mover');
           if (mover) await waitAnimations([mover.animate([{transform: 'scale(.25)', opacity: 0},
@@ -405,7 +421,7 @@ async function attempt(a, b) {
         }
       }
     }
-    if (result.levelsGained) await animateLevel();
+    if (result.levelsGained) { playTone('level'); await animateLevel(); }
   } catch { /* Visual effects are optional; the committed board remains playable. */ }
   finally {
     effectLayer.replaceChildren();
@@ -450,6 +466,7 @@ boardElement.addEventListener('pointerdown', event => {
   const cell = event.target.closest('.cell');
   if (!cell || pointerStart || busy || game.ended) return;
   clearHint();
+  unlockAudio();
   zenAudio.armed = true;
   syncZenAudio();
   pointerStart = {index: Number(cell.dataset.index), x: event.clientX, y: event.clientY, id: event.pointerId};
@@ -481,6 +498,7 @@ boardElement.addEventListener('keydown', event => {
   if (!Number.isInteger(index)) return;
   if (event.key === 'Enter' || event.key === ' ') {
     event.preventDefault();
+    unlockAudio();
     zenAudio.armed = true;
     syncZenAudio();
     handleIndex(index);
@@ -564,6 +582,7 @@ $('#zen-effects').addEventListener('change', event => {
 });
 $('#sound').addEventListener('click', () => {
   soundOn = !soundOn;
+  if (soundOn) unlockAudio();
   try { localStorage.setItem('prisma.sound', soundOn ? 'on' : 'off'); } catch {}
   hud();
 });
