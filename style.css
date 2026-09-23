@@ -2,3 +2,10 @@
 .mover{display:block;width:89%;height:89%}
 .mover .gem{width:100%;height:100%}
 .cell.matched .gem{animation-duration:190ms}
+.gem.special{display:grid;place-items:center;border:2px solid #fff9db;box-shadow:inset 0 1px 6px #fff8,0 0 12px #f3d6ffcc,0 4px 8px #0009;clip-path:none;border-radius:28%;transform:none}
+.gem.special:after{display:none}
+.gem.special:before{content:attr(data-symbol);font-size:clamp(17px,6vw,31px);font-weight:900;line-height:1;color:white;text-shadow:0 2px 5px #18102e,0 0 9px #fff}
+.gem.special-burst{border-radius:42%;outline:2px solid #ffc77b;outline-offset:-5px}
+.gem.special-cross{border-radius:19%;outline:2px solid #b9f9ff;outline-offset:-5px}
+.gem.special-spectrum{background:conic-gradient(from 20deg,#59d9e6,#8a76ef,#e870c1,#f7c466,#59d9e6);border-radius:50%;outline:2px solid #fff8;outline-offset:-5px}
+.cell.selected .gem.special{transform:scale(1.12)}

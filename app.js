@@ -1,4 +1,4 @@
-import {Game, SIZE} from './engine.js?v=2';
+import {Game, SIZE} from './engine.js?v=3';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
@@ -14,15 +14,7 @@ const game = new Game();
 const names = ['rubi', 'âmbar', 'sol', 'jade', 'água', 'safira', 'ametista'];
 try {
   const saved = JSON.parse(localStorage.getItem('prisma.session'));
-  if (saved && ['zen', 'endless'].includes(saved.mode) && Number.isSafeInteger(saved.score) && saved.score >= 0 &&
-      Array.isArray(saved.board) && saved.board.length === SIZE && saved.board.every(row =>
-        Array.isArray(row) && row.length === SIZE && row.every(v => Number.isInteger(v) && v >= 0 && v < 7))) {
-    game.mode = saved.mode;
-    game.score = saved.score;
-    game.level = game.mode === 'endless' ? 1 + Math.floor(game.score / 2000) : 1;
-    game.board = saved.board;
-    if (game.matches().cells.length || !game.hasMove()) game.board = game.freshBoard();
-  }
+  game.restore(saved);
 } catch { /* A corrupted or unavailable save starts a new game. */ }
 let selected = null;
 let pointerStart = null;
@@ -70,7 +62,7 @@ function showToast(message) {
 
 function draw(board = game.board, matched = []) {
   const hits = new Set(matched);
-  boardElement.replaceChildren(...board.flatMap((row, r) => row.map((kind, c) => {
+  boardElement.replaceChildren(...board.flatMap((row, r) => row.map((tile, c) => {
     const index = r * SIZE + c;
     const cell = document.createElement('button');
     cell.type = 'button';
@@ -79,11 +71,14 @@ function draw(board = game.board, matched = []) {
     if (hits.has(index)) cell.classList.add('matched');
     cell.dataset.index = String(index);
     cell.setAttribute('role', 'gridcell');
-    cell.setAttribute('aria-label', `Linha ${r + 1}, coluna ${c + 1}: ${names[kind]}`);
+    const specialName = {burst: 'Pulso', cross: 'Raio', spectrum: 'Espectro'}[tile.type];
+    cell.setAttribute('aria-label', `Linha ${r + 1}, coluna ${c + 1}: ${specialName ? `pedra ${specialName}${tile.color === null ? '' : ` ${names[tile.color]}`}` : names[tile.color]}`);
+    cell.dataset.tileId = String(tile.id);
     const mover = document.createElement('span');
     mover.className = 'mover';
     const gem = document.createElement('span');
-    gem.className = `gem gem-${kind}`;
+    gem.className = `gem gem-${tile.color === null ? 'spectrum' : tile.color}${specialName ? ` special special-${tile.type}` : ''}`;
+    if (specialName) gem.setAttribute('data-symbol', {burst: '✺', cross: '✦', spectrum: '✶'}[tile.type]);
     mover.append(gem);
     cell.append(mover);
     return cell;
@@ -154,14 +149,17 @@ async function attempt(a, b) {
     busy = false;
     return;
   }
-  for (const frame of result.frames) {
-    draw(frame.board, frame.matched);
-    if (frame.matched.length) {
+  for (const frame of result.events) {
+    draw(frame.board, frame.type === 'clear' ? frame.cells : []);
+    if (frame.type === 'clear') {
       playTone(frame.chain);
-      combo.textContent = frame.chain > 1 ? `Cascata ×${frame.chain}!` : 'Boa combinação!';
-      if (!reducedMotion()) await pause(200);
-    } else if (frame.falls) await animateFall(frame.falls);
-    else if (frame.reshuffled && !reducedMotion()) await pause(120);
+      combo.textContent = frame.activated.some(effect => effect.type === 'spectrum') ? 'Explosão de cores!' :
+        frame.activated.length ? 'Reação em cadeia!' :
+        frame.creations.length ? 'Nova pedra especial!' :
+        frame.chain > 1 ? `Cascata ×${frame.chain}!` : 'Boa combinação!';
+      if (!reducedMotion()) await pause(frame.activated.length ? 250 : 200);
+    } else if (frame.type === 'fall') await animateFall(frame.falls);
+    else if (frame.type === 'shuffle' && !reducedMotion()) await pause(120);
   }
   draw();
   hud();

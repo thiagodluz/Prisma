@@ -2,7 +2,15 @@
 
 As regras de referência, decisões próprias e casos de aceitação das próximas etapas estão em [docs/regras-e-direcao.md](docs/regras-e-direcao.md).
 
-Protótipo original de jogo de combinar pedras, feito para telas de Android. Inclui tabuleiro 8×8, trocas e quedas animadas, comandos por toque ou arrasto, validação de combinações, cascatas, pontuação, sons opcionais, embaralhamento, partida e recorde salvos localmente, modo Zen sem limite de tempo e modo Endless com níveis progressivos. Funciona sem internet depois de instalado.
+Protótipo original de jogo de combinar pedras, feito para telas de Android. Inclui tabuleiro 8×8, trocas e quedas animadas, comandos por toque ou arrasto, cascatas, pontuação, pedras especiais, sons opcionais, embaralhamento, partida e recorde salvos localmente, modo Zen sem limite de tempo e modo Endless com níveis progressivos. Funciona sem internet depois de instalado.
+
+## Pedras especiais
+
+- **Pulso:** quatro da mesma cor em linha criam uma pedra que, quando combinada, explode nas oito casas ao redor.
+- **Raio:** combinação em L ou T cria uma pedra que, quando combinada, limpa a linha e a coluna.
+- **Espectro:** cinco ou mais da mesma cor em linha criam uma pedra que pode ser trocada com uma vizinha para limpar a cor dela. Trocar dois Espectros limpa o tabuleiro.
+
+As três pedras podem ativar outras especiais atingidas pelos seus efeitos. Cada pedra tem identidade persistente e o motor emite eventos separados de limpeza e queda para a animação. Saves antigos, que guardavam apenas números de cor, são convertidos ao novo formato ao abrir.
 
 ## Jogar no computador
 
@@ -18,4 +26,4 @@ Execute `npm test` (Node.js 18+). Para reconstruir o arquivo único depois de ed
 
 ## Situação do protótipo
 
-As duas opções permitem jogar sem prazo e sem fim; Endless mostra evolução de nível a cada 2.000 pontos, e Zen omite essa progressão. É uma primeira base mecânica. Ainda faltam pedras especiais, objetivos e efeitos de áudio e animação mais elaborados. Todas as formas, cores, sons gerados e o nome são originais; nenhum arquivo do Bejeweled foi incorporado.
+As duas opções permitem jogar sem prazo e sem fim; Endless mostra evolução de nível a cada 2.000 pontos, e Zen omite essa progressão. Ainda faltam o modo Clássico, objetivos e ajustes de pontuação, áudio e animação. Todas as formas, cores, sons gerados e o nome são originais; nenhum arquivo do Bejeweled foi incorporado.

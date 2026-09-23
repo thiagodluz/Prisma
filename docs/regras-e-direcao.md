@@ -1,6 +1,8 @@
 # Prisma — regras de referência e direção do jogo
 
-Estado: referência de produto para orientar as próximas implementações; não descreve recursos já entregues. Revisado em 23/09/2026.
+Estado: referência de produto e registro das decisões implementadas. Revisado em 23/09/2026.
+
+**Etapas 2 e 3 implementadas:** pedras com `id`, cor e tipo; eventos de limpeza/queda; Pulso (quatro), Raio (L/T) e Espectro (cinco); reações em cadeia, inclusive dois Espectros; migração de saves numéricos. Os modos Clássico e Zen descritos como alvo adiante ainda não foram alterados.
 
 ## Objetivo
 
@@ -8,11 +10,11 @@ Criar um jogo de combinar três pedras agradável em sessões longas no Android,
 
 **Prioridade do usuário:** Zen e jogo contínuo. A direção visual deve ser autoral; não copiar o desenho das gemas, fundos, animações, sons, nomes comerciais ou disposição específica da interface de outro jogo.
 
-## O que existe agora no Prisma
+## Ponto de partida antes das etapas 2 e 3
 
-Conferido em `engine.js` e `app.js` na versão inicial do projeto:
+Registro histórico da versão inicial, para comparação com as entregas:
 
-| Sistema | Comportamento atual | Diferença a resolver |
+| Sistema | Comportamento inicial | Direção de desenvolvimento |
 | --- | --- | --- |
 | Tabuleiro | Grade 8×8 com sete cores; nasce sem combinações prontas e com uma jogada possível | Manter como ponto de partida, ajustar depois de testar no Android |
 | Jogada | Troca ortogonal adjacente; troca sem combinação volta à posição anterior | Dar resposta visual imediata e suportar ativações especiais quando existirem |
@@ -22,7 +24,7 @@ Conferido em `engine.js` e `app.js` na versão inicial do projeto:
 | Endless | Não termina; sobe um nível a cada 2.000 pontos | Definir o futuro modo Clássico, com fim de partida quando acabarem as jogadas |
 | Sem jogadas | Cria automaticamente um tabuleiro novo nos dois modos | Em Zen, recuperar uma jogada; em Clássico, concluir a partida |
 | Ajuda | Botão de embaralhar sempre disponível | Decidir papel da ajuda em cada modo para preservar o desafio |
-| Continuidade | Salva sessão e recorde no armazenamento do navegador | Preservar partidas ao alterar formato do estado salvo |
+| Continuidade | Salva sessão e recorde no armazenamento do navegador | Migração para pedras com identidade entregue nas etapas 2 e 3 |
 
 ## Referência confirmada e decisão proposta
 
@@ -58,9 +60,16 @@ Conferido em `engine.js` e `app.js` na versão inicial do projeto:
 - Alternar modos, salvar e reabrir no Android: partidas e recordes independentes; a interface ainda responde a toque e arrasto após retomar.
 - Sessão Zen longa: sem derrota, sem contagem regressiva, sem travamento de input; nível e feedback permanecem legíveis em tela pequena.
 
+## Decisões adotadas nas etapas 2 e 3
+
+- Uma combinação conectada da mesma cor cria no máximo uma especial: cinco em linha tem prioridade sobre L/T, que tem prioridade sobre quatro em linha. A peça nasce no destino da troca quando essa casa for uma pedra comum dentro da combinação; caso contrário, na casa comum de maior índice. Nunca substitui uma especial presente na combinação.
+- Pulso atinge a área 3×3; Raio atinge linha e coluna. Uma especial atingida por outra é acionada na mesma etapa, antes da queda. Uma célula atingida várias vezes pontua apenas uma vez.
+- Espectro trocado com uma pedra elimina a cor dela; dois Espectros trocados eliminam o tabuleiro inteiro. Um Espectro atingido indiretamente usa a primeira cor encontrada horizontalmente ao seu lado. São escolhas próprias do Prisma, a reavaliar após jogar no Android.
+- Pontos provisórios: 20 por célula removida, 80 pela criação de cada especial, multiplicados pela profundidade da cascata. Metas de nível, frequência das cores e velocidade dos efeitos ainda precisam ser calibradas.
+
 ## Decisões ainda abertas
 
-Não tratar estes detalhes como fatos já especificados: posição exata onde nasce uma especial em combinações ambíguas; prioridade entre linha de cinco e T/L quando ocorrem juntos; interação entre duas especiais; fórmulas de pontos, metas de nível, velocidade dos efeitos e distribuição de novas cores. Definir cada um com exemplos de tabuleiro e testes antes de codificar, escolhendo o que funciona melhor no Prisma.
+Não tratar como definitivos: fórmula e ritmo da pontuação, metas de nível, velocidade dos efeitos, distribuição das cores e interações adicionais entre especiais. Ajustar com partidas reais e exemplos de tabuleiro antes de fechar essas regras.
 
 O visual deve priorizar **leitura instantânea das sete cores e das especiais**, bom contraste, movimento fluido e efeitos reguláveis, com linguagem gráfica criada para Prisma. Testar em tela Android real antes de fixar desenho, brilho, tamanho de alvos e duração das animações.
 

@@ -11,6 +11,13 @@
 .mover{display:block;width:89%;height:89%}
 .mover .gem{width:100%;height:100%}
 .cell.matched .gem{animation-duration:190ms}
+.gem.special{display:grid;place-items:center;border:2px solid #fff9db;box-shadow:inset 0 1px 6px #fff8,0 0 12px #f3d6ffcc,0 4px 8px #0009;clip-path:none;border-radius:28%;transform:none}
+.gem.special:after{display:none}
+.gem.special:before{content:attr(data-symbol);font-size:clamp(17px,6vw,31px);font-weight:900;line-height:1;color:white;text-shadow:0 2px 5px #18102e,0 0 9px #fff}
+.gem.special-burst{border-radius:42%;outline:2px solid #ffc77b;outline-offset:-5px}
+.gem.special-cross{border-radius:19%;outline:2px solid #b9f9ff;outline-offset:-5px}
+.gem.special-spectrum{background:conic-gradient(from 20deg,#59d9e6,#8a76ef,#e870c1,#f7c466,#59d9e6);border-radius:50%;outline:2px solid #fff8;outline-offset:-5px}
+.cell.selected .gem.special{transform:scale(1.12)}
 </style>
   <title>Prisma — combine e relaxe</title>
 </head>
@@ -46,12 +53,15 @@
     <p class="hint">Toque duas pedras vizinhas ou arraste para trocar.</p>
   </main>
   <script>const SIZE = 8;
-export const COLORS = 7;
+const COLORS = 7;
+const SPECIALS = ['burst', 'cross', 'spectrum'];
 const copy = board => board.map(row => [...row]);
+const position = index => [Math.floor(index / SIZE), index % SIZE];
 
 class Game {
   constructor(random = Math.random) {
     this.random = random;
+    this.nextId = 1;
     this.board = [];
     this.score = 0;
     this.level = 1;
@@ -59,7 +69,9 @@ class Game {
     this.newGame();
   }
 
-  gem() { return Math.floor(this.random() * COLORS); }
+  gem(color = Math.floor(this.random() * COLORS), type = 'normal') {
+    return {id: this.nextId++, color: type === 'spectrum' ? null : color, type};
+  }
 
   newGame(mode = this.mode) {
     this.mode = mode;
@@ -69,56 +81,61 @@ class Game {
   }
 
   freshBoard() {
-    // Seed a board without automatic matches and with at least one legal move.
     for (let attempt = 0; attempt < 1000; attempt++) {
       const board = Array.from({length: SIZE}, () => Array(SIZE).fill(null));
       for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) {
-        const choices = Array.from({length: COLORS}, (_, i) => i).filter(v =>
-          !(c >= 2 && board[r][c - 1] === v && board[r][c - 2] === v) &&
-          !(r >= 2 && board[r - 1][c] === v && board[r - 2][c] === v));
-        board[r][c] = choices[Math.floor(this.random() * choices.length)];
+        const choices = Array.from({length: COLORS}, (_, color) => color).filter(color =>
+          !(c >= 2 && board[r][c - 1].color === color && board[r][c - 2].color === color) &&
+          !(r >= 2 && board[r - 1][c].color === color && board[r - 2][c].color === color));
+        board[r][c] = this.gem(choices[Math.floor(this.random() * choices.length)]);
       }
       if (this.hasMove(board)) return board;
     }
     throw new Error('Não foi possível criar um tabuleiro jogável');
   }
 
+  tile(index, board = this.board) {
+    const [r, c] = position(index);
+    return board[r]?.[c] ?? null;
+  }
+
+  set(index, tile) {
+    const [r, c] = position(index);
+    this.board[r][c] = tile;
+  }
+
   matches(board = this.board) {
-    const cells = new Set();
-    let groups = 0;
-    let longest = 0;
-    const scan = (points) => {
+    const runs = [];
+    const scan = points => {
       let start = 0;
       while (start < SIZE) {
         let end = start + 1;
-        while (end < SIZE && board[points[start][0]][points[start][1]] !== null &&
-          board[points[end][0]][points[end][1]] === board[points[start][0]][points[start][1]]) end++;
-        if (end - start >= 3 && board[points[start][0]][points[start][1]] !== null) {
-          groups++;
-          longest = Math.max(longest, end - start);
-          for (let i = start; i < end; i++) cells.add(points[i][0] * SIZE + points[i][1]);
-        }
+        const gem = this.tile(points[start], board);
+        while (gem && gem.color !== null && end < SIZE && this.tile(points[end], board)?.color === gem.color) end++;
+        if (gem && gem.color !== null && end - start >= 3)
+          runs.push({cells: points.slice(start, end), color: gem.color, length: end - start});
         start = end;
       }
     };
-    for (let r = 0; r < SIZE; r++) scan(Array.from({length: SIZE}, (_, c) => [r, c]));
-    for (let c = 0; c < SIZE; c++) scan(Array.from({length: SIZE}, (_, r) => [r, c]));
-    return {cells: [...cells], groups, longest};
+    for (let r = 0; r < SIZE; r++) scan(Array.from({length: SIZE}, (_, c) => r * SIZE + c));
+    for (let c = 0; c < SIZE; c++) scan(Array.from({length: SIZE}, (_, r) => r * SIZE + c));
+    return {cells: [...new Set(runs.flatMap(run => run.cells))], runs};
   }
 
   adjacent(a, b) {
-    return a >= 0 && b >= 0 && a < SIZE * SIZE && b < SIZE * SIZE &&
+    return Number.isInteger(a) && Number.isInteger(b) && a >= 0 && b >= 0 && a < SIZE * SIZE && b < SIZE * SIZE &&
       Math.abs(Math.floor(a / SIZE) - Math.floor(b / SIZE)) + Math.abs(a % SIZE - b % SIZE) === 1;
   }
 
   swap(a, b, board = this.board) {
-    const ar = Math.floor(a / SIZE), ac = a % SIZE, br = Math.floor(b / SIZE), bc = b % SIZE;
+    const [ar, ac] = position(a), [br, bc] = position(b);
     [board[ar][ac], board[br][bc]] = [board[br][bc], board[ar][ac]];
   }
 
   hasMove(board = this.board) {
     for (let a = 0; a < SIZE * SIZE; a++) for (const b of [a + 1, a + SIZE]) {
       if (!this.adjacent(a, b)) continue;
+      if (this.tile(a, board)?.type === 'spectrum' || this.tile(b, board)?.type === 'spectrum') return true;
       this.swap(a, b, board);
       const found = this.matches(board).cells.length > 0;
       this.swap(a, b, board);
@@ -127,34 +144,104 @@ class Game {
     return false;
   }
 
+  // Connected same-color runs make one special. Prefer the destination of the
+  // player's swap; cascades use the lowest matching cell.
+  creations(match, preferred = []) {
+    const components = [];
+    for (const run of match.runs) {
+      const overlapping = components.filter(component => component.color === run.color &&
+        run.cells.some(cell => component.cells.has(cell)));
+      for (const component of overlapping) components.splice(components.indexOf(component), 1);
+      const cells = new Set([...run.cells, ...overlapping.flatMap(component => [...component.cells])]);
+      components.push({color: run.color, cells, runs: [run, ...overlapping.flatMap(component => component.runs)]});
+    }
+    return components.flatMap(component => {
+      const hasFive = component.runs.some(run => run.length >= 5);
+      const intersects = component.runs.length > 1 &&
+        component.cells.size < component.runs.reduce((sum, run) => sum + run.length, 0);
+      const hasFour = component.runs.some(run => run.length >= 4);
+      const type = hasFive ? 'spectrum' : intersects ? 'cross' : hasFour ? 'burst' : null;
+      if (!type) return [];
+      const candidates = [...component.cells].filter(cell => this.tile(cell)?.type === 'normal');
+      if (!candidates.length) return [];
+      return [{index: preferred.find(cell => candidates.includes(cell)) ?? Math.max(...candidates),
+        type, color: component.color}];
+    });
+  }
+
   move(a, b) {
-    if (!this.adjacent(a, b)) return {valid: false, frames: []};
+    if (!this.adjacent(a, b)) return {valid: false, events: []};
     this.swap(a, b);
     let match = this.matches();
-    if (!match.cells.length) {
+    const spectrum = [a, b].filter(index => this.tile(index)?.type === 'spectrum');
+    if (!match.cells.length && !spectrum.length) {
       this.swap(a, b);
-      return {valid: false, frames: []};
+      return {valid: false, events: []};
     }
-    const frames = [];
+    const events = [];
     let chain = 0;
     let earned = 0;
-    while (match.cells.length) {
+    let direct = spectrum.length ? {spectrum, target: spectrum.length === 1 ? (spectrum[0] === a ? b : a) : null} : null;
+    while (match.cells.length || direct) {
       chain++;
-      frames.push({board: copy(this.board), matched: match.cells, chain});
-      earned += (match.cells.length * 20 + Math.max(0, match.longest - 3) * 40) * chain;
-      for (const index of match.cells) this.board[Math.floor(index / SIZE)][index % SIZE] = null;
+      const creations = (direct ? [] : this.creations(match, chain === 1 ? [b, a] : []))
+        .map(creation => ({...creation, tile: this.gem(creation.color, creation.type)}));
+      const protectedCells = new Set(creations.map(creation => creation.index));
+      const cleared = new Set(match.cells.filter(index => !protectedCells.has(index)));
+      const activated = [];
+      const queue = [];
+      const seen = new Set();
+      const enqueue = index => {
+        const tile = this.tile(index);
+        if (!protectedCells.has(index) && tile && tile.type !== 'normal' && !seen.has(tile.id)) queue.push(index);
+      };
+      for (const index of cleared) enqueue(index);
+      if (direct) {
+        for (const index of direct.spectrum) { cleared.add(index); enqueue(index); }
+        if (direct.target !== null) { cleared.add(direct.target); enqueue(direct.target); }
+      }
+      while (queue.length) {
+        const index = queue.shift();
+        const tile = this.tile(index);
+        if (!tile || seen.has(tile.id)) continue;
+        seen.add(tile.id);
+        activated.push({index, type: tile.type, id: tile.id});
+        const add = cell => {
+          if (cell < 0 || cell >= SIZE * SIZE || protectedCells.has(cell) || !this.tile(cell)) return;
+          cleared.add(cell);
+          enqueue(cell);
+        };
+        if (tile.type === 'burst') {
+          const [r, c] = position(index);
+          for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++)
+            if (r + dr >= 0 && r + dr < SIZE && c + dc >= 0 && c + dc < SIZE) add((r + dr) * SIZE + c + dc);
+        } else if (tile.type === 'cross') {
+          const [r, c] = position(index);
+          for (let i = 0; i < SIZE; i++) { add(r * SIZE + i); add(i * SIZE + c); }
+        } else if (tile.type === 'spectrum') {
+          const color = direct?.spectrum.length === 2 ? 'all' :
+            direct?.spectrum.includes(index) ? this.tile(direct.target)?.color : this.nearbyColor(index);
+          if (color === 'all' || color !== null && color !== undefined) for (let i = 0; i < SIZE * SIZE; i++)
+            if (color === 'all' || this.tile(i)?.color === color) add(i);
+        }
+      }
+      events.push({type: 'clear', board: copy(this.board), cells: [...cleared], activated, creations, chain});
+      earned += (cleared.size * 20 + creations.length * 80) * chain;
+      for (const index of cleared) this.set(index, null);
+      for (const creation of creations) this.set(creation.index, creation.tile);
       const falls = Array(SIZE * SIZE);
       for (let c = 0; c < SIZE; c++) {
         const remaining = [];
-        for (let r = SIZE - 1; r >= 0; r--) if (this.board[r][c] !== null) remaining.push({kind: this.board[r][c], row: r});
+        for (let r = SIZE - 1; r >= 0; r--) if (this.board[r][c]) remaining.push({tile: this.board[r][c], row: r});
         const missing = SIZE - remaining.length;
         for (let r = SIZE - 1; r >= 0; r--) {
           const existing = remaining[SIZE - 1 - r];
-          this.board[r][c] = existing?.kind ?? this.gem();
+          this.board[r][c] = existing?.tile ?? this.gem();
           falls[r * SIZE + c] = (existing?.row ?? r - missing) * SIZE + c;
         }
       }
-      frames.push({board: copy(this.board), matched: [], falls, chain});
+      events.push({type: 'fall', board: copy(this.board), falls, chain});
+      direct = null;
       match = this.matches();
     }
     this.score += earned;
@@ -162,13 +249,45 @@ class Game {
     let shuffled = false;
     if (!this.hasMove()) {
       this.board = this.freshBoard();
-      frames.push({board: copy(this.board), matched: [], chain, reshuffled: true});
+      events.push({type: 'shuffle', board: copy(this.board), chain});
       shuffled = true;
     }
-    return {valid: true, frames, earned, chain, shuffled};
+    return {valid: true, events, earned, chain, shuffled};
+  }
+
+  nearbyColor(index) {
+    const [r, c] = position(index);
+    for (let distance = 1; distance < SIZE; distance++)
+      for (const next of [r * SIZE + c - distance, r * SIZE + c + distance])
+        if (Math.floor(next / SIZE) === r && this.tile(next)?.color != null) return this.tile(next).color;
+    return null;
   }
 
   shuffle() { this.board = this.freshBoard(); }
+
+  restore(saved) {
+    const validTile = tile => Number.isInteger(tile) && tile >= 0 && tile < COLORS ||
+      tile && typeof tile === 'object' && Number.isInteger(tile.id) && tile.id > 0 &&
+      (tile.type === 'spectrum' && tile.color === null ||
+        ['normal', 'burst', 'cross'].includes(tile.type) && Number.isInteger(tile.color) && tile.color >= 0 && tile.color < COLORS);
+    if (!saved || !['zen', 'endless'].includes(saved.mode) || !Number.isSafeInteger(saved.score) || saved.score < 0 ||
+      !Array.isArray(saved.board) || saved.board.length !== SIZE ||
+      !saved.board.every(row => Array.isArray(row) && row.length === SIZE && row.every(validTile))) return false;
+    const ids = new Set();
+    const board = saved.board.map(row => row.map(tile => {
+      const gem = typeof tile === 'number' ? this.gem(tile) : {...tile};
+      if (ids.has(gem.id)) throw new Error('Pedras duplicadas no save');
+      ids.add(gem.id);
+      this.nextId = Math.max(this.nextId, gem.id + 1);
+      return gem;
+    }));
+    this.board = board;
+    this.mode = saved.mode;
+    this.score = saved.score;
+    this.level = this.mode === 'endless' ? 1 + Math.floor(this.score / 2000) : 1;
+    if (this.matches().cells.length || !this.hasMove()) this.board = this.freshBoard();
+    return true;
+  }
 }
 
 
@@ -187,15 +306,7 @@ const game = new Game();
 const names = ['rubi', 'âmbar', 'sol', 'jade', 'água', 'safira', 'ametista'];
 try {
   const saved = JSON.parse(localStorage.getItem('prisma.session'));
-  if (saved && ['zen', 'endless'].includes(saved.mode) && Number.isSafeInteger(saved.score) && saved.score >= 0 &&
-      Array.isArray(saved.board) && saved.board.length === SIZE && saved.board.every(row =>
-        Array.isArray(row) && row.length === SIZE && row.every(v => Number.isInteger(v) && v >= 0 && v < 7))) {
-    game.mode = saved.mode;
-    game.score = saved.score;
-    game.level = game.mode === 'endless' ? 1 + Math.floor(game.score / 2000) : 1;
-    game.board = saved.board;
-    if (game.matches().cells.length || !game.hasMove()) game.board = game.freshBoard();
-  }
+  game.restore(saved);
 } catch { /* A corrupted or unavailable save starts a new game. */ }
 let selected = null;
 let pointerStart = null;
@@ -243,7 +354,7 @@ function showToast(message) {
 
 function draw(board = game.board, matched = []) {
   const hits = new Set(matched);
-  boardElement.replaceChildren(...board.flatMap((row, r) => row.map((kind, c) => {
+  boardElement.replaceChildren(...board.flatMap((row, r) => row.map((tile, c) => {
     const index = r * SIZE + c;
     const cell = document.createElement('button');
     cell.type = 'button';
@@ -252,11 +363,14 @@ function draw(board = game.board, matched = []) {
     if (hits.has(index)) cell.classList.add('matched');
     cell.dataset.index = String(index);
     cell.setAttribute('role', 'gridcell');
-    cell.setAttribute('aria-label', `Linha ${r + 1}, coluna ${c + 1}: ${names[kind]}`);
+    const specialName = {burst: 'Pulso', cross: 'Raio', spectrum: 'Espectro'}[tile.type];
+    cell.setAttribute('aria-label', `Linha ${r + 1}, coluna ${c + 1}: ${specialName ? `pedra ${specialName}${tile.color === null ? '' : ` ${names[tile.color]}`}` : names[tile.color]}`);
+    cell.dataset.tileId = String(tile.id);
     const mover = document.createElement('span');
     mover.className = 'mover';
     const gem = document.createElement('span');
-    gem.className = `gem gem-${kind}`;
+    gem.className = `gem gem-${tile.color === null ? 'spectrum' : tile.color}${specialName ? ` special special-${tile.type}` : ''}`;
+    if (specialName) gem.setAttribute('data-symbol', {burst: '✺', cross: '✦', spectrum: '✶'}[tile.type]);
     mover.append(gem);
     cell.append(mover);
     return cell;
@@ -327,14 +441,17 @@ async function attempt(a, b) {
     busy = false;
     return;
   }
-  for (const frame of result.frames) {
-    draw(frame.board, frame.matched);
-    if (frame.matched.length) {
+  for (const frame of result.events) {
+    draw(frame.board, frame.type === 'clear' ? frame.cells : []);
+    if (frame.type === 'clear') {
       playTone(frame.chain);
-      combo.textContent = frame.chain > 1 ? `Cascata ×${frame.chain}!` : 'Boa combinação!';
-      if (!reducedMotion()) await pause(200);
-    } else if (frame.falls) await animateFall(frame.falls);
-    else if (frame.reshuffled && !reducedMotion()) await pause(120);
+      combo.textContent = frame.activated.some(effect => effect.type === 'spectrum') ? 'Explosão de cores!' :
+        frame.activated.length ? 'Reação em cadeia!' :
+        frame.creations.length ? 'Nova pedra especial!' :
+        frame.chain > 1 ? `Cascata ×${frame.chain}!` : 'Boa combinação!';
+      if (!reducedMotion()) await pause(frame.activated.length ? 250 : 200);
+    } else if (frame.type === 'fall') await animateFall(frame.falls);
+    else if (frame.type === 'shuffle' && !reducedMotion()) await pause(120);
   }
   draw();
   hud();
