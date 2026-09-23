@@ -232,6 +232,12 @@ export class Game {
       this.levelStartScore += levelGoal(this.level);
       this.level++;
     }
+    let shuffled = false;
+    if (this.level > oldLevel) {
+      const before = copy(this.board);
+      shuffled = this.shuffle(true);
+      if (shuffled) events.push({type: 'shuffle', before, board: copy(this.board), chain});
+    }
     let rescued = false;
     if (!this.hasMove()) {
       if (this.mode === 'classic') {
@@ -243,7 +249,7 @@ export class Game {
         rescued = true;
       }
     }
-    return {valid: true, events, earned, chain, rescued, ended: this.ended,
+    return {valid: true, events, earned, chain, rescued, shuffled, ended: this.ended,
       levelsGained: this.level - oldLevel};
   }
 
@@ -264,10 +270,37 @@ export class Game {
     return null;
   }
 
-  shuffle() {
-    if (this.mode === 'classic' || this.ended) return false;
-    this.board = this.freshBoard();
-    return true;
+  shuffle(automatic = false) {
+    if (this.ended || this.mode === 'classic' && !automatic) return false;
+    const original = this.board.flat();
+    const changed = tiles => tiles.some((tile, index) => tile.id !== original[index].id);
+    const accept = tiles => {
+      if (!changed(tiles)) return false;
+      const board = Array.from({length: SIZE}, (_, row) => tiles.slice(row * SIZE, (row + 1) * SIZE));
+      if (this.matches(board).cells.length || !this.hasMove(board)) return false;
+      this.board = board;
+      return true;
+    };
+
+    // Fisher–Yates redistributes the original tiles (including specials) without
+    // changing their identity or color. Reject pre-existing matches and deadlocks.
+    for (let attempt = 0; attempt < 128; attempt++) {
+      const tiles = original.slice();
+      for (let i = tiles.length - 1; i > 0; i--) {
+        const j = Math.floor(this.random() * (i + 1));
+        [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+      }
+      if (accept(tiles)) return true;
+    }
+
+    // An unhelpful deterministic random source must not delete special tiles.
+    // A bounded search of pair swaps can still find a safe board.
+    for (let a = 0; a < original.length; a++) for (let b = a + 1; b < original.length; b++) {
+      const tiles = original.slice();
+      [tiles[a], tiles[b]] = [tiles[b], tiles[a]];
+      if (accept(tiles)) return true;
+    }
+    return false;
   }
 
   restore(saved) {
@@ -305,7 +338,8 @@ export class Game {
       this.level++;
     }
     this.ended = false;
-    if (this.matches().cells.length) this.board = this.freshBoard();
+    // Saved boards with unresolved matches can still contain specials.
+    if (this.matches().cells.length && !this.shuffle(true)) this.board = this.freshBoard();
     if (!this.hasMove()) {
       if (this.mode === 'classic') this.ended = true;
       else this.rescue();

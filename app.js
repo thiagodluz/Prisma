@@ -1,6 +1,6 @@
-import {Game, SIZE, levelGoal} from './engine.js?v=16';
-import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=16';
-import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=16';
+import {Game, SIZE, levelGoal} from './engine.js?v=17';
+import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=17';
+import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=17';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
@@ -448,6 +448,14 @@ async function animateLevel() {
   } finally { levelUp.hidden = true; }
 }
 
+async function animateShuffle(board) {
+  if (!reducedMotion()) await waitAnimations([boardElement.animate(
+    [{opacity: 1}, {opacity: .12}], {duration: 125, easing: 'ease-in', fill: 'both'})]);
+  draw(board);
+  if (!reducedMotion()) await waitAnimations([boardElement.animate(
+    [{opacity: .12}, {opacity: 1}], {duration: 170, easing: 'ease-out'})]);
+}
+
 async function attempt(a, b) {
   if (busy) return;
   selected = null;
@@ -466,6 +474,11 @@ async function attempt(a, b) {
     if (!result.valid) return;
     for (const frame of result.events) {
       if (document.visibilityState === 'hidden') break;
+      if (frame.type === 'shuffle') {
+        combo.textContent = 'Pedras reorganizadas!';
+        await animateShuffle(frame.board);
+        continue;
+      }
       draw(frame.board, frame.type === 'clear' ? frame.cells : []);
       if (frame.type === 'clear') {
         playTone(cueForFrame(frame), frame.chain);
@@ -583,14 +596,21 @@ $('#hint').addEventListener('click', () => {
     if (!busy) combo.textContent = 'Combine três ou mais';
   }, 2600);
 });
-$('#shuffle').addEventListener('click', () => {
+$('#shuffle').addEventListener('click', async () => {
   if (busy) return;
   clearHint();
   selected = null;
   if (!game.shuffle()) return;
-  draw();
   save();
-  showToast('Tabuleiro embaralhado');
+  busy = true;
+  boardElement.classList.add('busy');
+  try { await animateShuffle(game.board); }
+  finally {
+    draw();
+    boardElement.classList.remove('busy');
+    busy = false;
+  }
+  showToast('Tabuleiro reorganizado');
 });
 $('#new-game').addEventListener('click', () => {
   if (busy) return;

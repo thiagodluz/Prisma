@@ -6,8 +6,8 @@ Protótipo original de jogo de combinar pedras, feito para telas de Android. Inc
 
 ## Modos
 
-- **Clássico:** sem cronômetro, com níveis; termina quando não há mais trocas capazes de formar combinações nem Espectro utilizável. A tela de resultado permite recomeçar. O botão de embaralhar não está disponível neste modo.
-- **Zen:** sem cronômetro nem tela de derrota, também com níveis. Se acabarem as jogadas, surge um Espectro para que a partida continue, sem zerar pontos ou apagar outras especiais. É possível embaralhar manualmente.
+- **Clássico:** sem cronômetro, com níveis; embaralha automaticamente ao subir de nível e termina quando não há mais trocas capazes de formar combinações nem Espectro utilizável. A tela de resultado permite recomeçar. O botão de embaralhar não está disponível neste modo.
+- **Zen:** sem cronômetro nem tela de derrota, também com níveis e embaralhamento automático ao subir de nível. Se acabarem as jogadas, surge um Espectro para que a partida continue, sem zerar pontos ou apagar outras especiais. É possível embaralhar manualmente.
 
 Ao alternar entre modos, cada partida fica guardada separadamente no navegador. Sessões e recordes antigos do modo Endless passam para Clássico, com pontos e tabuleiro preservados.
 
@@ -17,10 +17,11 @@ Ao alternar entre modos, cada partida fica guardada separadamente no navegador. 
 - Criar Pulso, Raio ou Espectro acrescenta respectivamente 120, 180 ou 240 pontos.
 - Cascatas multiplicam o valor da etapa: 1×, 1,4×, 1,8×, 2,2×, 2,6× e 3× a partir da sexta etapa.
 - O primeiro nível pede 1.800 pontos. A meta aumenta 350 pontos por nível até o limite de 5.300.
+- Ao subir de nível, as 64 pedras são redistribuídas uma vez, preservando a identidade, a cor e o tipo de cada uma, inclusive as especiais. O resultado sempre tem uma jogada possível e não inicia com combinações prontas. O embaralhamento manual do Zen segue as mesmas regras e não altera os pontos.
 - O botão **Dica** destaca uma troca válida, priorizando jogadas com maior potencial, sem alterar a pontuação.
 - A seção **Ver recordes** mostra maior pontuação, maior nível e melhor jogada de cada modo, além das partidas clássicas concluídas.
 
-Partidas salvas antes desta versão mantêm o nível e o progresso aproximado que já tinham. As sete cores continuam com chances iguais de aparecer; a dificuldade cresce pelo ritmo das metas, sem retirar cores nem reduzir as jogadas disponíveis.
+Partidas salvas antes desta versão mantêm o nível e o progresso aproximado que já tinham. As sete cores continuam com chances iguais e independentes de aparecer em novas pedras, permitindo cascatas naturais; a dificuldade cresce pelo ritmo das metas, sem retirar cores nem reduzir as jogadas disponíveis.
 
 ## Toque e apresentação
 
@@ -56,9 +57,9 @@ Na pasta do projeto, execute `python3 -m http.server 8080` e abra `http://localh
 
 ## Jogar no Android
 
-Instale o **APK de teste** gerado pela compilação Android abaixo. O aplicativo traz a interface, os sons sintetizados e todas as imagens dentro do próprio pacote, abre sem conexão e salva partidas, recordes e preferências no armazenamento privado do aplicativo. Ao sair ou trocar de aplicativo, a partida é salva e o áudio do Zen é pausado; ao voltar, a tela retoma a sessão. Para instalar APKs fora da Play Store, o Android pode pedir que você autorize a instalação pelo aplicativo usado para abrir o arquivo. O APK de teste tem assinatura de desenvolvimento: a versão de publicação precisará de uma chave de assinatura própria e estável.
+Instale o **APK 1.0** gerado pela compilação Android abaixo. O aplicativo traz a interface, os sons sintetizados e todas as imagens dentro do próprio pacote, abre sem conexão e salva partidas, recordes e preferências no armazenamento privado do aplicativo. Ao sair ou trocar de aplicativo, a partida é salva e o áudio do Zen é pausado; ao voltar, a tela retoma a sessão. Para instalar APKs fora da Play Store, o Android pode pedir que você autorize a instalação pelo aplicativo usado para abrir o arquivo. O APK distribuído pelo GitHub Actions ainda usa a assinatura de desenvolvimento do ambiente de compilação. Para futuras atualizações instaladas sobre esta versão sem perder dados, será necessária uma chave de assinatura própria e estável.
 
-No Android 15 ou mais recente, a área do jogo respeita as barras de status e navegação e os recortes da tela, preservando o cabeçalho e os controles. Cada APK beta é recompilado com uma chave temporária do ambiente de testes. Se você instalou outra beta, talvez seja necessário desinstalá-la antes desta; isso apaga as partidas guardadas no aplicativo.
+No Android 15 ou mais recente, a área do jogo respeita as barras de status e navegação e os recortes da tela, preservando o cabeçalho e os controles. O APK 1.0 tem uma chave de desenvolvimento temporária diferente das betas. Se você instalou uma beta, será necessário desinstalá-la antes desta; isso apaga as partidas guardadas no aplicativo.
 
 Também é possível abrir [a versão HTTPS](https://prisma-jogo-thiago.thiagodluz.chatgpt.site) no navegador e usar **Adicionar à tela inicial** ou **Instalar app**. O arquivo `Prisma-jogar-offline.html` serve como alternativa nos navegadores que permitam JavaScript em arquivos locais; alguns Androids bloqueiam isso ao abrir downloads em `content://`. As partidas salvas no navegador e as do APK têm armazenamentos separados.
 
@@ -70,6 +71,6 @@ O projeto Android está em `android/` e usa a WebView do sistema com recursos lo
 
 Execute `npm test` (Node.js 18+). Para reconstruir o arquivo único depois de editar o código, execute `npm run build:offline`. Não há dependências externas.
 
-## Situação do protótipo
+## Versão 1.0
 
-Clássico e Zen têm regras próprias, pontuação calibrada, níveis progressivos, dicas e recordes. O Zen tem som, respiração e efeitos configuráveis. A arte e o áudio têm identidade própria; testes em aparelho Android ainda são necessários para avaliar equilíbrio, cor, desempenho e volume. Nenhum arquivo do Bejeweled foi incorporado.
+Clássico e Zen têm regras próprias, pontuação calibrada, níveis progressivos, embaralhamento ao subir de nível, dicas e recordes. O Zen tem som, respiração e efeitos configuráveis. A arte e o áudio têm identidade própria. Nenhum arquivo do Bejeweled foi incorporado.

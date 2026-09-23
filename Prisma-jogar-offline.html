@@ -483,6 +483,12 @@ class Game {
       this.levelStartScore += levelGoal(this.level);
       this.level++;
     }
+    let shuffled = false;
+    if (this.level > oldLevel) {
+      const before = copy(this.board);
+      shuffled = this.shuffle(true);
+      if (shuffled) events.push({type: 'shuffle', before, board: copy(this.board), chain});
+    }
     let rescued = false;
     if (!this.hasMove()) {
       if (this.mode === 'classic') {
@@ -494,7 +500,7 @@ class Game {
         rescued = true;
       }
     }
-    return {valid: true, events, earned, chain, rescued, ended: this.ended,
+    return {valid: true, events, earned, chain, rescued, shuffled, ended: this.ended,
       levelsGained: this.level - oldLevel};
   }
 
@@ -515,10 +521,37 @@ class Game {
     return null;
   }
 
-  shuffle() {
-    if (this.mode === 'classic' || this.ended) return false;
-    this.board = this.freshBoard();
-    return true;
+  shuffle(automatic = false) {
+    if (this.ended || this.mode === 'classic' && !automatic) return false;
+    const original = this.board.flat();
+    const changed = tiles => tiles.some((tile, index) => tile.id !== original[index].id);
+    const accept = tiles => {
+      if (!changed(tiles)) return false;
+      const board = Array.from({length: SIZE}, (_, row) => tiles.slice(row * SIZE, (row + 1) * SIZE));
+      if (this.matches(board).cells.length || !this.hasMove(board)) return false;
+      this.board = board;
+      return true;
+    };
+
+    // Fisher–Yates redistributes the original tiles (including specials) without
+    // changing their identity or color. Reject pre-existing matches and deadlocks.
+    for (let attempt = 0; attempt < 128; attempt++) {
+      const tiles = original.slice();
+      for (let i = tiles.length - 1; i > 0; i--) {
+        const j = Math.floor(this.random() * (i + 1));
+        [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+      }
+      if (accept(tiles)) return true;
+    }
+
+    // An unhelpful deterministic random source must not delete special tiles.
+    // A bounded search of pair swaps can still find a safe board.
+    for (let a = 0; a < original.length; a++) for (let b = a + 1; b < original.length; b++) {
+      const tiles = original.slice();
+      [tiles[a], tiles[b]] = [tiles[b], tiles[a]];
+      if (accept(tiles)) return true;
+    }
+    return false;
   }
 
   restore(saved) {
@@ -556,7 +589,8 @@ class Game {
       this.level++;
     }
     this.ended = false;
-    if (this.matches().cells.length) this.board = this.freshBoard();
+    // Saved boards with unresolved matches can still contain specials.
+    if (this.matches().cells.length && !this.shuffle(true)) this.board = this.freshBoard();
     if (!this.hasMove()) {
       if (this.mode === 'classic') this.ended = true;
       else this.rescue();
@@ -1244,6 +1278,14 @@ async function animateLevel() {
   } finally { levelUp.hidden = true; }
 }
 
+async function animateShuffle(board) {
+  if (!reducedMotion()) await waitAnimations([boardElement.animate(
+    [{opacity: 1}, {opacity: .12}], {duration: 125, easing: 'ease-in', fill: 'both'})]);
+  draw(board);
+  if (!reducedMotion()) await waitAnimations([boardElement.animate(
+    [{opacity: .12}, {opacity: 1}], {duration: 170, easing: 'ease-out'})]);
+}
+
 async function attempt(a, b) {
   if (busy) return;
   selected = null;
@@ -1262,6 +1304,11 @@ async function attempt(a, b) {
     if (!result.valid) return;
     for (const frame of result.events) {
       if (document.visibilityState === 'hidden') break;
+      if (frame.type === 'shuffle') {
+        combo.textContent = 'Pedras reorganizadas!';
+        await animateShuffle(frame.board);
+        continue;
+      }
       draw(frame.board, frame.type === 'clear' ? frame.cells : []);
       if (frame.type === 'clear') {
         playTone(cueForFrame(frame), frame.chain);
@@ -1379,14 +1426,21 @@ $('#hint').addEventListener('click', () => {
     if (!busy) combo.textContent = 'Combine três ou mais';
   }, 2600);
 });
-$('#shuffle').addEventListener('click', () => {
+$('#shuffle').addEventListener('click', async () => {
   if (busy) return;
   clearHint();
   selected = null;
   if (!game.shuffle()) return;
-  draw();
   save();
-  showToast('Tabuleiro embaralhado');
+  busy = true;
+  boardElement.classList.add('busy');
+  try { await animateShuffle(game.board); }
+  finally {
+    draw();
+    boardElement.classList.remove('busy');
+    busy = false;
+  }
+  showToast('Tabuleiro reorganizado');
 });
 $('#new-game').addEventListener('click', () => {
   if (busy) return;

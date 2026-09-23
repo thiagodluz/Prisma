@@ -34,6 +34,66 @@ test('starting boards have unique stable IDs, no matches and at least one move',
   }
 });
 
+test('manual Zen shuffle keeps every tile, special type and color without free matches', () => {
+  const game = new Game();
+  game.board[0][0].type = 'burst';
+  game.board[1][1].type = 'cross';
+  game.board[2][2] = game.gem(null, 'spectrum');
+  const identities = () => game.board.flat().map(tile => [tile.id, tile.type, tile.color])
+    .sort((a, b) => a[0] - b[0]);
+  const initial = identities();
+  const nextId = game.nextId;
+  game.score = 175;
+  for (let i = 0; i < 100; i++) {
+    const positions = game.board.flat().map(tile => tile.id);
+    assert.equal(game.shuffle(), true);
+    assert.notDeepEqual(game.board.flat().map(tile => tile.id), positions);
+    assert.deepEqual(identities(), initial);
+    assert.equal(game.nextId, nextId);
+    assert.equal(game.score, 175);
+    assert.equal(game.matches().cells.length, 0);
+    assert.equal(game.hasMove(), true);
+  }
+  game.mode = 'classic';
+  assert.equal(game.shuffle(), false, 'Classic has no manual shuffle');
+});
+
+test('both modes reshuffle once when leveling up and keep surviving specials', () => {
+  for (const mode of ['classic', 'zen']) {
+    let seed = 9921;
+    const game = new Game(() => ((seed = (1664525 * seed + 1013904223) >>> 0) / 2 ** 32));
+    game.newGame(mode);
+    game.board[0][0].type = 'burst';
+    game.score = levelGoal(1) - 75;
+    const result = game.move(...matchMove(game));
+    assert.ok(result.valid && result.levelsGained >= 1);
+    assert.equal(result.shuffled, true);
+    const shuffles = result.events.filter(event => event.type === 'shuffle');
+    assert.equal(shuffles.length, 1);
+    const before = shuffles[0].before.flat().map(tile => [tile.id, tile.type, tile.color]);
+    const after = shuffles[0].board.flat().map(tile => [tile.id, tile.type, tile.color]);
+    assert.deepEqual(after.sort((a, b) => a[0] - b[0]), before.sort((a, b) => a[0] - b[0]));
+    assert.notDeepEqual(shuffles[0].before.flat().map(tile => tile.id),
+      shuffles[0].board.flat().map(tile => tile.id));
+    assert.equal(game.matches().cells.length, 0);
+    assert.equal(game.hasMove(), true);
+    assert.equal(game.ended, false);
+    assert.equal(result.events.at(-1).type, 'shuffle');
+    assert.equal(result.events.at(-1).board.flat().map(tile => tile.id).join(','),
+      game.board.flat().map(tile => tile.id).join(','));
+  }
+});
+
+test('low entropy random source still finds a safe permutation without new tiles', () => {
+  const game = new Game();
+  game.random = () => 0;
+  const identities = game.board.flat().map(tile => tile.id).sort((a, b) => a - b);
+  assert.equal(game.shuffle(), true);
+  assert.deepEqual(game.board.flat().map(tile => tile.id).sort((a, b) => a - b), identities);
+  assert.equal(game.matches().cells.length, 0);
+  assert.equal(game.hasMove(), true);
+});
+
 test('a long sequence keeps falling IDs, events and board consistent', () => {
   let seed = 7654321;
   const game = new Game(() => ((seed = (1664525 * seed + 1013904223) >>> 0) / 2 ** 32));
@@ -163,6 +223,22 @@ test('old numeric save migrates, specials persist, IDs remain unique', () => {
   assert.equal(copy.tile(0).id, special.id);
   assert.equal(copy.tile(0).type, 'burst');
   assert.ok(copy.gem().id > Math.max(...copy.board.flat().map(tile => tile.id)));
+});
+
+test('restoring an unsettled save rearranges its specials instead of discarding them', () => {
+  const original = new Game();
+  original.board[0][0] = original.gem(0, 'burst');
+  original.board[0][1] = original.gem(0, 'cross');
+  original.board[0][2] = original.gem(0);
+  original.board[1][1] = original.gem(null, 'spectrum');
+  const expected = original.board.flat().map(tile => [tile.id, tile.type, tile.color])
+    .sort((a, b) => a[0] - b[0]);
+  const restored = new Game();
+  assert.equal(restored.restore({mode: 'zen', score: 200, board: original.board}), true);
+  assert.deepEqual(restored.board.flat().map(tile => [tile.id, tile.type, tile.color])
+    .sort((a, b) => a[0] - b[0]), expected);
+  assert.equal(restored.matches().cells.length, 0);
+  assert.equal(restored.hasMove(), true);
 });
 
 test('Classic ends without moves, preserves the final board and forbids shuffling', () => {
