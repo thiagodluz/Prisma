@@ -19,7 +19,11 @@ jobs:
         with:
           gradle-version: '8.13'
       - name: Install Android platform
-        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+        run: |
+          sdk_manager=$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f -print -quit)
+          test -n "$sdk_manager"
+          yes | "$sdk_manager" --licenses >/dev/null
+          "$sdk_manager" 'platforms;android-35' 'build-tools;35.0.0'
       - name: Verify game
         run: npm test
       - name: Build installable APK
