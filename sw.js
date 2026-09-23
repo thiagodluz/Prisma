@@ -1,6 +1,6 @@
-const CACHE = 'prisma-v12';
+const CACHE = 'prisma-v13';
 const FILES = ['./', './index.html', './style.css', './app.js', './engine.js', './zen.js', './sound.js',
-  './gem-atlas.webp', './special-atlas.webp', './prisma-bg.jpg',
+  './gem-atlas.webp', './burst-atlas.webp', './cross-atlas.webp', './spectrum-gem.webp', './prisma-bg.jpg',
   './icon.svg', './icon-192.png', './icon-512.png', './manifest.webmanifest'];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES)).then(() => self.skipWaiting())));
 self.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim())));

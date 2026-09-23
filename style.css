@@ -90,23 +90,20 @@
 :root[data-visual-style="illustrated"] .cell.pressed{background:#e5d8ff3d;box-shadow:inset 0 0 0 2px #d4c5ff}
 :root[data-visual-style="illustrated"] .cell.drag-target{background:#c4ffe451;box-shadow:inset 0 0 0 2px #a2f4d7,0 0 12px #6de9d76b}
 :root[data-visual-style="illustrated"] .mover{inset:11%}
-:root[data-visual-style="illustrated"] .mover .gem{width:100%;height:100%;aspect-ratio:1;transform:none;border:0;outline:0;clip-path:none;border-radius:0;box-shadow:none;background-color:transparent;background-image:url('gem-atlas.webp');background-repeat:no-repeat;background-size:300% 300%;filter:drop-shadow(0 2px 2px #02061d9c);transition:transform .16s ease,filter .16s ease}
+:root[data-visual-style="illustrated"] .mover .gem{width:100%;height:100%;aspect-ratio:1;transform:translate(var(--gem-x,0%),var(--gem-y,0%)) scale(var(--gem-scale,1));border:0;outline:0;clip-path:none;border-radius:0;box-shadow:none;background-color:transparent;background-image:url('gem-atlas.webp');background-repeat:no-repeat;background-size:300% 300%;filter:drop-shadow(0 2px 2px #02061d9c);transition:transform .16s ease,filter .16s ease}
 :root[data-visual-style="illustrated"] .mover .gem:before,:root[data-visual-style="illustrated"] .mover .gem:after{display:none;content:none}
-:root[data-visual-style="illustrated"] .mover .gem.gem-0{background-position:0 0;transform:none}
-:root[data-visual-style="illustrated"] .mover .gem.gem-1{background-position:50% 0;transform:none}
-:root[data-visual-style="illustrated"] .mover .gem.gem-2{background-position:100% 0;transform:none}
-:root[data-visual-style="illustrated"] .mover .gem.gem-3{background-position:0 50%;transform:scale(.87)}
-:root[data-visual-style="illustrated"] .mover .gem.gem-4{background-position:50% 50%;transform:scale(.93)}
-:root[data-visual-style="illustrated"] .mover .gem.gem-5{background-position:100% 50%;transform:none}
-:root[data-visual-style="illustrated"] .mover .gem.gem-6{background-position:0 100%;transform:none}
+:root[data-visual-style="illustrated"] .mover .gem.gem-0{background-position:0 0;--gem-x:-4.5%;--gem-y:-6.1%;--gem-scale:.98;--gem-active-scale:1.04}
+:root[data-visual-style="illustrated"] .mover .gem.gem-1{background-position:50% 0;--gem-x:.2%;--gem-y:-7.3%;--gem-scale:1;--gem-active-scale:1.06}
+:root[data-visual-style="illustrated"] .mover .gem.gem-2{background-position:100% 0;--gem-x:3.5%;--gem-y:-8%;--gem-scale:1.08;--gem-active-scale:1.14}
+:root[data-visual-style="illustrated"] .mover .gem.gem-3{background-position:0 50%;--gem-x:-4.3%;--gem-y:-5.1%;--gem-scale:.87;--gem-active-scale:.93}
+:root[data-visual-style="illustrated"] .mover .gem.gem-4{background-position:50% 50%;--gem-x:0%;--gem-y:-.5%;--gem-scale:.96;--gem-active-scale:1.02}
+:root[data-visual-style="illustrated"] .mover .gem.gem-5{background-position:100% 50%;--gem-x:4.1%;--gem-y:-.2%;--gem-scale:1.08;--gem-active-scale:1.14}
+:root[data-visual-style="illustrated"] .mover .gem.gem-6{background-position:0 100%;--gem-x:-4.2%;--gem-y:6.8%;--gem-scale:.9;--gem-active-scale:.96}
 :root[data-visual-style="illustrated"] .mover .gem.special{width:100%;height:100%;aspect-ratio:1;border:0;outline:0;border-radius:0;box-shadow:none;background-color:transparent;filter:drop-shadow(0 2px 2px #01071bbb)}
-/* Pulso and Raio keep the atlas sprite for their matching color. Only Espectro is colorless. */
-:root[data-visual-style="illustrated"] .mover .gem.special:not(.special-spectrum):before{display:grid;content:attr(data-symbol);position:absolute;right:0;bottom:0;top:auto;left:auto;width:43%;height:43%;place-items:center;border:1px solid #ffe7a8;border-radius:50%;background:#15152be8;color:#fff4cf;font-size:clamp(12px,3vw,17px);line-height:1;font-weight:900;text-shadow:0 0 4px #fff;box-shadow:0 1px 5px #05071c,0 0 5px #ffc86a99;filter:none;transform:none}
-:root[data-visual-style="illustrated"] .mover .gem.special-cross:before{border-color:#9bf7ff;color:#d6fcff;box-shadow:0 1px 5px #05071c,0 0 5px #83edffb3}
-:root[data-visual-style="illustrated"] .mover .gem.special-spectrum{background-image:url('special-atlas.webp');background-position:100% 0;filter:drop-shadow(0 0 3px #b5edff9c) drop-shadow(0 2px 2px #01071bbb)}
-:root[data-visual-style="illustrated"] .cell.selected .mover .gem,:root[data-visual-style="illustrated"] .cell:active .mover .gem{transform:scale(1.06)}
-:root[data-visual-style="illustrated"] .cell.selected .mover .gem.gem-3,:root[data-visual-style="illustrated"] .cell:active .mover .gem.gem-3{transform:scale(.93)}
-:root[data-visual-style="illustrated"] .cell.selected .mover .gem.gem-4,:root[data-visual-style="illustrated"] .cell:active .mover .gem.gem-4{transform:scale(.99)}
+:root[data-visual-style="illustrated"] .mover .gem.special-burst{background-image:url('burst-atlas.webp')}
+:root[data-visual-style="illustrated"] .mover .gem.special-cross{background-image:url('cross-atlas.webp')}
+:root[data-visual-style="illustrated"] .mover .gem.special-spectrum{background-image:url('spectrum-gem.webp');background-position:center;background-size:150% 150%;--gem-x:0%;--gem-y:0%;--gem-scale:1;--gem-active-scale:1.06;filter:drop-shadow(0 0 3px #b5edff9c) drop-shadow(0 2px 2px #01071bbb)}
+:root[data-visual-style="illustrated"] .cell.selected .mover .gem,:root[data-visual-style="illustrated"] .cell:active .mover .gem{transform:translate(var(--gem-x,0%),var(--gem-y,0%)) scale(var(--gem-active-scale,1.06))}
 .board{grid-template-columns:repeat(8,minmax(0,1fr))}
 .visual-picker{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 1px 0;padding:9px 12px;border:1px solid #ffffff25;border-radius:14px;background:#ffffff0b;color:#d9d5ee;font-size:13px;font-weight:700}
 .visual-options{display:flex;gap:3px;padding:3px;border:1px solid #ffffff1a;border-radius:10px;background:#0c10255c}

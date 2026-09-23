@@ -17,7 +17,7 @@ test('versioned game scripts resolve from the offline cache', async () => {
     caches: {open: async () => ({
       addAll: async files => { precached = Array.from(files); },
       match: async (request, options) =>
-        request.url.endsWith('/app.js?v=11') && options?.ignoreSearch ? cached : null
+        request.url.endsWith('/app.js?v=12') && options?.ignoreSearch ? cached : null
     })},
     fetch: async () => { networkRequests++; throw new Error('offline'); },
     URL
@@ -26,10 +26,10 @@ test('versioned game scripts resolve from the offline cache', async () => {
   let installation;
   handlers.install({waitUntil(promise) { installation = promise; }});
   await installation;
-  for (const asset of ['./gem-atlas.webp', './special-atlas.webp', './prisma-bg.jpg', './sound.js'])
+  for (const asset of ['./gem-atlas.webp', './burst-atlas.webp', './cross-atlas.webp', './spectrum-gem.webp', './prisma-bg.jpg', './sound.js'])
     assert.ok(precached.includes(asset), `${asset} should be available offline`);
   let response;
-  handlers.fetch({request: {method: 'GET', url: 'https://prisma.example/app.js?v=11'},
+  handlers.fetch({request: {method: 'GET', url: 'https://prisma.example/app.js?v=12'},
     respondWith(promise) { response = promise; }});
   assert.equal(await response, cached);
   assert.equal(networkRequests, 0);
