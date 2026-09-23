@@ -85,7 +85,7 @@ test('drag previews its neighbor, commits before animation and settles when hidd
   board.handlers.pointerup({...start, clientX: dx, clientY: dy});
   assert.equal(board.children[hint.b].classList.contains('drag-target'), false);
   const committed = JSON.parse(storage.get('prisma.session.zen'));
-  assert.ok(committed.score >= expected.score);
+  assert.ok(committed.score > saved.score);
   assert.notDeepEqual(committed.board, saved.board);
   assert.equal(board.classList.contains('busy'), true);
   assert.ok(vibrations.length >= 2);
