@@ -1,7 +1,8 @@
 export const SIZE = 8;
 export const COLORS = 7;
 export const SPECIALS = ['burst', 'cross', 'spectrum'];
-export const levelGoal = level => Math.min(5300, 1800 + (level - 1) * 350);
+// Smaller increments keep reshuffles frequent; level 20 is the final increase.
+export const levelGoal = level => Math.min(4650, 1800 + (level - 1) * 150);
 const creationPoints = {burst: 120, cross: 180, spectrum: 240};
 const copy = board => board.map(row => [...row]);
 const position = index => [Math.floor(index / SIZE), index % SIZE];

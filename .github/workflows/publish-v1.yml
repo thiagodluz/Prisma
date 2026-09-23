@@ -1,4 +1,4 @@
-name: Publish Prisma 1.0
+name: Publish Prisma 1.0.1
 
 on:
   push:
@@ -41,14 +41,14 @@ jobs:
           sha256sum release/Prisma-Android.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: Prisma-Android-1.0.0
+          name: Prisma-Android-1.0.1
           path: release/Prisma-Android.apk
           if-no-files-found: error
-      - name: Publish version 1.0.0
+      - name: Publish version 1.0.1
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create v1.0.0 release/Prisma-Android.apk \
+          gh release create v1.0.1 release/Prisma-Android.apk \
             --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
-            --title 'Prisma 1.0 — Android' --latest \
-            --notes-file docs/release-v1.md
+            --title 'Prisma 1.0.1 — Android' --latest \
+            --notes-file docs/release-v1-0-1.md

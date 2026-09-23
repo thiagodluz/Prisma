@@ -7,15 +7,19 @@ Direção: pedras com silhuetas diferentes, facetas nítidas e cores saturadas; 
 | Arquivo | Uso | Tamanho no projeto |
 | --- | --- | --- |
 | `gem-atlas.webp` | Sete pedras comuns em grade 3×3 com transparência | 1254×1254 |
-| `burst-atlas.webp` | Sete variantes de Pulso com estrela dourada integrada, grade 3×3 | 1254×1254 |
-| `cross-atlas.webp` | Sete variantes de Raio com feixe azul em cruz integrado, grade 3×3 | 1254×1254 |
-| `spectrum-gem.webp` | Espectro individual, centralizado em tela quadrada transparente | 1254×1254 |
+| `burst-atlas.webp` | Sete variantes de Pulso com explosão dourada de oito raios, grade 3×3 | 1254×1254 |
+| `cross-atlas.webp` | Sete variantes de Raio com cruz azul espessa, grade 3×3 | 1254×1254 |
+| `spectrum-gem.webp` | Espectro circular multicolorido com núcleo branco hexagonal, centralizado | 1254×1254 |
 | `special-atlas.webp` | Primeiro estudo das especiais, preservado no projeto mas sem uso no jogo | 1254×1254 |
 | `prisma-bg.jpg` | Fundo vertical de baixo contraste | 940×1672 |
 
 Foram gerados com o ImageGen integrado, depois convertidos para WebP/JPEG para reduzir o download móvel. Os PNGs originais da geração não são necessários para executar o jogo. O arquivo HTML autônomo incorpora as imagens como dados locais; a versão instalada pelo navegador as guarda no cache offline.
 
 O alinhamento do tabuleiro usa o centro visível dos pixels de cada recorte, medido com alfa acima de 50%, para compensar as margens irregulares do atlas original. As mesmas correções de posição e escala se aplicam às variantes Pulso e Raio. O Espectro fica centralizado por ter um arquivo separado.
+
+Na revisão 1.0.1, os três arquivos de especiais foram recriados com o ImageGen integrado, usando os respectivos arquivos antigos como alvo de edição. As silhuetas e cores do Pulso e do Raio foram preservadas; seus símbolos foram ampliados para continuarem legíveis com cerca de 36 px. O Espectro foi redesenhado com setores multicoloridos separados e núcleo prismático maior. Como a nova imagem do Espectro ocupa mais área do arquivo, o tamanho usado no CSS foi reduzido para evitar cortes dentro da casa.
+
+**Prompts da revisão 1.0.1:** Pulso: preservar as sete gemas, posições e transparência do atlas; criar uma explosão branca e dourada de oito raios grandes, com pequenos reflexos interiores. Raio: preservar as sete gemas coloridas; criar uma cruz ortogonal espessa azul e branca que alcance as bordas internas, sem raios diagonais. Espectro: preservar a gema redonda multicolorida e a transparência; criar sete setores de cor separados e um núcleo branco hexagonal grande, distinto da estrela e da cruz.
 
 ### Prompts finais de geração
 

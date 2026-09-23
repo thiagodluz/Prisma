@@ -16,12 +16,12 @@ Ao alternar entre modos, cada partida fica guardada separadamente no navegador. 
 - Cada pedra removida vale 25 pontos.
 - Criar Pulso, Raio ou Espectro acrescenta respectivamente 120, 180 ou 240 pontos.
 - Cascatas multiplicam o valor da etapa: 1×, 1,4×, 1,8×, 2,2×, 2,6× e 3× a partir da sexta etapa.
-- O primeiro nível pede 1.800 pontos. A meta aumenta 350 pontos por nível até o limite de 5.300.
+- O primeiro nível pede 1.800 pontos. A meta cresce 150 pontos por nível até chegar a 4.650 no nível 20; dali em diante fica fixa, para que as partidas continuem leves e os embaralhamentos não fiquem cada vez mais distantes.
 - Ao subir de nível, as 64 pedras são redistribuídas uma vez, preservando a identidade, a cor e o tipo de cada uma, inclusive as especiais. O resultado sempre tem uma jogada possível e não inicia com combinações prontas. O embaralhamento manual do Zen segue as mesmas regras e não altera os pontos.
 - O botão **Dica** destaca uma troca válida, priorizando jogadas com maior potencial, sem alterar a pontuação.
 - A seção **Ver recordes** mostra maior pontuação, maior nível e melhor jogada de cada modo, além das partidas clássicas concluídas.
 
-Partidas salvas antes desta versão mantêm o nível e o progresso aproximado que já tinham. As sete cores continuam com chances iguais e independentes de aparecer em novas pedras, permitindo cascatas naturais; a dificuldade cresce pelo ritmo das metas, sem retirar cores nem reduzir as jogadas disponíveis.
+Partidas salvas antes desta versão mantêm pontuação, pedras, nível e progresso; se já houver pontos suficientes para a nova meta, o nível é ajustado ao reabrir. As sete cores continuam com chances iguais e independentes de aparecer em novas pedras, permitindo cascatas naturais. A meta do nível 20 é um teto para o custo do próximo embaralhamento, não um limite para o nível alcançado.
 
 ## Toque e apresentação
 
@@ -57,9 +57,9 @@ Na pasta do projeto, execute `python3 -m http.server 8080` e abra `http://localh
 
 ## Jogar no Android
 
-Instale o **APK 1.0** gerado pela compilação Android abaixo. O aplicativo traz a interface, os sons sintetizados e todas as imagens dentro do próprio pacote, abre sem conexão e salva partidas, recordes e preferências no armazenamento privado do aplicativo. Ao sair ou trocar de aplicativo, a partida é salva e o áudio do Zen é pausado; ao voltar, a tela retoma a sessão. Para instalar APKs fora da Play Store, o Android pode pedir que você autorize a instalação pelo aplicativo usado para abrir o arquivo. O APK distribuído pelo GitHub Actions ainda usa a assinatura de desenvolvimento do ambiente de compilação. Para futuras atualizações instaladas sobre esta versão sem perder dados, será necessária uma chave de assinatura própria e estável.
+Instale o **APK 1.0.1** gerado pela compilação Android abaixo. O aplicativo traz a interface, os sons sintetizados e todas as imagens dentro do próprio pacote, abre sem conexão e salva partidas, recordes e preferências no armazenamento privado do aplicativo. Ao sair ou trocar de aplicativo, a partida é salva e o áudio do Zen é pausado; ao voltar, a tela retoma a sessão. Para instalar APKs fora da Play Store, o Android pode pedir que você autorize a instalação pelo aplicativo usado para abrir o arquivo. O APK distribuído pelo GitHub Actions ainda usa a assinatura de desenvolvimento do ambiente de compilação. Para futuras atualizações instaladas sobre esta versão sem perder dados, será necessária uma chave de assinatura própria e estável.
 
-No Android 15 ou mais recente, a área do jogo respeita as barras de status e navegação e os recortes da tela, preservando o cabeçalho e os controles. O APK 1.0 tem uma chave de desenvolvimento temporária diferente das betas. Se você instalou uma beta, será necessário desinstalá-la antes desta; isso apaga as partidas guardadas no aplicativo.
+No Android 15 ou mais recente, a área do jogo respeita as barras de status e navegação e os recortes da tela, preservando o cabeçalho e os controles. O APK 1.0.1 é assinado com chave de desenvolvimento temporária, diferente da usada na 1.0 e nas betas. Para instalá-lo será necessário desinstalar o APK anterior, o que apaga as partidas guardadas no aplicativo. Partidas da versão web não são afetadas.
 
 Também é possível abrir [a versão HTTPS](https://prisma-jogo-thiago.thiagodluz.chatgpt.site) no navegador e usar **Adicionar à tela inicial** ou **Instalar app**. O arquivo `Prisma-jogar-offline.html` serve como alternativa nos navegadores que permitam JavaScript em arquivos locais; alguns Androids bloqueiam isso ao abrir downloads em `content://`. As partidas salvas no navegador e as do APK têm armazenamentos separados.
 
@@ -71,6 +71,6 @@ O projeto Android está em `android/` e usa a WebView do sistema com recursos lo
 
 Execute `npm test` (Node.js 18+). Para reconstruir o arquivo único depois de editar o código, execute `npm run build:offline`. Não há dependências externas.
 
-## Versão 1.0
+## Versão 1.0.1
 
-Clássico e Zen têm regras próprias, pontuação calibrada, níveis progressivos, embaralhamento ao subir de nível, dicas e recordes. O Zen tem som, respiração e efeitos configuráveis. A arte e o áudio têm identidade própria. Nenhum arquivo do Bejeweled foi incorporado.
+Clássico e Zen têm regras próprias, metas suaves com teto no nível 20, embaralhamento ao subir de nível, dicas e recordes. Pulso, Raio e Espectro ganharam artes mais fáceis de identificar, preservando a cor original de Pulso e Raio. O Zen tem som, respiração e efeitos configuráveis. Nenhum arquivo do Bejeweled foi incorporado.

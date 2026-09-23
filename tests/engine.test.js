@@ -319,8 +319,8 @@ test('score rewards special creation and cascades with a capped multiplier', () 
 });
 
 test('level goals grow gradually and progress can cross multiple levels', () => {
-  assert.deepEqual([1, 2, 3, 4, 5, 10].map(levelGoal), [1800, 2150, 2500, 2850, 3200, 4950]);
-  assert.equal(levelGoal(20), 5300);
+  assert.deepEqual([1, 2, 3, 4, 5, 10, 19, 20, 21, 100].map(levelGoal),
+    [1800, 1950, 2100, 2250, 2400, 3150, 4500, 4650, 4650, 4650]);
   const game = new Game();
   game.score = levelGoal(1) - 50;
   const move = matchMove(game);
