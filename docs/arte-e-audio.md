@@ -1,13 +1,13 @@
 # Prisma — arte e áudio da etapa 8
 
-Direção: pedras com silhuetas diferentes, facetas nítidas e cores saturadas; fundo de índigo escuro com refrações somente nas bordas. Os sete tipos comuns e as três especiais preservam uma tela quadrada por célula do atlas, sem distorcer peças especiais. O jogo não utiliza imagens nem sons de outro jogo.
+Direção: pedras com silhuetas diferentes, facetas nítidas e cores saturadas; fundo de índigo escuro com refrações somente nas bordas. As pedras comuns são recortes quadrados do atlas. Pulso e Raio exibem a pedra da cor com a qual podem combinar, acrescida de um símbolo do efeito; o Espectro usa sua própria ilustração multicolorida. O jogo não utiliza imagens nem sons de outro jogo.
 
 ## Assets
 
 | Arquivo | Uso | Tamanho no projeto |
 | --- | --- | --- |
 | `gem-atlas.webp` | Sete pedras comuns em grade 3×3 com transparência | 1254×1254 |
-| `special-atlas.webp` | Pulso, Raio e Espectro na primeira linha de uma grade 3×3 | 1254×1254 |
+| `special-atlas.webp` | Espectro multicolorido na terceira célula da primeira linha; o arquivo também contém desenhos anteriores de Pulso e Raio que não são mais usados no tabuleiro | 1254×1254 |
 | `prisma-bg.jpg` | Fundo vertical de baixo contraste | 940×1672 |
 
 Foram gerados com o ImageGen integrado, depois convertidos para WebP/JPEG para reduzir o download móvel. Os PNGs originais da geração não são necessários para executar o jogo. O arquivo HTML autônomo incorpora as imagens como dados locais; a versão instalada pelo navegador as guarda no cache offline.

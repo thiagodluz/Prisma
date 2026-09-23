@@ -99,10 +99,11 @@
 :root[data-visual-style="illustrated"] .mover .gem.gem-4{background-position:50% 50%;transform:scale(.93)}
 :root[data-visual-style="illustrated"] .mover .gem.gem-5{background-position:100% 50%;transform:none}
 :root[data-visual-style="illustrated"] .mover .gem.gem-6{background-position:0 100%;transform:none}
-:root[data-visual-style="illustrated"] .mover .gem.special{width:100%;height:100%;aspect-ratio:1;border:0;outline:0;border-radius:0;box-shadow:none;background-color:transparent;background-image:url('special-atlas.webp');background-size:300% 300%;filter:drop-shadow(0 0 3px #b5edff9c) drop-shadow(0 2px 2px #01071bbb)}
-:root[data-visual-style="illustrated"] .mover .gem.special-burst{background-position:0 0}
-:root[data-visual-style="illustrated"] .mover .gem.special-cross{background-position:50% 0}
-:root[data-visual-style="illustrated"] .mover .gem.special-spectrum{background-position:100% 0}
+:root[data-visual-style="illustrated"] .mover .gem.special{width:100%;height:100%;aspect-ratio:1;border:0;outline:0;border-radius:0;box-shadow:none;background-color:transparent;filter:drop-shadow(0 2px 2px #01071bbb)}
+/* Pulso and Raio keep the atlas sprite for their matching color. Only Espectro is colorless. */
+:root[data-visual-style="illustrated"] .mover .gem.special:not(.special-spectrum):before{display:grid;content:attr(data-symbol);position:absolute;right:0;bottom:0;top:auto;left:auto;width:43%;height:43%;place-items:center;border:1px solid #ffe7a8;border-radius:50%;background:#15152be8;color:#fff4cf;font-size:clamp(12px,3vw,17px);line-height:1;font-weight:900;text-shadow:0 0 4px #fff;box-shadow:0 1px 5px #05071c,0 0 5px #ffc86a99;filter:none;transform:none}
+:root[data-visual-style="illustrated"] .mover .gem.special-cross:before{border-color:#9bf7ff;color:#d6fcff;box-shadow:0 1px 5px #05071c,0 0 5px #83edffb3}
+:root[data-visual-style="illustrated"] .mover .gem.special-spectrum{background-image:url('special-atlas.webp');background-position:100% 0;filter:drop-shadow(0 0 3px #b5edff9c) drop-shadow(0 2px 2px #01071bbb)}
 :root[data-visual-style="illustrated"] .cell.selected .mover .gem,:root[data-visual-style="illustrated"] .cell:active .mover .gem{transform:scale(1.06)}
 :root[data-visual-style="illustrated"] .cell.selected .mover .gem.gem-3,:root[data-visual-style="illustrated"] .cell:active .mover .gem.gem-3{transform:scale(.93)}
 :root[data-visual-style="illustrated"] .cell.selected .mover .gem.gem-4,:root[data-visual-style="illustrated"] .cell:active .mover .gem.gem-4{transform:scale(.99)}

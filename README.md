@@ -32,7 +32,7 @@ Abra **Personalizar Zen** para ligar separadamente uma melodia sintetizada e um 
 
 ## Arte e áudio
 
-O seletor **Visual** abaixo dos modos permite alternar entre **Anterior**, com as pedras desenhadas em CSS, e **Novo**, com as pedras ilustradas. A escolha funciona em Zen e Clássico, fica salva no navegador e não altera o tabuleiro, os pontos nem a partida. No visual novo, todas as pedras têm uma área central quadrada dentro de sua célula, inclusive as especiais.
+O seletor **Visual** abaixo dos modos permite alternar entre **Anterior**, com as pedras desenhadas em CSS, e **Novo**, com as pedras ilustradas. A escolha funciona em Zen e Clássico, fica salva no navegador e não altera o tabuleiro, os pontos nem a partida. No visual novo, todas as pedras têm uma área central quadrada dentro de sua célula. Pulso e Raio mantêm a cor e o formato da pedra original para indicar com quais peças combinam, com símbolos distintos para indicar seus efeitos; apenas o Espectro é multicolorido.
 
 As sete pedras comuns e as três especiais usam atlas originais com recortes quadrados consistentes. O fundo do jogo foi criado para manter o centro escuro e legível; partículas complementam as reações sem esconder as peças. Os arquivos `gem-atlas.webp`, `special-atlas.webp` e `prisma-bg.jpg` foram gerados para este jogo e otimizados para uso móvel. Efeitos sonoros diferentes identificam combinação, cascata, Pulso, Raio, Espectro, nova especial, nível e jogada inválida; a música do Zen tem quatro frases próprias. Todos os sons são sintetizados no dispositivo, sem arquivos externos. O HTML único incorpora as imagens e funciona sem rede. A direção e os prompts dos assets estão em [docs/arte-e-audio.md](docs/arte-e-audio.md).
 
