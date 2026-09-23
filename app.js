@@ -1,7 +1,12 @@
-import {Game, SIZE} from './engine.js?v=3';
+import {Game, SIZE} from './engine.js?v=4';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
+const boardFrame = $('.board-frame');
+const effectLayer = document.createElement('div');
+effectLayer.className = 'effect-layer';
+effectLayer.setAttribute('aria-hidden', 'true');
+boardFrame.append(effectLayer);
 const scoreElement = $('#score');
 const bestElement = $('#best');
 const levelElement = $('#level');
@@ -136,6 +141,68 @@ async function animateFall(falls) {
   await Promise.all(animations.map(animation => animation.finished.catch(() => {})));
 }
 
+async function animateClear(frame) {
+  if (reducedMotion()) return;
+  const cells = boardElement.querySelectorAll('.cell');
+  const boardRect = boardElement.getBoundingClientRect();
+  const frameRect = boardFrame.getBoundingClientRect();
+  const pitch = cells[1]?.getBoundingClientRect().left - cells[0]?.getBoundingClientRect().left || 40;
+  const effects = [];
+  const overlays = [];
+  const addOverlay = (className, style, keyframes, options) => {
+    const element = document.createElement('span');
+    element.className = className;
+    Object.assign(element.style, style);
+    effectLayer.append(element);
+    overlays.push(element);
+    effects.push(element.animate(keyframes, {fill: 'both', ...options}));
+  };
+  for (const effect of frame.activated) {
+    const rect = cells[effect.index]?.getBoundingClientRect();
+    if (!rect) continue;
+    const x = rect.left + rect.width / 2 - frameRect.left;
+    const y = rect.top + rect.height / 2 - frameRect.top;
+    if (effect.type === 'burst' || effect.type === 'cross') {
+      const size = pitch * 1.15;
+      addOverlay('effect-wave', {left: `${x - size / 2}px`, top: `${y - size / 2}px`,
+        width: `${size}px`, height: `${size}px`},
+      [{transform: 'scale(.3)', opacity: 0}, {transform: 'scale(1.2)', opacity: .9, offset: .35},
+        {transform: effect.type === 'burst' ? 'scale(3)' : 'scale(2)', opacity: 0}],
+      {duration: 360, easing: 'ease-out'});
+    }
+    if (effect.type === 'cross') {
+      const left = boardRect.left - frameRect.left;
+      const top = boardRect.top - frameRect.top;
+      addOverlay('effect-beam', {left: `${left}px`, top: `${y - 4}px`,
+        width: `${boardRect.width}px`, height: '8px'},
+      [{transform: 'scaleX(0)', opacity: 0}, {transform: 'scaleX(1)', opacity: 1, offset: .45},
+        {transform: 'scaleX(1)', opacity: 0}], {duration: 330, easing: 'ease-out'});
+      addOverlay('effect-beam', {left: `${x - 4}px`, top: `${top}px`,
+        width: '8px', height: `${boardRect.height}px`},
+      [{transform: 'scaleY(0)', opacity: 0}, {transform: 'scaleY(1)', opacity: 1, offset: .45},
+        {transform: 'scaleY(1)', opacity: 0}], {duration: 330, easing: 'ease-out'});
+    }
+    if (effect.type === 'spectrum')
+      addOverlay('effect-glow', {}, [{opacity: 0}, {opacity: .9, offset: .35}, {opacity: 0}],
+        {duration: 370, easing: 'ease-out'});
+  }
+  for (const index of frame.cells) {
+    const mover = cells[index]?.querySelector('.mover');
+    if (!mover) continue;
+    const distance = frame.activated.length ? Math.min(...frame.activated.map(effect =>
+      Math.abs(Math.floor(index / SIZE) - Math.floor(effect.index / SIZE)) +
+      Math.abs(index % SIZE - effect.index % SIZE))) : 0;
+    const delay = frame.activated.length ? Math.min(100, distance * 22) : 0;
+    effects.push(mover.animate(
+      [{transform: 'scale(1)', opacity: 1, filter: 'brightness(1)'},
+        {transform: 'scale(1.12)', opacity: 1, filter: 'brightness(1.8)', offset: .38},
+        {transform: 'scale(.72)', opacity: 0, filter: 'brightness(1.5)'}],
+      {duration: frame.activated.length ? 300 : 225, delay, easing: 'ease-out', fill: 'both'}));
+  }
+  try { await Promise.all(effects.map(animation => animation.finished.catch(() => {}))); }
+  finally { overlays.forEach(element => element.remove()); }
+}
+
 async function attempt(a, b) {
   if (busy) return;
   selected = null;
@@ -157,7 +224,7 @@ async function attempt(a, b) {
         frame.activated.length ? 'Reação em cadeia!' :
         frame.creations.length ? 'Nova pedra especial!' :
         frame.chain > 1 ? `Cascata ×${frame.chain}!` : 'Boa combinação!';
-      if (!reducedMotion()) await pause(frame.activated.length ? 250 : 200);
+      await animateClear(frame);
     } else if (frame.type === 'fall') await animateFall(frame.falls);
     else if (frame.type === 'shuffle' && !reducedMotion()) await pause(120);
   }
