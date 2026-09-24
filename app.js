@@ -475,7 +475,7 @@ async function attempt(a, b) {
     for (const frame of result.events) {
       if (document.visibilityState === 'hidden') break;
       if (frame.type === 'shuffle') {
-        combo.textContent = 'Pedras reorganizadas!';
+        combo.textContent = 'Tabuleiro reorganizado!';
         await animateShuffle(frame.board);
         continue;
       }
@@ -484,13 +484,13 @@ async function attempt(a, b) {
         playTone(cueForFrame(frame), frame.chain);
         combo.textContent = frame.activated.some(effect => effect.type === 'spectrum') ? 'Explosão de cores!' :
           frame.activated.length ? 'Reação em cadeia!' :
-          frame.creations.length ? 'Nova pedra especial!' :
+          frame.creations.length ? 'Pedra especial criada!' :
           frame.chain > 1 ? `Cascata ×${frame.chain}!` : 'Boa combinação!';
         await animateClear(frame);
         if (frame.creations.length) playTone('create');
       } else if (frame.type === 'fall') await animateFall(frame.falls);
       else if (frame.type === 'rescue') {
-        combo.textContent = 'Um Espectro abriu uma nova jogada';
+        combo.textContent = 'O Espectro abriu uma nova jogada';
         playTone('rescue');
         if (!reducedMotion()) {
           const mover = boardElement.querySelectorAll('.cell')[frame.index]?.querySelector('.mover');
@@ -509,7 +509,7 @@ async function attempt(a, b) {
     if (result.valid) {
       if (result.ended) combo.textContent = 'Sem jogadas restantes';
       else if (result.levelsGained) combo.textContent = `Nível ${game.level}!`;
-      else if (!result.rescued) setTimeout(() => { if (!busy) combo.textContent = 'Combine três ou mais'; }, 1500);
+      else if (!result.rescued) setTimeout(() => { if (!busy) combo.textContent = 'Combine três ou mais pedras'; }, 1500);
     }
     boardElement.classList.remove('busy');
     busy = false;
@@ -590,10 +590,10 @@ $('#hint').addEventListener('click', () => {
   const cells = boardElement.querySelectorAll('.cell');
   cells[hint.a]?.classList.add('hinted');
   cells[hint.b]?.classList.add('hinted');
-  combo.textContent = 'Troque as pedras destacadas';
+  combo.textContent = 'Troque as duas pedras destacadas';
   hintTimer = setTimeout(() => {
     clearHint();
-    if (!busy) combo.textContent = 'Combine três ou mais';
+    if (!busy) combo.textContent = 'Combine três ou mais pedras';
   }, 2600);
 });
 $('#shuffle').addEventListener('click', async () => {
@@ -618,7 +618,7 @@ $('#new-game').addEventListener('click', () => {
   clearHint();
   selected = null;
   game.newGame();
-  combo.textContent = 'Combine três ou mais';
+  combo.textContent = 'Combine três ou mais pedras';
   draw(); hud(); save();
 });
 $('#play-again').addEventListener('click', () => {
@@ -627,7 +627,7 @@ $('#play-again').addEventListener('click', () => {
   clearHint();
   selected = null;
   game.newGame();
-  combo.textContent = 'Combine três ou mais';
+  combo.textContent = 'Combine três ou mais pedras';
   draw(); hud(); save();
 });
 document.querySelectorAll('.mode').forEach(button => button.addEventListener('click', () => {
@@ -640,7 +640,7 @@ document.querySelectorAll('.mode').forEach(button => button.addEventListener('cl
     const saved = JSON.parse(localStorage.getItem(sessionKey(button.dataset.mode)));
     if (!game.restore(saved)) game.newGame(button.dataset.mode);
   } catch { game.newGame(button.dataset.mode); }
-  combo.textContent = game.ended ? 'Sem jogadas restantes' : 'Combine três ou mais';
+  combo.textContent = game.ended ? 'Sem jogadas restantes' : 'Combine três ou mais pedras';
   draw(); hud(); save();
   zenAudio.armed = true;
   syncZenUI(true);
@@ -686,7 +686,7 @@ for (const channel of ['effects', 'music', 'ambience']) {
 $('#audio-test').addEventListener('click', async () => {
   if (audioSettings.effects === 0) { showToast('Aumente o volume dos efeitos'); return; }
   if (!await unlockAudio(true) || !soundDesign.play('match'))
-    showToast('Verifique o som desta aba e do aparelho');
+    showToast('Confira o volume desta aba e do aparelho');
 });
 $('#sound').addEventListener('click', () => {
   if (soundOn && audioSettings.effects === 0) {
@@ -699,7 +699,7 @@ $('#sound').addEventListener('click', () => {
   hud();
   if (soundOn) unlockAudio(true).then(ready => {
     if (ready) soundDesign.play('match');
-    else showToast('Verifique o som desta aba e do aparelho');
+    else showToast('Confira o volume desta aba e do aparelho');
   });
 });
 $('#vibration').addEventListener('click', () => {
