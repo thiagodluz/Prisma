@@ -3,10 +3,11 @@ name: Release Android APK
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
 
 jobs:
   release:
-    if: github.repository == 'thiagodluz/Prisma'
+    if: github.repository == 'thiagodluz/Prisma' && (github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -26,10 +27,15 @@ jobs:
           yes | "$sdk_manager" --licenses >/dev/null
           "$sdk_manager" 'platforms;android-35' 'build-tools;35.0.0'
       - name: Verify version and game
-        env:
-          RELEASE_TAG: ${{ github.ref_name }}
         run: |
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            RELEASE_TAG="v$(node -p "require('./package.json').version")"
+          else
+            RELEASE_TAG="$GITHUB_REF_NAME"
+          fi
+          export RELEASE_TAG
           node -e "const v=require('./package.json').version; if (process.env.RELEASE_TAG !== 'v'+v) process.exit(1)"
+          echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
           npm run check:version
           npm run check:offline
           npm test
@@ -70,13 +76,18 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          notes_file="docs/release-$GITHUB_REF_NAME.md"
+          notes_file="docs/release-$RELEASE_TAG.md"
           if [ -f "$notes_file" ]; then
             notes=(--notes-file "$notes_file")
           else
             notes=(--generate-notes)
           fi
-          case "$GITHUB_REF_NAME" in
-            *-*) gh release create "$GITHUB_REF_NAME" release/Prisma-Android.apk --verify-tag --title "Prisma $GITHUB_REF_NAME — Android" --prerelease --latest=false "${notes[@]}" ;;
-            *)   gh release create "$GITHUB_REF_NAME" release/Prisma-Android.apk --verify-tag --title "Prisma $GITHUB_REF_NAME — Android" --latest "${notes[@]}" ;;
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            tag_options=(--target "$GITHUB_SHA")
+          else
+            tag_options=(--verify-tag)
+          fi
+          case "$RELEASE_TAG" in
+            *-*) gh release create "$RELEASE_TAG" release/Prisma-Android.apk "${tag_options[@]}" --title "Prisma $RELEASE_TAG — Android" --prerelease --latest=false "${notes[@]}" ;;
+            *)   gh release create "$RELEASE_TAG" release/Prisma-Android.apk "${tag_options[@]}" --title "Prisma $RELEASE_TAG — Android" --latest "${notes[@]}" ;;
           esac
