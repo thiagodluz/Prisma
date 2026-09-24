@@ -1,84 +1,100 @@
 # Prisma
 
+> Um jogo original de combinar pedras para jogar sem pressa.
+
+[ jogar no navegador ](https://prisma-jogo-thiago.thiagodluz.chatgpt.site) · [ repositório no GitHub ](https://github.com/thiagodluz/Prisma)
+
+Prisma é um jogo independente para Android e navegador, criado para quem gosta de combinar pedras, provocar cascatas e continuar jogando no próprio ritmo. Ele funciona sem internet depois de instalado, não exige conta e mantém as partidas no dispositivo.
+
+## O que você encontra
+
+- **Zen:** sem cronômetro e sem tela de derrota. Quando o tabuleiro fica sem jogadas, o jogo cria uma nova possibilidade e preserva seu progresso.
+- **Clássico:** sem cronômetro, mas com desafio. A partida termina quando não restam jogadas possíveis.
+- **Tabuleiro 8×8:** combine três ou mais pedras, provoque cascatas e avance por níveis.
+- **Pedras especiais:** crie **Pulso**, **Raio** e **Espectro** para transformar uma boa jogada em uma reação em cadeia.
+- **Experiência tranquila:** música e ambiente opcionais no Zen, efeitos ajustáveis, vibração opcional e suporte à preferência do sistema por menos movimento.
+- **Offline e local:** o jogo não pede acesso à internet e salva partidas, recordes e preferências no armazenamento local do navegador ou do aplicativo.
+
+Prisma tem identidade visual, áudio, interface e regras próprias. A inspiração vem do prazer dos jogos de combinar pedras, mas nenhum arquivo, som ou recurso de outro jogo foi incorporado ao projeto.
+
+## Como jogar
+
+Toque em duas pedras vizinhas ou arraste uma pedra para trocar de posição. A troca precisa formar uma linha horizontal ou vertical com três ou mais pedras da mesma cor.
+
+- Quatro pedras criam um **Pulso**, que explode as oito casas ao redor.
+- Uma formação em L ou T cria um **Raio**, que limpa a linha e a coluna.
+- Cinco ou mais pedras em linha criam um **Espectro**, que pode limpar uma cor inteira.
+- Combine especiais com cuidado: os efeitos podem atingir e ativar outras especiais.
+
+Use **Dica** quando quiser encontrar uma jogada. No Zen, **Embaralhar** reorganiza o tabuleiro sem apagar pontos nem especiais.
+
+## Jogar
+
+### Navegador
+
+Abra a [versão online](https://prisma-jogo-thiago.thiagodluz.chatgpt.site). Depois, você pode escolher **Adicionar à tela inicial** ou **Instalar app** para jogar como um aplicativo.
+
+Para rodar localmente durante o desenvolvimento:
+
+```bash
+python3 -m http.server 8080
+```
+
+Em seguida, abra <http://localhost:8080>. O projeto precisa de um servidor local; abrir o HTML diretamente como `file://` pode impedir o carregamento dos módulos JavaScript.
+
+Também existe uma versão autônoma em [Prisma-jogar-offline.html](Prisma-jogar-offline.html), útil em navegadores que permitem JavaScript em arquivos locais.
+
+### Android
+
+A versão atual é a **1.0.2**. O APK pode ser gerado pelo GitHub Actions ou compilado localmente. O aplicativo exige Android 8 ou mais recente e Android System WebView atualizada.
+
+O APK distribuído pelas Actions usa uma chave temporária de desenvolvimento. Se você instalar uma versão assinada com outra chave, talvez seja necessário desinstalar a versão anterior; isso apaga as partidas e preferências salvas no aplicativo. O progresso da versão web fica separado e não é apagado.
+
+O aplicativo não pede acesso à internet. Ele usa apenas a permissão opcional de vibração e guarda seus dados no armazenamento privado do próprio aplicativo.
+
+## Compilar e testar
+
+O projeto Android está em `android/`. Com JDK 17, Android SDK Platform 35, Build Tools 35.0.0 e Gradle 8.13:
+
+```bash
+gradle -p android :app:assembleDebug
+```
+
+O APK resultante fica em `android/app/build/outputs/apk/debug/app-debug.apk`.
+
+Para executar os testes:
+
+```bash
+npm test
+```
+
+Para reconstruir o arquivo HTML autônomo depois de editar o projeto:
+
+```bash
+npm run build:offline
+```
+
+O projeto não depende de bibliotecas externas em tempo de execução.
+
+## Design e direção
+
+A prioridade do Prisma é oferecer uma experiência legível, agradável e contínua em telas móveis. As sete pedras comuns têm silhuetas diferentes; as pedras especiais usam símbolos grandes o bastante para serem reconhecidas durante uma cascata; o fundo mantém o centro escuro para não competir com o tabuleiro.
+
+A música do Zen e os efeitos são sintetizados pelo próprio código. Os assets, decisões visuais e pontos que ainda precisam de validação em aparelhos Android estão documentados em [docs/arte-e-audio.md](docs/arte-e-audio.md). As regras de jogo e as decisões de equilíbrio estão em [docs/regras-e-direcao.md](docs/regras-e-direcao.md).
+
 ## Licenças e autoria
 
-© 2026 Thiago Luz. O código-fonte do jogo, inclusive a implementação Android, os testes e os scripts de compilação, é distribuído sob a [GNU GPL versão 3](LICENSE), somente esta versão (`GPL-3.0-only`). Alterações distribuídas devem preservar os avisos de autoria, identificar as mudanças e disponibilizar o código-fonte correspondente nos termos dessa licença.
+© 2026 Thiago Luz.
 
-As imagens das pedras e do fundo identificadas em [LICENSE-ART.md](LICENSE-ART.md) são oferecidas sob [Creative Commons Atribuição-CompartilhaIgual 4.0 Internacional](https://creativecommons.org/licenses/by-sa/4.0/legalcode). É permitido copiá-las, adaptá-las e utilizá-las comercialmente, com crédito, identificação de alterações e compartilhamento das adaptações sob a mesma licença. A autoria e a origem devem ser apresentadas sem sugerir endosso dos criadores a projetos derivados.
+- O código-fonte, incluindo o aplicativo Android, os testes e os scripts de compilação, está sob a [GNU GPL-3.0-only](LICENSE).
+- As cinco imagens listadas em [LICENSE-ART.md](LICENSE-ART.md) estão sob [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/legalcode).
+- O nome **Prisma** e os ícones de identificação do aplicativo não fazem parte da licença da arte. Forks podem mencionar a origem, mas devem adotar identidade própria.
+- Forks e versões derivadas devem preservar os créditos, indicar as alterações e manter as obrigações das licenças correspondentes.
 
-O nome **Prisma** e os ícones de identificação do aplicativo não integram a concessão CC BY-SA dos demais recursos gráficos. Um fork deve adotar identidade própria, podendo mencionar a origem para atribuição. O jogo não inclui bibliotecas, fontes ou arquivos de áudio de terceiros; a trilha e os efeitos são sintetizados pelo código. Consulte [LICENSE-ART.md](LICENSE-ART.md) para o inventário exato dos recursos licenciados.
+Consulte os arquivos de licença para saber exatamente quais direitos se aplicam a cada parte do projeto.
 
-As regras de referência, decisões próprias e casos de aceitação das próximas etapas estão em [docs/regras-e-direcao.md](docs/regras-e-direcao.md).
+## Estado do projeto
 
-Protótipo original de jogo de combinar pedras, feito para telas de Android. Inclui tabuleiro 8×8, trocas e quedas animadas, comandos por toque ou arrasto, cascatas, pontuação, pedras especiais, sons opcionais, partidas e recordes salvos localmente. Funciona sem internet depois de instalado.
+O Prisma é um projeto independente em desenvolvimento. A versão 1.0.2 está jogável, mas a experiência em aparelhos Android reais — especialmente consumo de bateria, retomada, áudio e leitura das pedras em telas pequenas — ainda deve ser validada antes de ser tratada como uma versão final de distribuição.
 
-## Modos
-
-- **Clássico:** sem cronômetro, com níveis; embaralha automaticamente ao subir de nível e termina quando não há mais trocas capazes de formar combinações nem Espectro utilizável. A tela de resultado permite recomeçar. O botão de embaralhar não está disponível neste modo.
-- **Zen:** sem cronômetro nem tela de derrota, também com níveis e embaralhamento automático ao subir de nível. Se acabarem as jogadas, surge um Espectro para que a partida continue, sem zerar pontos ou apagar outras especiais. É possível embaralhar manualmente.
-
-Ao alternar entre modos, cada partida fica guardada separadamente no navegador. Sessões e recordes antigos do modo Endless passam para Clássico, com pontos e tabuleiro preservados.
-
-## Pontuação, níveis e recordes
-
-- Cada pedra removida vale 25 pontos.
-- Criar Pulso, Raio ou Espectro acrescenta respectivamente 120, 180 ou 240 pontos.
-- Cascatas multiplicam o valor da etapa: 1×, 1,4×, 1,8×, 2,2×, 2,6× e 3× a partir da sexta etapa.
-- O primeiro nível pede 1.800 pontos. A meta cresce 150 pontos por nível até chegar a 4.650 no nível 20; dali em diante fica fixa, para que as partidas continuem leves e os embaralhamentos não fiquem cada vez mais distantes.
-- Ao subir de nível, as 64 pedras são redistribuídas uma vez, preservando a identidade, a cor e o tipo de cada uma, inclusive as especiais. O resultado sempre tem uma jogada possível e não inicia com combinações prontas. O embaralhamento manual do Zen segue as mesmas regras e não altera os pontos.
-- O botão **Dica** destaca uma troca válida, priorizando jogadas com maior potencial, sem alterar a pontuação.
-- A seção **Ver recordes** mostra maior pontuação, maior nível e melhor jogada de cada modo, além das partidas clássicas concluídas.
-
-Partidas salvas antes desta versão mantêm pontuação, pedras, nível e progresso; se já houver pontos suficientes para a nova meta, o nível é ajustado ao reabrir. As sete cores continuam com chances iguais e independentes de aparecer em novas pedras, permitindo cascatas naturais. A meta do nível 20 é um teto para o custo do próximo embaralhamento, não um limite para o nível alcançado.
-
-## Toque e apresentação
-
-Ao arrastar, a pedra de destino é destacada antes da troca. Trocas, quedas e remoções têm um ritmo um pouco mais lento para facilitar a leitura, inclusive no computador. A vibração é opcional, começa desligada e aparece apenas em aparelhos compatíveis. No APK, ela usa a API nativa do Android; o botão testa a vibração ao ser ligado. No navegador, depende da API de vibração e das configurações do aparelho. A transição de nível respeita a preferência do sistema por menos movimento. Cada jogada válida é salva assim que o motor confirma seu resultado; ao voltar após fechar o navegador durante uma cascata, o tabuleiro abre no resultado concluído.
-
-Os pontos ganhos aparecem logo ao lado do progresso, fora do tabuleiro, enquanto as pedras terminam de animar. A página continua rolando quando necessário; a WebView Android não apresenta o efeito elástico ao atingir as bordas.
-
-Abra **Configurações de som**, em qualquer modo, para ajustar separadamente os volumes dos efeitos, da música do Zen e do ambiente do Zen (0–100%). O botão **Testar som** toca uma combinação e ajuda a conferir se o navegador e o dispositivo estão reproduzindo áudio. Os volumes ficam salvos separadamente das partidas. O botão ♫ no cabeçalho continua ligando ou desligando os efeitos e agora toca um som curto ao ser ligado. Música e ambiente são ligados em **Personalizar Zen**.
-
-## Personalização do Zen
-
-Abra **Personalizar Zen** para ligar separadamente uma melodia sintetizada e um som ambiente suave, escolher respiração guiada (4/4 ou 4/6 segundos) e ajustar os efeitos entre Suave, Padrão e Vibrante. As preferências ficam salvas separadas da partida, enquanto o botão de som no cabeçalho controla apenas os sons das combinações. Música, ambiente e guia vêm desligados; música e ambiente só começam após um toque no jogo e param ao ocultar a página ou entrar no Clássico. A preferência do sistema por menos movimento prevalece sobre a animação do guia, mas seu texto continua funcionando.
-
-## Arte e áudio
-
-O seletor **Visual** abaixo dos modos permite alternar entre **Anterior**, com as pedras desenhadas em CSS, e **Novo**, com as pedras ilustradas. A escolha funciona em Zen e Clássico, fica salva no navegador e não altera o tabuleiro, os pontos nem a partida. No visual novo, as imagens são centralizadas conforme o recorte real de cada pedra. Pulso e Raio têm reflexos integrados às facetas, conservam a cor e o formato da pedra que lhes deu origem e continuam combinando com ela. O Espectro é uma pedra multicolorida sem cor própria.
-
-No visual novo, as pedras ocupam um pouco mais da casa, mantendo as correções individuais de centralização. O visual Anterior conserva o tamanho original.
-
-As sete pedras comuns e as variantes coloridas de Pulso e Raio usam três atlas originais; o Espectro tem uma imagem individual centrada. O fundo do jogo foi criado para manter o centro escuro e legível; partículas complementam as reações sem esconder as peças. Os arquivos `gem-atlas.webp`, `burst-atlas.webp`, `cross-atlas.webp`, `spectrum-gem.webp` e `prisma-bg.jpg` foram gerados para este jogo e otimizados para uso móvel. Efeitos sonoros diferentes identificam combinação, cascata, Pulso, Raio, Espectro, nova especial, nível e jogada inválida; a música do Zen tem quatro frases próprias. Todos os sons são sintetizados no dispositivo, sem arquivos externos. O HTML único incorpora as imagens e funciona sem rede. A direção e os prompts dos assets estão em [docs/arte-e-audio.md](docs/arte-e-audio.md).
-
-## Pedras especiais
-
-- **Pulso:** quatro da mesma cor em linha criam uma pedra que, quando combinada, explode nas oito casas ao redor.
-- **Raio:** combinação em L ou T cria uma pedra que, quando combinada, limpa a linha e a coluna.
-- **Espectro:** cinco ou mais da mesma cor em linha criam uma pedra que pode ser trocada com uma vizinha para limpar a cor dela. Trocar dois Espectros limpa o tabuleiro.
-
-As três pedras podem ativar outras especiais atingidas pelos seus efeitos. Cada pedra tem identidade persistente e o motor emite eventos separados de limpeza e queda para a animação. Saves antigos, que guardavam apenas números de cor, são convertidos ao novo formato ao abrir.
-
-## Jogar no computador
-
-Na pasta do projeto, execute `python3 -m http.server 8080` e abra `http://localhost:8080`. Não abra o HTML diretamente como `file://`: os módulos JavaScript e a instalação precisam de um servidor local.
-
-## Jogar no Android
-
-Instale o **APK 1.0.1** gerado pela compilação Android abaixo. O aplicativo traz a interface, os sons sintetizados e todas as imagens dentro do próprio pacote, abre sem conexão e salva partidas, recordes e preferências no armazenamento privado do aplicativo. Ao sair ou trocar de aplicativo, a partida é salva e o áudio do Zen é pausado; ao voltar, a tela retoma a sessão. Para instalar APKs fora da Play Store, o Android pode pedir que você autorize a instalação pelo aplicativo usado para abrir o arquivo. O APK distribuído pelo GitHub Actions ainda usa a assinatura de desenvolvimento do ambiente de compilação. Para futuras atualizações instaladas sobre esta versão sem perder dados, será necessária uma chave de assinatura própria e estável.
-
-No Android 15 ou mais recente, a área do jogo respeita as barras de status e navegação e os recortes da tela, preservando o cabeçalho e os controles. O APK 1.0.1 é assinado com chave de desenvolvimento temporária, diferente da usada na 1.0 e nas betas. Para instalá-lo será necessário desinstalar o APK anterior, o que apaga as partidas guardadas no aplicativo. Partidas da versão web não são afetadas.
-
-Também é possível abrir [a versão HTTPS](https://prisma-jogo-thiago.thiagodluz.chatgpt.site) no navegador e usar **Adicionar à tela inicial** ou **Instalar app**. O arquivo `Prisma-jogar-offline.html` serve como alternativa nos navegadores que permitam JavaScript em arquivos locais; alguns Androids bloqueiam isso ao abrir downloads em `content://`. As partidas salvas no navegador e as do APK têm armazenamentos separados.
-
-### Compilar o APK
-
-O projeto Android está em `android/` e usa a WebView do sistema com recursos locais. Em um computador com JDK 17, Android SDK Platform 35, Build Tools 35.0.0 e Gradle 8.13, execute `gradle -p android :app:assembleDebug`. O arquivo resultante é `android/app/build/outputs/apk/debug/app-debug.apk`. O workflow `.github/workflows/android-apk.yml` executa os testes, compila e disponibiliza o APK em **Artifacts** nas execuções do GitHub Actions. O aplicativo exige Android 8 ou mais recente e Android System WebView atualizada. O APK não pede acesso à internet; apenas permissão de vibração opcional. Não é necessária uma conta nem um servidor para jogar.
-
-## Testes
-
-Execute `npm test` (Node.js 18+). Para reconstruir o arquivo único depois de editar o código, execute `npm run build:offline`. Não há dependências externas.
-
-## Versão 1.0.1
-
-Clássico e Zen têm regras próprias, metas suaves com teto no nível 20, embaralhamento ao subir de nível, dicas e recordes. Pulso, Raio e Espectro ganharam artes mais fáceis de identificar, preservando a cor original de Pulso e Raio. O Zen tem som, respiração e efeitos configuráveis. Nenhum arquivo do Bejeweled foi incorporado.
+Sugestões, relatos de problemas e contribuições são bem-vindos. Ao abrir uma issue, informe o aparelho, a versão do Android, o modo de jogo e os passos para reproduzir o problema.
