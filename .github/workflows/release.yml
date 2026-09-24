@@ -56,6 +56,11 @@ jobs:
         run: |
           apk=android/app/build/outputs/apk/release/app-release.apk
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$apk"
+          certificate=$(
+            "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs "$apk" |
+              sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | tr '[:lower:]' '[:upper:]'
+          )
+          test "$certificate" = 'C86E47B3A2A07CF21E7BEB971F0168BC516CA834FA0940A070C7570E66D20869'
           unzip -t "$apk" | grep 'No errors detected'
           unzip -l "$apk" | grep 'assets/engine.js'
           mkdir -p release
@@ -65,7 +70,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          notes_file="docs/release-$GITHUB_REF_NAME.md"
+          if [ -f "$notes_file" ]; then
+            notes=(--notes-file "$notes_file")
+          else
+            notes=(--generate-notes)
+          fi
           case "$GITHUB_REF_NAME" in
-            *-*) gh release create "$GITHUB_REF_NAME" release/Prisma-Android.apk --verify-tag --title "Prisma $GITHUB_REF_NAME — Android" --prerelease --latest=false --generate-notes ;;
-            *)   gh release create "$GITHUB_REF_NAME" release/Prisma-Android.apk --verify-tag --title "Prisma $GITHUB_REF_NAME — Android" --latest --generate-notes ;;
+            *-*) gh release create "$GITHUB_REF_NAME" release/Prisma-Android.apk --verify-tag --title "Prisma $GITHUB_REF_NAME — Android" --prerelease --latest=false "${notes[@]}" ;;
+            *)   gh release create "$GITHUB_REF_NAME" release/Prisma-Android.apk --verify-tag --title "Prisma $GITHUB_REF_NAME — Android" --latest "${notes[@]}" ;;
           esac
