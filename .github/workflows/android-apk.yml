@@ -25,7 +25,10 @@ jobs:
           yes | "$sdk_manager" --licenses >/dev/null
           "$sdk_manager" 'platforms;android-35' 'build-tools;35.0.0'
       - name: Verify game
-        run: npm test
+        run: |
+          npm run check:version
+          npm run check:offline
+          npm test
       - name: Build installable APK
         run: gradle -p android :app:assembleDebug --no-daemon
       - name: Verify APK signature and bundled game
@@ -33,9 +36,3 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose android/app/build/outputs/apk/debug/app-debug.apk
           unzip -t android/app/build/outputs/apk/debug/app-debug.apk | grep 'No errors detected'
           unzip -l android/app/build/outputs/apk/debug/app-debug.apk | grep 'assets/app.js'
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: Prisma-Android-debug
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error

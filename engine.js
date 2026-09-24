@@ -313,38 +313,50 @@ export class Game {
       !Number.isSafeInteger(saved.score) || saved.score < 0 ||
       !Array.isArray(saved.board) || saved.board.length !== SIZE ||
       !saved.board.every(row => Array.isArray(row) && row.length === SIZE && row.every(validTile))) return false;
-    const ids = new Set();
-    const board = saved.board.map(row => row.map(tile => {
-      const gem = typeof tile === 'number' ? this.gem(tile) : {...tile};
-      if (ids.has(gem.id)) throw new Error('Pedras duplicadas no save');
-      ids.add(gem.id);
-      this.nextId = Math.max(this.nextId, gem.id + 1);
-      return gem;
-    }));
-    this.board = board;
-    this.mode = saved.mode === 'endless' ? 'classic' : saved.mode;
-    this.score = saved.score;
-    if (saved.progressionVersion === 2 && Number.isSafeInteger(saved.level) && saved.level >= 1 &&
-      Number.isSafeInteger(saved.levelStartScore) && saved.levelStartScore >= 0 &&
-      saved.levelStartScore <= this.score) {
-      this.level = saved.level;
-      this.levelStartScore = saved.levelStartScore;
+    const existing = saved.board.flat().filter(tile => typeof tile !== 'number').map(tile => tile.id);
+    if (new Set(existing).size !== existing.length) return false;
+    // The first 19 goals grow by 150 points; all later goals are 4650.
+    const levelStart = level => {
+      const growing = Math.min(level - 1, 19);
+      return growing * 1800 + growing * (growing - 1) * 75 +
+        Math.max(0, level - 20) * 4650;
+    };
+    if (saved.progressionVersion === 2 &&
+      (!Number.isSafeInteger(saved.level) || saved.level < 1 ||
+       !Number.isSafeInteger(saved.levelStartScore) ||
+       saved.levelStartScore !== levelStart(saved.level) ||
+       saved.levelStartScore > saved.score ||
+       saved.score >= levelStart(saved.level + 1))) return false;
+    const candidate = Object.create(Game.prototype);
+    candidate.random = this.random;
+    candidate.nextId = Math.max(this.nextId, 1, ...existing.map(id => id + 1));
+    candidate.board = saved.board.map(row => row.map(tile =>
+      typeof tile === 'number' ? candidate.gem(tile) : {...tile}));
+    candidate.mode = saved.mode === 'endless' ? 'classic' : saved.mode;
+    candidate.score = saved.score;
+    if (saved.progressionVersion === 2) {
+      candidate.level = saved.level;
+      candidate.levelStartScore = saved.levelStartScore;
     } else {
-      // Old sessions keep their reached level and the progress earned in it.
-      this.level = 1 + Math.floor(this.score / 2000);
-      this.levelStartScore = (this.level - 1) * 2000;
+      // Recalculate old progress against current thresholds before saving as v2.
+      let low = 1, high = 1 + Math.floor(candidate.score / 1800);
+      while (low < high) {
+        const middle = Math.ceil((low + high) / 2);
+        if (levelStart(middle) <= candidate.score) low = middle;
+        else high = middle - 1;
+      }
+      candidate.level = low;
+      candidate.levelStartScore = levelStart(candidate.level);
     }
-    while (this.score - this.levelStartScore >= levelGoal(this.level)) {
-      this.levelStartScore += levelGoal(this.level);
-      this.level++;
-    }
-    this.ended = false;
+    candidate.ended = false;
     // Saved boards with unresolved matches can still contain specials.
-    if (this.matches().cells.length && !this.shuffle(true)) this.board = this.freshBoard();
-    if (!this.hasMove()) {
-      if (this.mode === 'classic') this.ended = true;
-      else this.rescue();
-    } else if (this.mode === 'classic' && saved.ended === true) this.ended = true;
+    if (candidate.matches().cells.length && !candidate.shuffle(true)) candidate.board = candidate.freshBoard();
+    if (!candidate.hasMove()) {
+      if (candidate.mode === 'classic') candidate.ended = true;
+      else candidate.rescue();
+    } else if (candidate.mode === 'classic' && saved.ended === true) candidate.ended = true;
+    for (const key of ['nextId', 'board', 'mode', 'score', 'level', 'levelStartScore', 'ended'])
+      this[key] = candidate[key];
     return true;
   }
 }

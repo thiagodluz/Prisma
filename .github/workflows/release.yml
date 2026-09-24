@@ -1,0 +1,93 @@
+name: Release Android APK
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  release:
+    if: github.repository == 'thiagodluz/Prisma' && (github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+      - name: Install Android platform
+        run: |
+          sdk_manager=$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f -print -quit)
+          test -n "$sdk_manager"
+          yes | "$sdk_manager" --licenses >/dev/null
+          "$sdk_manager" 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Verify version and game
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            RELEASE_TAG="v$(node -p "require('./package.json').version")"
+          else
+            RELEASE_TAG="$GITHUB_REF_NAME"
+          fi
+          export RELEASE_TAG
+          node -e "const v=require('./package.json').version; if (process.env.RELEASE_TAG !== 'v'+v) process.exit(1)"
+          echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
+          npm run check:version
+          npm run check:offline
+          npm test
+      - name: Decode release key
+        env:
+          PRISMA_KEYSTORE_BASE64: ${{ secrets.PRISMA_KEYSTORE_BASE64 }}
+          PRISMA_KEYSTORE_PASSWORD: ${{ secrets.PRISMA_KEYSTORE_PASSWORD }}
+          PRISMA_KEY_ALIAS: ${{ secrets.PRISMA_KEY_ALIAS }}
+          PRISMA_KEY_PASSWORD: ${{ secrets.PRISMA_KEY_PASSWORD }}
+        run: |
+          test -n "$PRISMA_KEYSTORE_BASE64" && test -n "$PRISMA_KEYSTORE_PASSWORD"
+          test -n "$PRISMA_KEY_ALIAS" && test -n "$PRISMA_KEY_PASSWORD"
+          printf '%s' "$PRISMA_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/prisma-release.p12"
+          test -s "$RUNNER_TEMP/prisma-release.p12"
+          chmod 600 "$RUNNER_TEMP/prisma-release.p12"
+          echo "PRISMA_KEYSTORE_FILE=$RUNNER_TEMP/prisma-release.p12" >> "$GITHUB_ENV"
+      - name: Build signed APK
+        env:
+          PRISMA_KEYSTORE_PASSWORD: ${{ secrets.PRISMA_KEYSTORE_PASSWORD }}
+          PRISMA_KEY_ALIAS: ${{ secrets.PRISMA_KEY_ALIAS }}
+          PRISMA_KEY_PASSWORD: ${{ secrets.PRISMA_KEY_PASSWORD }}
+        run: gradle -p android :app:assembleRelease --no-daemon
+      - name: Verify signed APK
+        run: |
+          apk=android/app/build/outputs/apk/release/app-release.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$apk"
+          certificate=$(
+            "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs "$apk" |
+              sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | tr '[:lower:]' '[:upper:]'
+          )
+          test "$certificate" = 'C86E47B3A2A07CF21E7BEB971F0168BC516CA834FA0940A070C7570E66D20869'
+          unzip -t "$apk" | grep 'No errors detected'
+          unzip -l "$apk" | grep 'assets/engine.js'
+          mkdir -p release
+          cp "$apk" release/Prisma-Android.apk
+          sha256sum release/Prisma-Android.apk
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes_file="docs/release-$RELEASE_TAG.md"
+          if [ -f "$notes_file" ]; then
+            notes=(--notes-file "$notes_file")
+          else
+            notes=(--generate-notes)
+          fi
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            tag_options=(--target "$GITHUB_SHA")
+          else
+            tag_options=(--verify-tag)
+          fi
+          case "$RELEASE_TAG" in
+            *-*) gh release create "$RELEASE_TAG" release/Prisma-Android.apk "${tag_options[@]}" --title "Prisma $RELEASE_TAG — Android" --prerelease --latest=false "${notes[@]}" ;;
+            *)   gh release create "$RELEASE_TAG" release/Prisma-Android.apk "${tag_options[@]}" --title "Prisma $RELEASE_TAG — Android" --latest "${notes[@]}" ;;
+          esac

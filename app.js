@@ -1,6 +1,6 @@
-import {Game, SIZE, levelGoal} from './engine.js?v=19';
-import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=19';
-import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=19';
+import {Game, SIZE, levelGoal} from './engine.js?v=1.0.3';
+import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=1.0.3';
+import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=1.0.3';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
@@ -35,6 +35,22 @@ function syncVisualStyle() {
 }
 syncVisualStyle();
 const sessionKey = mode => 'prisma.session.' + mode;
+function restoreMode(mode) {
+  try {
+    const raw = localStorage.getItem(sessionKey(mode));
+    if (!raw) { game.newGame(mode); return; }
+    const saved = JSON.parse(raw);
+    if ((saved?.mode === 'endless' ? 'classic' : saved?.mode) === mode && game.restore(saved)) return;
+    try { localStorage.setItem(sessionKey(mode) + '.corrupt', raw); } catch {}
+  } catch {
+    // Keep the original bytes for diagnosis if JSON parsing failed.
+    try {
+      const raw = localStorage.getItem(sessionKey(mode));
+      if (raw) localStorage.setItem(sessionKey(mode) + '.corrupt', raw);
+    } catch {}
+  }
+  game.newGame(mode);
+}
 try {
   const legacy = JSON.parse(localStorage.getItem('prisma.session'));
   const legacyMode = legacy?.mode === 'endless' ? 'classic' : legacy?.mode;
@@ -42,14 +58,18 @@ try {
     localStorage.setItem(sessionKey(legacyMode), JSON.stringify({...legacy, mode: legacyMode}));
     if (!localStorage.getItem('prisma.activeMode')) localStorage.setItem('prisma.activeMode', legacyMode);
   }
+} catch { /* Storage can be denied; the game still starts. */ }
+let activeMode = 'zen';
+try {
   const active = localStorage.getItem('prisma.activeMode');
-  const mode = ['zen', 'classic'].includes(active) ? active : 'zen';
-  if (!game.restore(JSON.parse(localStorage.getItem(sessionKey(mode))))) game.newGame(mode);
-} catch { /* A corrupted or unavailable save starts a new game. */ }
+  if (['zen', 'classic'].includes(active)) activeMode = active;
+} catch {}
+restoreMode(activeMode);
 let selected = null;
 let pointerStart = null;
 let busy = false;
 let hintTimer;
+let comboTimer;
 let soundOn = true;
 try { soundOn = localStorage.getItem('prisma.sound') !== 'off'; } catch { /* Some local file views deny storage. */ }
 let audioSettings;
@@ -149,16 +169,24 @@ function saveAudioSettings() {
 const effectScale = () => game.mode !== 'zen' ? 1 : zenSettings.effects === 'soft' ? .82 :
   zenSettings.effects === 'vivid' ? 1.1 : 1;
 
+const records = new Map();
 function safeRecord(mode) {
+  if (records.has(mode)) return records.get(mode);
   try {
     const saved = JSON.parse(localStorage.getItem('prisma.records.' + mode)) || {};
     const legacy = Number(localStorage.getItem('prisma.best.' + mode)) ||
       (mode === 'classic' ? Number(localStorage.getItem('prisma.best.endless')) : 0) || 0;
     const safe = value => Number.isSafeInteger(value) && value >= 0 ? value : 0;
-    return {bestScore: Math.max(safe(saved.bestScore), safe(legacy)),
+    const record = {bestScore: Math.max(safe(saved.bestScore), safe(legacy)),
       bestLevel: Math.max(1, safe(saved.bestLevel)), bestMove: safe(saved.bestMove),
       finished: safe(saved.finished)};
-  } catch { return {bestScore: 0, bestLevel: 1, bestMove: 0, finished: 0}; }
+    records.set(mode, record);
+    return record;
+  } catch {
+    const record = {bestScore: 0, bestLevel: 1, bestMove: 0, finished: 0};
+    records.set(mode, record);
+    return record;
+  }
 }
 
 function save() {
@@ -195,42 +223,56 @@ function clearScoreGain() {
   scoreGain.classList.remove('visible');
 }
 
+let cells;
+let focusedIndex = 0;
 function draw(board = game.board, matched = []) {
+  if (!cells) {
+    cells = Array.from({length: SIZE * SIZE}, (_, index) => {
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      cell.className = 'cell';
+      cell.dataset.index = String(index);
+      cell.tabIndex = index === 0 ? 0 : -1;
+      const mover = document.createElement('span');
+      mover.className = 'mover';
+      mover.append(document.createElement('span'));
+      cell.append(mover);
+      return cell;
+    });
+    boardElement.replaceChildren(...cells);
+  }
   const hits = new Set(matched);
-  boardElement.replaceChildren(...board.flatMap((row, r) => row.map((tile, c) => {
+  board.forEach((row, r) => row.forEach((tile, c) => {
     const index = r * SIZE + c;
-    const cell = document.createElement('button');
-    cell.type = 'button';
-    cell.className = 'cell';
+    const cell = cells[index];
     if (index === selected) cell.classList.add('selected');
+    else cell.classList.remove('selected');
     if (hits.has(index)) cell.classList.add('matched');
-    cell.dataset.index = String(index);
-    cell.setAttribute('role', 'gridcell');
+    else cell.classList.remove('matched');
     const specialName = {burst: 'Pulso', cross: 'Raio', spectrum: 'Espectro'}[tile.type];
     cell.setAttribute('aria-label', `Linha ${r + 1}, coluna ${c + 1}: ${specialName ? `pedra ${specialName}${tile.color === null ? '' : ` ${names[tile.color]}`}` : names[tile.color]}`);
     cell.dataset.tileId = String(tile.id);
-    const mover = document.createElement('span');
-    mover.className = 'mover';
-    const gem = document.createElement('span');
+    const gem = cell.children[0].children[0];
     gem.className = `gem gem-${tile.color === null ? 'spectrum' : tile.color}${specialName ? ` special special-${tile.type}` : ''}`;
     if (specialName) gem.setAttribute('data-symbol', {burst: '✺', cross: '✦', spectrum: '✶'}[tile.type]);
-    mover.append(gem);
-    cell.append(mover);
-    return cell;
-  })));
+    else gem.removeAttribute?.('data-symbol');
+  }));
 }
 
 function hud(moveEarned = 0, finishedGame = false) {
   scoreElement.textContent = game.score.toLocaleString('pt-BR');
   const record = safeRecord(game.mode);
+  const previous = {...record};
   record.bestScore = Math.max(record.bestScore, game.score);
   record.bestLevel = Math.max(record.bestLevel, game.level);
   record.bestMove = Math.max(record.bestMove, moveEarned);
   if (finishedGame && game.mode === 'classic') record.finished++;
-  try {
-    localStorage.setItem('prisma.records.' + game.mode, JSON.stringify(record));
-    localStorage.setItem('prisma.best.' + game.mode, String(record.bestScore));
-  } catch {}
+  if (Object.keys(record).some(key => record[key] !== previous[key])) {
+    try {
+      localStorage.setItem('prisma.records.' + game.mode, JSON.stringify(record));
+      localStorage.setItem('prisma.best.' + game.mode, String(record.bestScore));
+    } catch {}
+  }
   bestElement.textContent = record.bestScore.toLocaleString('pt-BR');
   levelElement.textContent = String(game.level);
   modeLabel.textContent = 'NÍVEL';
@@ -265,6 +307,7 @@ function hud(moveEarned = 0, finishedGame = false) {
 
 function clearHint() {
   clearTimeout(hintTimer);
+  clearTimeout(comboTimer);
   for (const cell of boardElement.querySelectorAll?.('.cell.hinted') ?? []) cell.classList.remove('hinted');
 }
 
@@ -509,7 +552,9 @@ async function attempt(a, b) {
     if (result.valid) {
       if (result.ended) combo.textContent = 'Sem jogadas restantes';
       else if (result.levelsGained) combo.textContent = `Nível ${game.level}!`;
-      else if (!result.rescued) setTimeout(() => { if (!busy) combo.textContent = 'Combine três ou mais pedras'; }, 1500);
+      else if (!result.rescued) comboTimer = setTimeout(() => {
+        if (!busy) combo.textContent = 'Combine três ou mais pedras';
+      }, 1500);
     }
     boardElement.classList.remove('busy');
     busy = false;
@@ -570,9 +615,30 @@ boardElement.addEventListener('pointerup', event => {
 boardElement.addEventListener('pointercancel', event => {
   if (pointerStart && event.pointerId === pointerStart.id) clearGesture();
 });
+boardElement.addEventListener('focusin', event => {
+  const cell = event.target.closest('.cell');
+  if (!cell) return;
+  cells[focusedIndex].tabIndex = -1;
+  focusedIndex = Number(cell.dataset.index);
+  cell.tabIndex = 0;
+});
 boardElement.addEventListener('keydown', event => {
-  const index = Number(event.target.closest('.cell')?.dataset.index);
-  if (!Number.isInteger(index)) return;
+  const target = event.target.closest('.cell');
+  if (!target) return;
+  const index = Number(target.dataset.index);
+  const step = {ArrowLeft: -1, ArrowRight: 1, ArrowUp: -SIZE, ArrowDown: SIZE}[event.key];
+  if (step && !busy) {
+    event.preventDefault();
+    const next = index + step;
+    if (next >= 0 && next < SIZE * SIZE && (Math.abs(step) === SIZE ||
+      Math.floor(index / SIZE) === Math.floor(next / SIZE))) {
+      target.tabIndex = -1;
+      cells[next].tabIndex = 0;
+      focusedIndex = next;
+      cells[next].focus();
+    }
+    return;
+  }
   if (event.key === 'Enter' || event.key === ' ') {
     event.preventDefault();
     unlockAudio();
@@ -612,7 +678,7 @@ $('#shuffle').addEventListener('click', async () => {
   }
   showToast('Tabuleiro reorganizado');
 });
-$('#new-game').addEventListener('click', () => {
+function startNewGame() {
   if (busy) return;
   clearScoreGain();
   clearHint();
@@ -620,26 +686,16 @@ $('#new-game').addEventListener('click', () => {
   game.newGame();
   combo.textContent = 'Combine três ou mais pedras';
   draw(); hud(); save();
-});
-$('#play-again').addEventListener('click', () => {
-  if (busy) return;
-  clearScoreGain();
-  clearHint();
-  selected = null;
-  game.newGame();
-  combo.textContent = 'Combine três ou mais pedras';
-  draw(); hud(); save();
-});
+}
+$('#new-game').addEventListener('click', startNewGame);
+$('#play-again').addEventListener('click', startNewGame);
 document.querySelectorAll('.mode').forEach(button => button.addEventListener('click', () => {
   if (busy || game.mode === button.dataset.mode) return;
   clearScoreGain();
   clearHint();
   selected = null;
   save();
-  try {
-    const saved = JSON.parse(localStorage.getItem(sessionKey(button.dataset.mode)));
-    if (!game.restore(saved)) game.newGame(button.dataset.mode);
-  } catch { game.newGame(button.dataset.mode); }
+  restoreMode(button.dataset.mode);
   combo.textContent = game.ended ? 'Sem jogadas restantes' : 'Combine três ou mais pedras';
   draw(); hud(); save();
   zenAudio.armed = true;

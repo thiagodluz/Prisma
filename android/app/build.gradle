@@ -8,8 +8,25 @@ android {
         applicationId 'com.thiagodluz.prisma'
         minSdk 26
         targetSdk 35
-        versionCode 7
-        versionName '1.0.2'
+        versionCode 8
+        versionName '1.0.3'
+    }
+
+    signingConfigs {
+        release {
+            def keystore = System.getenv('PRISMA_KEYSTORE_FILE')
+            if (keystore) {
+                storeFile file(keystore)
+                storeType 'PKCS12'
+                storePassword System.getenv('PRISMA_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('PRISMA_KEY_ALIAS')
+                keyPassword System.getenv('PRISMA_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release { signingConfig signingConfigs.release }
     }
 
     compileOptions {

@@ -48,9 +48,9 @@ Também existe uma versão autônoma em [Prisma-jogar-offline.html](Prisma-jogar
 
 ### Android
 
-A versão atual é a **1.0.2**. O APK pode ser gerado pelo GitHub Actions ou compilado localmente. O aplicativo exige Android 8 ou mais recente e Android System WebView atualizada.
+A versão atual é a **1.0.3**. O APK pode ser gerado pelo GitHub Actions ou compilado localmente. O aplicativo exige Android 8 ou mais recente e Android System WebView atualizada.
 
-O APK distribuído pelas Actions usa uma chave temporária de desenvolvimento. Se você instalar uma versão assinada com outra chave, talvez seja necessário desinstalar a versão anterior; isso apaga as partidas e preferências salvas no aplicativo. O progresso da versão web fica separado e não é apagado.
+Os APKs de publicação são assinados com a mesma chave privada configurada nos segredos do repositório. Versões antigas instaladas a partir dos APKs de depuração têm outra assinatura: para instalar a primeira versão de publicação, será necessário desinstalá-las, o que apaga as partidas e preferências do aplicativo. O progresso da versão web fica separado.
 
 O aplicativo não pede acesso à internet. Ele usa apenas a permissão opcional de vibração e guarda seus dados no armazenamento privado do próprio aplicativo.
 
@@ -75,6 +75,8 @@ Para reconstruir o arquivo HTML autônomo depois de editar o projeto:
 ```bash
 npm run build:offline
 ```
+
+Antes de criar uma versão, atualize `version` em `package.json`, execute `npm run sync:version`, aumente `versionCode` em `android/app/build.gradle` e reconstrua o HTML offline. A CI verifica `npm run check:version` e `npm run check:offline`. A execução manual do workflow na `main` compila e publica o APK assinado após verificar sua assinatura; uma tag `v<versão>` também pode disparar esse processo. A configuração inicial dos segredos e a guarda da chave estão em [docs/publicacao-android.md](docs/publicacao-android.md).
 
 O projeto não depende de bibliotecas externas em tempo de execução.
 
