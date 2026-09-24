@@ -4,6 +4,8 @@
 
 [Jogar no navegador](https://prisma-jogo-thiago.thiagodluz.chatgpt.site) · [Repositório no GitHub](https://github.com/thiagodluz/Prisma)
 
+![Captura de uma partida do Prisma](docs/prisma-readme-captura.jpg)
+
 Prisma é um jogo independente para Android e navegador, criado para quem gosta de combinar pedras, provocar cascatas e continuar jogando no próprio ritmo. Ele funciona sem internet depois de instalado, não exige conta e mantém as partidas no dispositivo.
 
 ## O que você encontra
