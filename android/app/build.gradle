@@ -25,6 +25,7 @@ tasks.register('syncPrismaAssets', Copy) {
         include 'gem-atlas.webp', 'burst-atlas.webp', 'cross-atlas.webp'
         include 'spectrum-gem.webp', 'prisma-bg.jpg', 'icon.svg'
         include 'icon-192.png', 'icon-512.png', 'manifest.webmanifest'
+        include 'LICENSE', 'LICENSE-ART.md'
     }
     into layout.buildDirectory.dir('generated/prismaAssets')
 }

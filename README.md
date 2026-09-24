@@ -1,5 +1,13 @@
 # Prisma
 
+## Licenças e autoria
+
+© 2026 Thiago Luz. O código-fonte do jogo, inclusive a implementação Android, os testes e os scripts de compilação, é distribuído sob a [GNU GPL versão 3](LICENSE), somente esta versão (`GPL-3.0-only`). Alterações distribuídas devem preservar os avisos de autoria, identificar as mudanças e disponibilizar o código-fonte correspondente nos termos dessa licença.
+
+As imagens das pedras e do fundo identificadas em [LICENSE-ART.md](LICENSE-ART.md) são oferecidas sob [Creative Commons Atribuição-CompartilhaIgual 4.0 Internacional](https://creativecommons.org/licenses/by-sa/4.0/legalcode). É permitido copiá-las, adaptá-las e utilizá-las comercialmente, com crédito, identificação de alterações e compartilhamento das adaptações sob a mesma licença. A autoria e a origem devem ser apresentadas sem sugerir endosso dos criadores a projetos derivados.
+
+O nome **Prisma** e os ícones de identificação do aplicativo não integram a concessão CC BY-SA dos demais recursos gráficos. Um fork deve adotar identidade própria, podendo mencionar a origem para atribuição. O jogo não inclui bibliotecas, fontes ou arquivos de áudio de terceiros; a trilha e os efeitos são sintetizados pelo código. Consulte [LICENSE-ART.md](LICENSE-ART.md) para o inventário exato dos recursos licenciados.
+
 As regras de referência, decisões próprias e casos de aceitação das próximas etapas estão em [docs/regras-e-direcao.md](docs/regras-e-direcao.md).
 
 Protótipo original de jogo de combinar pedras, feito para telas de Android. Inclui tabuleiro 8×8, trocas e quedas animadas, comandos por toque ou arrasto, cascatas, pontuação, pedras especiais, sons opcionais, partidas e recordes salvos localmente. Funciona sem internet depois de instalado.
