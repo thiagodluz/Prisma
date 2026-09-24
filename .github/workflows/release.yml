@@ -1,0 +1,71 @@
+name: Release Android APK
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  release:
+    if: github.repository == 'thiagodluz/Prisma'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+      - name: Install Android platform
+        run: |
+          sdk_manager=$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f -print -quit)
+          test -n "$sdk_manager"
+          yes | "$sdk_manager" --licenses >/dev/null
+          "$sdk_manager" 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Verify version and game
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          node -e "const v=require('./package.json').version; if (process.env.RELEASE_TAG !== 'v'+v) process.exit(1)"
+          npm run check:version
+          npm run check:offline
+          npm test
+      - name: Decode release key
+        env:
+          PRISMA_KEYSTORE_BASE64: ${{ secrets.PRISMA_KEYSTORE_BASE64 }}
+          PRISMA_KEYSTORE_PASSWORD: ${{ secrets.PRISMA_KEYSTORE_PASSWORD }}
+          PRISMA_KEY_ALIAS: ${{ secrets.PRISMA_KEY_ALIAS }}
+          PRISMA_KEY_PASSWORD: ${{ secrets.PRISMA_KEY_PASSWORD }}
+        run: |
+          test -n "$PRISMA_KEYSTORE_BASE64" && test -n "$PRISMA_KEYSTORE_PASSWORD"
+          test -n "$PRISMA_KEY_ALIAS" && test -n "$PRISMA_KEY_PASSWORD"
+          printf '%s' "$PRISMA_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/prisma-release.jks"
+          test -s "$RUNNER_TEMP/prisma-release.jks"
+          chmod 600 "$RUNNER_TEMP/prisma-release.jks"
+          echo "PRISMA_KEYSTORE_FILE=$RUNNER_TEMP/prisma-release.jks" >> "$GITHUB_ENV"
+      - name: Build signed APK
+        env:
+          PRISMA_KEYSTORE_PASSWORD: ${{ secrets.PRISMA_KEYSTORE_PASSWORD }}
+          PRISMA_KEY_ALIAS: ${{ secrets.PRISMA_KEY_ALIAS }}
+          PRISMA_KEY_PASSWORD: ${{ secrets.PRISMA_KEY_PASSWORD }}
+        run: gradle -p android :app:assembleRelease --no-daemon
+      - name: Verify signed APK
+        run: |
+          apk=android/app/build/outputs/apk/release/app-release.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$apk"
+          unzip -t "$apk" | grep 'No errors detected'
+          unzip -l "$apk" | grep 'assets/engine.js'
+          mkdir -p release
+          cp "$apk" release/Prisma-Android.apk
+          sha256sum release/Prisma-Android.apk
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          case "$GITHUB_REF_NAME" in
+            *-*) gh release create "$GITHUB_REF_NAME" release/Prisma-Android.apk --verify-tag --title "Prisma $GITHUB_REF_NAME — Android" --prerelease --latest=false --generate-notes ;;
+            *)   gh release create "$GITHUB_REF_NAME" release/Prisma-Android.apk --verify-tag --title "Prisma $GITHUB_REF_NAME — Android" --latest --generate-notes ;;
+          esac

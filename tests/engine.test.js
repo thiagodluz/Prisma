@@ -344,8 +344,21 @@ test('new progression save restores exact level position', () => {
   const original = fixture();
   const copy = new Game();
   assert.ok(copy.restore({mode: 'zen', score: 4321, board: original.board,
-    progressionVersion: 2, level: 3, levelStartScore: 3950}));
+    progressionVersion: 2, level: 3, levelStartScore: 3750}));
   assert.equal(copy.level, 3);
-  assert.equal(copy.levelStartScore, 3950);
-  assert.equal(copy.score - copy.levelStartScore, 371);
+  assert.equal(copy.levelStartScore, 3750);
+  assert.equal(copy.score - copy.levelStartScore, 571);
+});
+
+test('corrupt saves leave the current game untouched', () => {
+  const game = new Game();
+  const before = {board: JSON.stringify(game.board), nextId: game.nextId,
+    mode: game.mode, score: game.score};
+  const duplicate = game.board.map(row => row.map(tile => ({...tile})));
+  duplicate[7][7].id = duplicate[0][0].id;
+  assert.equal(game.restore({mode: 'classic', score: 20, board: duplicate}), false);
+  assert.equal(game.restore({mode: 'classic', score: 10, board: game.board,
+    progressionVersion: 2, level: 999, levelStartScore: 0}), false);
+  assert.deepEqual({board: JSON.stringify(game.board), nextId: game.nextId,
+    mode: game.mode, score: game.score}, before);
 });

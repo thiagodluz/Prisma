@@ -30,6 +30,8 @@ test('drag commits before animation and settles on Android pause or page hide', 
       },
       setAttribute() {},
       addEventListener(name, listener) { this.handlers[name] = listener; },
+      focus() { document.activeElement = this; },
+      closest(selector) { return selector === '.cell' ? this : null; },
       append(child) { this.children.push(child); },
       replaceChildren(...children) { this.children = children; },
       querySelector(selector) { return selector === '.mover' ? this.children[0] : null; },
@@ -73,6 +75,15 @@ test('drag commits before animation and settles on Android pause or page hide', 
   const vibrations = [];
   Object.defineProperty(globalThis, 'navigator', {value: {vibrate: value => vibrations.push(value)}, configurable: true});
   await import('../app.js?touch-resume');
+
+  const firstCell = board.children[0];
+  firstCell.focus();
+  board.handlers.keydown({target: firstCell, key: 'Enter', preventDefault() {}});
+  assert.equal(document.activeElement, firstCell);
+  board.handlers.keydown({target: firstCell, key: 'ArrowRight', preventDefault() {}});
+  assert.equal(document.activeElement, board.children[1]);
+  assert.equal(board.children[1].tabIndex, 0);
+  assert.equal(firstCell.tabIndex, -1);
 
   elements.get('#vibration').handlers.click();
   assert.equal(storage.get('prisma.vibration'), 'on');
