@@ -48,5 +48,6 @@ tasks.register('syncPrismaAssets', Copy) {
 }
 android.sourceSets.main.assets.srcDirs = [layout.buildDirectory.dir('generated/prismaAssets')]
 tasks.configureEach {
-    if (name.startsWith('merge') && name.endsWith('Assets')) dependsOn tasks.named('syncPrismaAssets')
+    if ((name.startsWith('merge') && name.endsWith('Assets')) ||
+        name == 'generateReleaseLintVitalReportModel') dependsOn tasks.named('syncPrismaAssets')
 }
