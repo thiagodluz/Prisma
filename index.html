@@ -11,13 +11,13 @@
   <link rel="preload" href="burst-atlas.webp" as="image">
   <link rel="preload" href="cross-atlas.webp" as="image">
   <link rel="preload" href="spectrum-gem.webp" as="image">
-  <link rel="stylesheet" href="style.css?v=18">
+  <link rel="stylesheet" href="style.css?v=20">
   <title>Prisma — combine e relaxe</title>
 </head>
 <body>
   <main class="shell">
     <header class="header">
-      <div class="brand"><span class="brand-mark">✦</span><div><h1>PRISMA</h1><small>Um instante de brilho</small></div></div>
+      <div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 100 100" focusable="false"><path d="M50 9 C55 37 63 45 91 50 C63 55 55 63 50 91 C45 63 37 55 9 50 C37 45 45 37 50 9Z"/></svg></span><h1>PRISMA</h1></div>
       <div class="header-actions">
         <button class="icon-button" id="vibration" type="button" aria-label="Ativar vibração" aria-pressed="false" title="Vibração" hidden>〰</button>
         <button class="icon-button" id="sound" type="button" aria-label="Desativar sons do jogo" title="Sons do jogo">♫</button>
@@ -119,7 +119,14 @@
         </section>
       </div>
     </details>
+    <details class="legal-credits">
+      <summary>Créditos e licenças</summary>
+      <div class="legal-credits-content">
+        <p>Prisma é uma criação original de Thiago Luz (2026). Versões derivadas devem preservar os créditos e identificar suas alterações.</p>
+        <p>Código: <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener noreferrer">GPLv3</a>. Arte das pedras e fundo: <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>. Nome e ícone não integram a licença da arte.</p>
+      </div>
+    </details>
   </main>
-  <script type="module" src="app.js?v=18"></script>
+  <script type="module" src="app.js?v=19"></script>
 </body>
 </html>

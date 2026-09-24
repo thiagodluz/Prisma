@@ -8,8 +8,8 @@ android {
         applicationId 'com.thiagodluz.prisma'
         minSdk 26
         targetSdk 35
-        versionCode 6
-        versionName '1.0.1'
+        versionCode 7
+        versionName '1.0.2'
     }
 
     compileOptions {
@@ -25,6 +25,7 @@ tasks.register('syncPrismaAssets', Copy) {
         include 'gem-atlas.webp', 'burst-atlas.webp', 'cross-atlas.webp'
         include 'spectrum-gem.webp', 'prisma-bg.jpg', 'icon.svg'
         include 'icon-192.png', 'icon-512.png', 'manifest.webmanifest'
+        include 'LICENSE', 'LICENSE-ART.md'
     }
     into layout.buildDirectory.dir('generated/prismaAssets')
 }
