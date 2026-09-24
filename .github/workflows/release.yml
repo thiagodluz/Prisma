@@ -42,10 +42,10 @@ jobs:
         run: |
           test -n "$PRISMA_KEYSTORE_BASE64" && test -n "$PRISMA_KEYSTORE_PASSWORD"
           test -n "$PRISMA_KEY_ALIAS" && test -n "$PRISMA_KEY_PASSWORD"
-          printf '%s' "$PRISMA_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/prisma-release.jks"
-          test -s "$RUNNER_TEMP/prisma-release.jks"
-          chmod 600 "$RUNNER_TEMP/prisma-release.jks"
-          echo "PRISMA_KEYSTORE_FILE=$RUNNER_TEMP/prisma-release.jks" >> "$GITHUB_ENV"
+          printf '%s' "$PRISMA_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/prisma-release.p12"
+          test -s "$RUNNER_TEMP/prisma-release.p12"
+          chmod 600 "$RUNNER_TEMP/prisma-release.p12"
+          echo "PRISMA_KEYSTORE_FILE=$RUNNER_TEMP/prisma-release.p12" >> "$GITHUB_ENV"
       - name: Build signed APK
         env:
           PRISMA_KEYSTORE_PASSWORD: ${{ secrets.PRISMA_KEYSTORE_PASSWORD }}

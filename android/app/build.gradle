@@ -17,6 +17,7 @@ android {
             def keystore = System.getenv('PRISMA_KEYSTORE_FILE')
             if (keystore) {
                 storeFile file(keystore)
+                storeType 'PKCS12'
                 storePassword System.getenv('PRISMA_KEYSTORE_PASSWORD')
                 keyAlias System.getenv('PRISMA_KEY_ALIAS')
                 keyPassword System.getenv('PRISMA_KEY_PASSWORD')

@@ -7,7 +7,7 @@ O workflow `release.yml` publica apenas quando uma tag `v<versão>` é enviada. 
 - `PRISMA_KEY_ALIAS`: alias da chave;
 - `PRISMA_KEY_PASSWORD`: senha da chave.
 
-Crie o keystore localmente com `keytool -genkeypair -v -keystore prisma-release.jks -alias prisma -keyalg RSA -keysize 3072 -validity 10000`. Codifique-o com `base64 -w 0 prisma-release.jks` no Linux ou `base64 -i prisma-release.jks | tr -d '\n'` no macOS. Guarde **o arquivo original e as senhas fora do repositório**, com backup seguro; sem eles, não será possível assinar atualizações com a mesma identidade. Arquivos `.jks` e `.keystore` são ignorados pelo Git.
+O keystore permanente deste projeto é `prisma-release.p12` (PKCS#12), com alias `prisma`. A cópia de recuperação e a senha devem ser guardadas fora do repositório; sem elas, não será possível assinar atualizações com a mesma identidade. Para uma nova chave em outro fork, gere com `keytool -genkeypair -storetype PKCS12 -keystore prisma-release.p12 -alias prisma -keyalg RSA -keysize 4096 -validity 10000`. Codifique-a com `base64 -w 0 prisma-release.p12` no Linux ou `base64 -i prisma-release.p12 | tr -d '\n'` no macOS. Arquivos `.p12`, `.jks` e `.keystore` são ignorados pelo Git.
 
 Em cada publicação:
 
