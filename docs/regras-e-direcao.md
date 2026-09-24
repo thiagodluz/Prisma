@@ -1,6 +1,6 @@
 # Prisma — regras de referência e direção do jogo
 
-Estado: referência de produto e registro das decisões implementadas. Revisado em 23/09/2026.
+Estado: referência de produto e registro das decisões implementadas na versão 1.0.2. Revisado em 24/09/2026.
 
 **Etapas 2 e 3 implementadas:** pedras com `id`, cor e tipo; eventos de limpeza/queda; Pulso (quatro), Raio (L/T) e Espectro (cinco); reações em cadeia, inclusive dois Espectros; migração de saves numéricos.
 
