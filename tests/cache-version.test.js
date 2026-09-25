@@ -26,7 +26,9 @@ test('an asset edit requires a new cache, and publishing it requires a newer ver
     const engine = join(root, 'engine.js');
     const sw = join(root, 'sw.js');
     const packageFile = join(root, 'package.json');
-    writeFileSync(packageFile, readFileSync(packageFile, 'utf8').replace('1.0.4-beta.1', '1.0.3'));
+    const packageData = JSON.parse(readFileSync(packageFile, 'utf8'));
+    packageData.version = '1.0.3';
+    writeFileSync(packageFile, JSON.stringify(packageData));
     run(sync);
     git('init', '-q');
     git('config', 'user.name', 'Test');
