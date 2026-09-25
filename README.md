@@ -48,7 +48,7 @@ Também existe uma versão autônoma em [Prisma-jogar-offline.html](Prisma-jogar
 
 ### Android
 
-A versão atual é a **1.0.3**. O APK pode ser gerado pelo GitHub Actions ou compilado localmente. O aplicativo exige Android 8 ou mais recente e Android System WebView atualizada.
+A última versão publicada é a **1.0.3**; o código da próxima versão está em preparação como **1.0.4-beta.1**, sem APK publicado. O APK pode ser gerado pelo GitHub Actions ou compilado localmente. O aplicativo exige Android 8 ou mais recente e Android System WebView atualizada.
 
 Os APKs de publicação são assinados com a mesma chave privada configurada nos segredos do repositório. Versões antigas instaladas a partir dos APKs de depuração têm outra assinatura: para instalar a primeira versão de publicação, será necessário desinstalá-las, o que apaga as partidas e preferências do aplicativo. O progresso da versão web fica separado.
 
@@ -76,7 +76,7 @@ Para reconstruir o arquivo HTML autônomo depois de editar o projeto:
 npm run build:offline
 ```
 
-Antes de criar uma versão, atualize `version` em `package.json`, execute `npm run sync:version` para atualizar também o `versionCode` Android e reconstrua o HTML offline. A CI verifica `npm run check:version` e `npm run check:offline`. Use versões finais ou `-beta.N` (N entre 1 e 98); versões sucessivas devem ter números maiores. A execução manual do workflow na `main` compila e publica o APK assinado após verificar sua assinatura; uma tag `v<versão>` também pode disparar esse processo. A configuração inicial dos segredos e a guarda da chave estão em [docs/publicacao-android.md](docs/publicacao-android.md).
+Antes de criar uma versão, atualize `version` em `package.json`, execute `npm run sync:version` para atualizar o `versionCode` Android e o cache dos arquivos do navegador, e reconstrua o HTML offline. A CI verifica `npm run check:version`, `npm run check:offline` e `npm run check:publish-version`: mudanças nos arquivos distribuídos exigem uma versão superior à última tag. Use versões finais ou `-beta.N` (N entre 1 e 98); versões sucessivas devem ter números maiores. A execução manual do workflow na `main` compila e publica o APK assinado após verificar sua assinatura; uma tag `v<versão>` também pode disparar esse processo. A configuração inicial dos segredos e a guarda da chave estão em [docs/publicacao-android.md](docs/publicacao-android.md).
 
 O projeto não depende de bibliotecas externas em tempo de execução.
 
