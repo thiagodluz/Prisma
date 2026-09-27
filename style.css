@@ -133,3 +133,10 @@ html{overscroll-behavior-y:none}:root{font-family:Inter,ui-sans-serif,system-ui,
 .effect-spark{position:absolute;width:6px;height:6px;border-radius:2px;background:#fff6d1;box-shadow:0 0 9px 2px #ffe4a8,0 0 15px #fff}
 .effect-spark.cool{background:#b5faff;box-shadow:0 0 9px 2px #71e9ff,0 0 15px #fff}
 .effect-spark.rainbow{background:#f7c4ff;box-shadow:0 0 9px 2px #a8dfff,0 0 16px #ff9dc4}
+
+.brand-mark{background:none;box-shadow:none}
+.brand-mark img{display:block;width:42px;height:42px;border-radius:10px}
+.toolbar{justify-content:center;margin-bottom:16px}
+.toolbar-actions{justify-content:center;flex-wrap:wrap;gap:8px 18px}
+.combo:empty{display:none}
+.combo:not(:empty){margin:-7px 0 14px}

@@ -1,6 +1,6 @@
-import {Game, SIZE, levelGoal} from './engine.js?v=1.0.4';
-import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=1.0.4';
-import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=1.0.4';
+import {Game, SIZE, levelGoal} from './engine.js?v=1.0.5';
+import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=1.0.5';
+import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=1.0.5';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
@@ -193,7 +193,8 @@ function save() {
   try {
     localStorage.setItem(sessionKey(game.mode), JSON.stringify({
       mode: game.mode, score: game.score, board: game.board, ended: game.ended,
-      progressionVersion: 2, level: game.level, levelStartScore: game.levelStartScore
+      progressionVersion: 3, level: game.level, levelStartScore: game.levelStartScore,
+      progressionOffset: game.progressionOffset
     }));
     localStorage.setItem('prisma.activeMode', game.mode);
   } catch {}
@@ -502,14 +503,14 @@ async function animateShuffle(board) {
 async function attempt(a, b) {
   if (busy) return;
   selected = null;
+  clearScoreGain();
+  const stage = {score: game.score, level: game.level, levelStartScore: game.levelStartScore};
   const result = game.move(a, b);
   busy = true;
   boardElement.classList.add('busy');
   if (result.valid) {
     // The engine has already committed all cascades; persist before any visual delay.
     save();
-    hud(result.earned, result.ended);
-    showScoreGain(result.earned);
     vibrate(result.levelsGained ? [28, 55, 35] : result.events.some(frame => frame.activated?.length) ? 45 : 28);
   } else playTone('invalid');
   try {
@@ -530,6 +531,20 @@ async function attempt(a, b) {
           frame.creations.length ? 'Pedra especial criada!' :
           frame.chain > 1 ? `Cascata ×${frame.chain}!` : 'Boa combinação!';
         await animateClear(frame);
+        stage.score += frame.earned;
+        while (stage.score - stage.levelStartScore >= levelGoal(stage.level)) {
+          stage.levelStartScore += levelGoal(stage.level);
+          stage.level++;
+        }
+        scoreElement.textContent = stage.score.toLocaleString('pt-BR');
+        levelElement.textContent = String(stage.level);
+        const progressPoints = stage.score - stage.levelStartScore;
+        const goal = levelGoal(stage.level);
+        progressFill.style.width = `${Math.min(100, progressPoints / goal * 100)}%`;
+        progress.setAttribute('aria-valuenow', String(progressPoints));
+        progress.setAttribute('aria-valuemax', String(goal));
+        progressLabel.textContent = `${progressPoints.toLocaleString('pt-BR')} / ${goal.toLocaleString('pt-BR')} para o próximo nível`;
+        showScoreGain(frame.earned);
         if (frame.creations.length) playTone('create');
       } else if (frame.type === 'fall') await animateFall(frame.falls);
       else if (frame.type === 'rescue') {
@@ -550,10 +565,11 @@ async function attempt(a, b) {
     levelUp.hidden = true;
     draw();
     if (result.valid) {
+      hud(result.earned, result.ended);
       if (result.ended) combo.textContent = 'Sem jogadas restantes';
       else if (result.levelsGained) combo.textContent = `Nível ${game.level}!`;
       else if (!result.rescued) comboTimer = setTimeout(() => {
-        if (!busy) combo.textContent = 'Combine três ou mais pedras';
+        if (!busy) combo.textContent = '';
       }, 1500);
     }
     boardElement.classList.remove('busy');
@@ -659,7 +675,7 @@ $('#hint').addEventListener('click', () => {
   combo.textContent = 'Troque as duas pedras destacadas';
   hintTimer = setTimeout(() => {
     clearHint();
-    if (!busy) combo.textContent = 'Combine três ou mais pedras';
+    if (!busy) combo.textContent = '';
   }, 2600);
 });
 $('#shuffle').addEventListener('click', async () => {
@@ -684,7 +700,7 @@ function startNewGame() {
   clearHint();
   selected = null;
   game.newGame();
-  combo.textContent = 'Combine três ou mais pedras';
+  combo.textContent = '';
   draw(); hud(); save();
 }
 $('#new-game').addEventListener('click', startNewGame);
@@ -696,7 +712,7 @@ document.querySelectorAll('.mode').forEach(button => button.addEventListener('cl
   selected = null;
   save();
   restoreMode(button.dataset.mode);
-  combo.textContent = game.ended ? 'Sem jogadas restantes' : 'Combine três ou mais pedras';
+  combo.textContent = game.ended ? 'Sem jogadas restantes' : '';
   draw(); hud(); save();
   zenAudio.armed = true;
   syncZenUI(true);

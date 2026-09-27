@@ -98,9 +98,10 @@ test('drag commits before animation and settles on Android pause or page hide', 
   assert.equal(board.children[hint.b].classList.contains('drag-target'), false);
   const committed = JSON.parse(storage.get('prisma.session.zen'));
   assert.ok(committed.score > saved.score);
-  assert.equal(elements.get('#score-gain').textContent,
-    `+${(committed.score - saved.score).toLocaleString('pt-BR')}`);
-  assert.equal(elements.get('#score-gain').classList.contains('visible'), true);
+  assert.equal(committed.progressionVersion, 3);
+  assert.equal(elements.get('#score').textContent, saved.score.toLocaleString('pt-BR'),
+    'the display must not reveal points before the first clear');
+  assert.equal(elements.get('#score-gain').classList.contains('visible'), false);
   assert.notDeepEqual(committed.board, saved.board);
   assert.equal(board.classList.contains('busy'), true);
   assert.ok(vibrations.length >= 2);
@@ -111,6 +112,7 @@ test('drag commits before animation and settles on Android pause or page hide', 
   document.handlers['prisma:pause']();
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(board.classList.contains('busy'), false);
+  assert.equal(elements.get('#score').textContent, committed.score.toLocaleString('pt-BR'));
   assert.equal(elements.get('#score-gain').classList.contains('visible'), true);
   assert.deepEqual(JSON.parse(storage.get('prisma.session.zen')).board, committed.board);
   document.handlers['prisma:resume']();
