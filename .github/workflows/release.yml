@@ -2,6 +2,7 @@ name: Release Android APK
 
 on:
   push:
+    branches: ['main']
     tags: ['v*']
   workflow_dispatch:
 
@@ -28,21 +29,32 @@ jobs:
           test -n "$sdk_manager"
           yes | "$sdk_manager" --licenses >/dev/null
           "$sdk_manager" 'platforms;android-35' 'build-tools;35.0.0'
-      - name: Verify version and game
+      - name: Prepare release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
-            RELEASE_TAG="v$(node -p "require('./package.json').version")"
-          else
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
             RELEASE_TAG="$GITHUB_REF_NAME"
+          else
+            RELEASE_TAG="v$(node -p "require('./package.json').version")"
           fi
-          export RELEASE_TAG
-          node -e "const v=require('./package.json').version; if (process.env.RELEASE_TAG !== 'v'+v) process.exit(1)"
           echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Verify version and game
+        if: steps.release.outputs.publish == 'true'
+        run: |
+          node -e "const v=require('./package.json').version; if (process.env.RELEASE_TAG !== 'v'+v) process.exit(1)"
           npm run check:version
           npm run check:offline
           npm run check:publish-version
           npm test
       - name: Decode release key
+        if: steps.release.outputs.publish == 'true'
         env:
           PRISMA_KEYSTORE_BASE64: ${{ secrets.PRISMA_KEYSTORE_BASE64 }}
           PRISMA_KEYSTORE_PASSWORD: ${{ secrets.PRISMA_KEYSTORE_PASSWORD }}
@@ -56,12 +68,14 @@ jobs:
           chmod 600 "$RUNNER_TEMP/prisma-release.p12"
           echo "PRISMA_KEYSTORE_FILE=$RUNNER_TEMP/prisma-release.p12" >> "$GITHUB_ENV"
       - name: Build signed APK
+        if: steps.release.outputs.publish == 'true'
         env:
           PRISMA_KEYSTORE_PASSWORD: ${{ secrets.PRISMA_KEYSTORE_PASSWORD }}
           PRISMA_KEY_ALIAS: ${{ secrets.PRISMA_KEY_ALIAS }}
           PRISMA_KEY_PASSWORD: ${{ secrets.PRISMA_KEY_PASSWORD }}
         run: gradle -p android :app:assembleRelease --no-daemon
       - name: Verify signed APK
+        if: steps.release.outputs.publish == 'true'
         run: |
           apk=android/app/build/outputs/apk/release/app-release.apk
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$apk"
@@ -76,6 +90,7 @@ jobs:
           cp "$apk" release/Prisma-Android.apk
           sha256sum release/Prisma-Android.apk
       - name: Publish release
+        if: steps.release.outputs.publish == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -85,10 +100,10 @@ jobs:
           else
             notes=(--generate-notes)
           fi
-          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
-            tag_options=(--target "$GITHUB_SHA")
-          else
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
             tag_options=(--verify-tag)
+          else
+            tag_options=(--target "$GITHUB_SHA")
           fi
           case "$RELEASE_TAG" in
             *-*) gh release create "$RELEASE_TAG" release/Prisma-Android.apk "${tag_options[@]}" --title "Prisma $RELEASE_TAG — Android" --prerelease --latest=false "${notes[@]}" ;;
