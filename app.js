@@ -1,6 +1,6 @@
-import {Game, SIZE, levelGoal} from './engine.js?v=1.0.7';
-import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=1.0.7';
-import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=1.0.7';
+import {Game, SIZE, levelGoal} from './engine.js?v=1.0.8';
+import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=1.0.8';
+import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=1.0.8';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
