@@ -56,13 +56,17 @@ const AMBIENCE = {
   field: {filter: 2700, gain: .032}
 };
 
-// Synthetic soundscapes: flowing bubbles, rain, distant thunder, birds and crickets.
+// The synthesized soundscapes remain until they can be replaced with field recordings.
+// Render beyond the loop boundary, then overlap that tail with the start so the
+// buffer wraps without the audible silence caused by fading both ends to zero.
 function ambienceBuffer(ctx, kind) {
-  const length = Math.floor(ctx.sampleRate * 6);
+  const length = Math.floor(ctx.sampleRate * 24);
+  const overlap = Math.floor(ctx.sampleRate * .8);
   const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
   const samples = buffer.getChannelData(0);
+  const raw = new Float32Array(length + overlap);
   let slow = 0, fast = 0;
-  for (let i = 0; i < length; i++) {
+  for (let i = 0; i < raw.length; i++) {
     const t = i / ctx.sampleRate;
     const noise = Math.random() * 2 - 1;
     slow += (noise - slow) * .002;
@@ -88,8 +92,13 @@ function ambienceBuffer(ctx, kind) {
       }, 0);
       sample = slow * 2 + cricket * .2 + bird * .5;
     } else sample = noise * .75 + slow;
-    const edge = Math.min(1, i / (ctx.sampleRate * .06), (length - 1 - i) / (ctx.sampleRate * .06));
-    samples[i] = sample * Math.max(0, edge);
+    raw[i] = sample;
+  }
+  samples.set(raw.subarray(0, length));
+  for (let i = 0; i < overlap; i++) {
+    const phase = i / overlap;
+    samples[i] = raw[length + i] * Math.cos(phase * Math.PI / 2) +
+      raw[i] * Math.sin(phase * Math.PI / 2);
   }
   return buffer;
 }

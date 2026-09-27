@@ -66,3 +66,24 @@ test('music and ambience start independently and both stop outside Zen', () => {
     assert.equal(audio.ambienceSource, null);
   } finally { audio.stop(); }
 });
+
+test('ambient loop retains sound through the wrap instead of fading into silence', () => {
+  let samples;
+  const node = () => ({connect() { return this; }, disconnect() {}, start() {}, stop() {}});
+  const ctx = {state: 'running', currentTime: 0, sampleRate: 8000, destination: {},
+    createBuffer(_channels, length) {
+      samples = new Float32Array(length);
+      return {getChannelData: () => samples};
+    },
+    createBufferSource: node,
+    createBiquadFilter: () => ({...node(), frequency: {value: 0}}),
+    createGain: () => ({...node(), gain: {value: 0, setTargetAtTime() {}}})};
+  const audio = new ZenAudio(() => ctx);
+  audio.armed = true;
+  audio.sync({active: true, music: false, ambience: true, ambienceSound: 'white'});
+  assert.equal(samples.length, 24 * ctx.sampleRate);
+  const edgeEnergy = range => range.reduce((sum, value) => sum + value * value, 0);
+  assert.ok(edgeEnergy(samples.subarray(0, 800)) > 1);
+  assert.ok(edgeEnergy(samples.subarray(-800)) > 1);
+  audio.stop();
+});

@@ -276,7 +276,7 @@
     <details class="legal-credits">
       <summary>Créditos e licenças</summary>
       <div class="legal-credits-content">
-        <p class="app-version">Versão 1.1.0</p>
+        <p class="app-version">Versão 1.1.1-beta.1</p>
         <p>Prisma é um jogo original criado por Thiago Luz (2026). Versões derivadas devem preservar os créditos e identificar suas alterações.</p>
         <p>Código: <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener noreferrer">GPLv3</a>. Arte das pedras e fundo: <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>. Nome e ícone não integram a licença da arte.</p>
       </div>
@@ -735,13 +735,17 @@ const AMBIENCE = {
   field: {filter: 2700, gain: .032}
 };
 
-// Synthetic soundscapes: flowing bubbles, rain, distant thunder, birds and crickets.
+// The synthesized soundscapes remain until they can be replaced with field recordings.
+// Render beyond the loop boundary, then overlap that tail with the start so the
+// buffer wraps without the audible silence caused by fading both ends to zero.
 function ambienceBuffer(ctx, kind) {
-  const length = Math.floor(ctx.sampleRate * 6);
+  const length = Math.floor(ctx.sampleRate * 24);
+  const overlap = Math.floor(ctx.sampleRate * .8);
   const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
   const samples = buffer.getChannelData(0);
+  const raw = new Float32Array(length + overlap);
   let slow = 0, fast = 0;
-  for (let i = 0; i < length; i++) {
+  for (let i = 0; i < raw.length; i++) {
     const t = i / ctx.sampleRate;
     const noise = Math.random() * 2 - 1;
     slow += (noise - slow) * .002;
@@ -767,8 +771,13 @@ function ambienceBuffer(ctx, kind) {
       }, 0);
       sample = slow * 2 + cricket * .2 + bird * .5;
     } else sample = noise * .75 + slow;
-    const edge = Math.min(1, i / (ctx.sampleRate * .06), (length - 1 - i) / (ctx.sampleRate * .06));
-    samples[i] = sample * Math.max(0, edge);
+    raw[i] = sample;
+  }
+  samples.set(raw.subarray(0, length));
+  for (let i = 0; i < overlap; i++) {
+    const phase = i / overlap;
+    samples[i] = raw[length + i] * Math.cos(phase * Math.PI / 2) +
+      raw[i] * Math.sin(phase * Math.PI / 2);
   }
   return buffer;
 }
