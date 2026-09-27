@@ -239,6 +239,8 @@
         <div class="zen-settings-content">
           <label class="zen-check"><span><strong>Música</strong><small>Melodia tranquila</small></span><input id="zen-music" type="checkbox"></label>
           <label class="zen-check"><span><strong>Ambiente</strong><small>Som suave de fundo</small></span><input id="zen-ambience" type="checkbox"></label>
+          <label class="zen-field" for="zen-track"><span>Escolher música</span><select id="zen-track"><option value="sereno">Sereno</option><option value="cidade">Cidade ao entardecer</option><option value="jardim">Jardim noturno</option><option value="horizonte">Horizonte</option><option value="estrelas">Constelações</option></select></label>
+          <label class="zen-field" for="zen-soundscape"><span>Escolher ambiente</span><select id="zen-soundscape"><option value="white">Ruído branco</option><option value="stream">Riacho</option><option value="rain">Chuva</option><option value="storm">Tempestade</option><option value="field">Campo · pássaros e grilos</option></select></label>
           <label class="zen-field" for="zen-breath"><span>Respiração guiada</span><select id="zen-breath"><option value="off">Desligada</option><option value="balanced">4 s inspirar · 4 s expirar</option><option value="slow">4 s inspirar · 6 s expirar</option></select></label>
           <label class="zen-field" for="zen-effects"><span>Intensidade dos efeitos</span><select id="zen-effects"><option value="soft">Suave</option><option value="normal">Padrão</option><option value="vivid">Vibrante</option></select></label>
           <p class="zen-note">Música e ambiente começam no primeiro toque depois que você abrir o jogo.</p>
@@ -274,7 +276,7 @@
     <details class="legal-credits">
       <summary>Créditos e licenças</summary>
       <div class="legal-credits-content">
-        <p class="app-version">Versão 1.0.10</p>
+        <p class="app-version">Versão 1.1.0</p>
         <p>Prisma é um jogo original criado por Thiago Luz (2026). Versões derivadas devem preservar os créditos e identificar suas alterações.</p>
         <p>Código: <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener noreferrer">GPLv3</a>. Arte das pedras e fundo: <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>. Nome e ícone não integram a licença da arte.</p>
       </div>
@@ -675,12 +677,17 @@ class Game {
   }
 }
 
-const ZEN_DEFAULTS = Object.freeze({music: false, ambience: false, breath: 'off', effects: 'normal'});
+const MUSIC_TRACKS = Object.freeze(['sereno', 'cidade', 'jardim', 'horizonte', 'estrelas']);
+const AMBIENCE_SOUNDS = Object.freeze(['white', 'stream', 'rain', 'storm', 'field']);
+const ZEN_DEFAULTS = Object.freeze({music: false, ambience: false, musicTrack: 'sereno',
+  ambienceSound: 'white', breath: 'off', effects: 'normal'});
 
 function normalizeZenSettings(value) {
   return {
     music: value?.music === true,
     ambience: value?.ambience === true,
+    musicTrack: MUSIC_TRACKS.includes(value?.musicTrack) ? value.musicTrack : 'sereno',
+    ambienceSound: AMBIENCE_SOUNDS.includes(value?.ambienceSound) ? value.ambienceSound : 'white',
     breath: ['off', 'balanced', 'slow'].includes(value?.breath) ? value.breath : 'off',
     effects: ['soft', 'normal', 'vivid'].includes(value?.effects) ? value.effects : 'normal'
   };
@@ -688,7 +695,84 @@ function normalizeZenSettings(value) {
 
 const breathTiming = mode => mode === 'balanced' ? [4, 4] : mode === 'slow' ? [4, 6] : null;
 
-// A four-phrase original soundscape; no downloaded audio files or active timer while paused.
+// Five original, procedural compositions. Each has its own progression, pace and melody.
+const TRACKS = {
+  sereno: {seconds: 7.6, wave: 'sine', pad: .013, lead: .009, attack: 1.1,
+    times: [.55, 2.25, 4.15, 6.05], phrases: [
+      [[130.81, 196, 261.63], [523.25, 392, 440, 523.25]],
+      [[174.61, 220, 261.63], [440, 523.25, 659.25, 523.25]],
+      [[164.81, 196, 246.94], [493.88, 392, 329.63, 392]],
+      [[146.83, 220, 293.66], [440, 587.33, 523.25, 392]]]},
+  cidade: {seconds: 6.4, wave: 'triangle', pad: .008, lead: .005, attack: 1.4,
+    times: [.4, 1.85, 3.45, 4.95], phrases: [
+      [[146.83, 220, 261.63], [349.23, 440, 523.25, 440]],
+      [[130.81, 196, 246.94], [392, 493.88, 587.33, 493.88]],
+      [[110, 164.81, 220], [329.63, 392, 440, 329.63]],
+      [[116.54, 174.61, 233.08], [349.23, 466.16, 392, 349.23]]]},
+  jardim: {seconds: 8.8, wave: 'sine', pad: .011, lead: .007, attack: 1.8,
+    times: [.85, 3.05, 5.1, 7.35], phrases: [
+      [[146.83, 220, 293.66], [587.33, 523.25, 440, 349.23]],
+      [[130.81, 196, 293.66], [392, 440, 523.25, 392]],
+      [[174.61, 261.63, 349.23], [698.46, 587.33, 523.25, 440]],
+      [[164.81, 246.94, 329.63], [493.88, 392, 329.63, 392]]]},
+  horizonte: {seconds: 9.2, wave: 'sine', pad: .012, lead: .007, attack: 2.4,
+    times: [1.1, 3.3, 5.55, 7.75], phrases: [
+      [[110, 164.81, 220], [440, 329.63, 392, 493.88]],
+      [[98, 146.83, 196], [392, 293.66, 329.63, 440]],
+      [[130.81, 196, 261.63], [523.25, 392, 440, 587.33]],
+      [[123.47, 185, 246.94], [493.88, 369.99, 329.63, 493.88]]]},
+  estrelas: {seconds: 7.2, wave: 'sine', pad: .009, lead: .008, attack: 1.5,
+    times: [.3, 1.95, 3.9, 5.85], phrases: [
+      [[130.81, 196, 293.66], [783.99, 587.33, 659.25, 523.25]],
+      [[146.83, 220, 329.63], [880, 659.25, 587.33, 659.25]],
+      [[110, 164.81, 246.94], [739.99, 493.88, 554.37, 493.88]],
+      [[123.47, 185, 277.18], [554.37, 739.99, 659.25, 554.37]]]}
+};
+
+const AMBIENCE = {
+  white: {filter: 420, gain: .024}, stream: {filter: 1300, gain: .035},
+  rain: {filter: 3400, gain: .029}, storm: {filter: 2300, gain: .038},
+  field: {filter: 2700, gain: .032}
+};
+
+// Synthetic soundscapes: flowing bubbles, rain, distant thunder, birds and crickets.
+function ambienceBuffer(ctx, kind) {
+  const length = Math.floor(ctx.sampleRate * 6);
+  const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+  const samples = buffer.getChannelData(0);
+  let slow = 0, fast = 0;
+  for (let i = 0; i < length; i++) {
+    const t = i / ctx.sampleRate;
+    const noise = Math.random() * 2 - 1;
+    slow += (noise - slow) * .002;
+    fast += (noise - fast) * .12;
+    let sample;
+    if (kind === 'stream') {
+      const bubble = Math.sin(2 * Math.PI * (260 + 90 * Math.sin(t * 1.7)) * t) *
+        Math.pow(Math.max(0, Math.sin(t * 16)), 12);
+      sample = fast * (.34 + .15 * Math.sin(t * 2.4)) + slow * 2 + bubble * .14;
+    } else if (kind === 'rain') {
+      sample = noise * .42 + fast * .4 + (Math.random() < .0007 ? .75 : 0);
+    } else if (kind === 'storm') {
+      const thunder = Math.exp(-Math.pow((t - 2.5) / .9, 2)) +
+        .7 * Math.exp(-Math.pow((t - 4.4) / .65, 2));
+      sample = noise * .42 + fast * .25 + slow * thunder * 14;
+    } else if (kind === 'field') {
+      const cricket = Math.pow(Math.max(0, Math.sin(t * 25)), 14) *
+        Math.sin(2 * Math.PI * 2100 * t);
+      const bird = [1.25, 3.1, 4.7].reduce((sum, start) => {
+        const s = t - start;
+        return sum + (s >= 0 && s < .3 ? Math.sin(2 * Math.PI * (790 * s + 420 * s * s)) *
+          Math.sin(Math.PI * s / .3) : 0);
+      }, 0);
+      sample = slow * 2 + cricket * .2 + bird * .5;
+    } else sample = noise * .75 + slow;
+    const edge = Math.min(1, i / (ctx.sampleRate * .06), (length - 1 - i) / (ctx.sampleRate * .06));
+    samples[i] = sample * Math.max(0, edge);
+  }
+  return buffer;
+}
+
 class ZenAudio {
   constructor(getContext) {
     this.getContext = getContext;
@@ -700,6 +784,8 @@ class ZenAudio {
     this.musicVolume = 70;
     this.ambienceVolume = 65;
     this.chord = 0;
+    this.musicTrack = null;
+    this.ambienceSound = null;
   }
 
   setVolumes({music, ambience}) {
@@ -708,45 +794,52 @@ class ZenAudio {
     if (this.musicOutput) this.musicOutput.gain.setTargetAtTime(
       this.musicVolume / 50, this.musicOutput.context.currentTime, .04);
     if (this.ambienceSource) this.ambienceSource.volume.gain.setTargetAtTime(
-      this.ambienceVolume / 65 * .024, this.ambienceSource.ctx.currentTime, .04);
+      this.ambienceVolume / 65 * AMBIENCE[this.ambienceSound].gain,
+      this.ambienceSource.ctx.currentTime, .04);
   }
 
-  sync({active, music, ambience}) {
+  sync({active, music, ambience, musicTrack = 'sereno', ambienceSound = 'white'}) {
     if (!this.armed || !active || (!music && !ambience)) { this.stop(); return; }
+    musicTrack = TRACKS[musicTrack] ? musicTrack : 'sereno';
+    ambienceSound = AMBIENCE[ambienceSound] ? ambienceSound : 'white';
     try {
       const ctx = this.getContext();
       if (ctx.state !== 'running') ctx.resume().catch?.(() => {});
-      if (music && !this.musicTimer) {
+      if (music && (this.musicTrack !== musicTrack || !this.musicTimer)) {
+        this.stopMusic();
+        this.musicTrack = musicTrack;
         if (!this.musicOutput || this.musicOutput.context !== ctx) {
           this.musicOutput = ctx.createGain();
           this.musicOutput.gain.value = this.musicVolume / 50;
           this.musicOutput.connect(ctx.destination);
         }
         this.playChord(ctx);
-        this.musicTimer = setInterval(() => this.playChord(ctx), 7600);
+        this.musicTimer = setInterval(() => this.playChord(ctx), TRACKS[musicTrack].seconds * 1000);
       } else if (!music) this.stopMusic();
-      if (ambience && !this.ambienceSource) this.startAmbience(ctx);
+      if (ambience && (this.ambienceSound !== ambienceSound || !this.ambienceSource)) {
+        this.stopAmbience();
+        this.ambienceSound = ambienceSound;
+        this.startAmbience(ctx);
+      }
       else if (!ambience) this.stopAmbience();
     } catch { this.stop(); /* Audio can be unavailable in local-file views. */ }
   }
 
   playChord(ctx) {
-    const phrase = [
-      {pad: [130.81, 196, 261.63], melody: [523.25, 392, 440, 523.25]},
-      {pad: [174.61, 220, 261.63], melody: [440, 523.25, 659.25, 523.25]},
-      {pad: [164.81, 196, 246.94], melody: [493.88, 392, 329.63, 392]},
-      {pad: [146.83, 220, 293.66], melody: [440, 587.33, 523.25, 392]}
-    ][this.chord++ % 4];
+    const track = TRACKS[this.musicTrack];
+    const [pad, melody] = track.phrases[this.chord++ % track.phrases.length];
     const now = ctx.currentTime;
-    phrase.pad.forEach(frequency => this.scheduleVoice(ctx, frequency, now, 7.6, .013, 1.1));
-    phrase.melody.forEach((frequency, i) =>
-      this.scheduleVoice(ctx, frequency, now + [.55, 2.25, 4.15, 6.05][i], .92, .009, .07));
+    pad.forEach(frequency => this.scheduleVoice(ctx, frequency, now, track.seconds,
+      track.pad, track.attack, 'sine'));
+    melody.forEach((frequency, i) => this.scheduleVoice(ctx, frequency,
+      now + track.times[i], Math.min(1.25, track.seconds - track.times[i] - .1),
+      track.lead, .07, track.wave));
   }
 
-  scheduleVoice(ctx, frequency, time, duration, peak, attack) {
+  scheduleVoice(ctx, frequency, time, duration, peak, attack, wave) {
     const voice = ctx.createOscillator();
     const volume = ctx.createGain();
-    voice.type = 'sine';
+    voice.type = wave;
     voice.frequency.value = frequency;
     volume.gain.setValueAtTime(.0001, time);
     volume.gain.linearRampToValueAtTime(peak, time + attack);
@@ -761,21 +854,14 @@ class ZenAudio {
   }
 
   startAmbience(ctx) {
-    const length = Math.floor(ctx.sampleRate * 3);
-    const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
-    const samples = buffer.getChannelData(0);
-    for (let i = 0; i < length; i++) {
-      const edge = Math.min(1, i / 512, (length - i - 1) / 512);
-      samples[i] = (Math.random() * 2 - 1) * edge;
-    }
     const source = ctx.createBufferSource();
     const filter = ctx.createBiquadFilter();
     const volume = ctx.createGain();
-    source.buffer = buffer;
+    source.buffer = ambienceBuffer(ctx, this.ambienceSound);
     source.loop = true;
     filter.type = 'lowpass';
-    filter.frequency.value = 420;
-    volume.gain.value = this.ambienceVolume / 65 * .024;
+    filter.frequency.value = AMBIENCE[this.ambienceSound].filter;
+    volume.gain.value = this.ambienceVolume / 65 * AMBIENCE[this.ambienceSound].gain;
     source.connect(filter).connect(volume).connect(ctx.destination);
     source.onended = () => { source.disconnect(); filter.disconnect(); volume.disconnect(); };
     source.start();
@@ -785,6 +871,8 @@ class ZenAudio {
   stopMusic() {
     clearInterval(this.musicTimer);
     this.musicTimer = null;
+    this.musicTrack = null;
+    this.chord = 0;
     for (const {voice, volume} of this.voices) {
       volume.gain.cancelScheduledValues?.(voice.context?.currentTime ?? 0);
       volume.gain.setTargetAtTime(.0001, voice.context?.currentTime ?? 0, .04);
@@ -799,6 +887,7 @@ class ZenAudio {
     volume.gain.setTargetAtTime(.0001, ctx.currentTime, .04);
     try { source.stop(ctx.currentTime + .22); } catch {}
     this.ambienceSource = null;
+    this.ambienceSound = null;
   }
 
   stop() {
@@ -1007,7 +1096,8 @@ const appPaused = () => nativePaused || document.visibilityState === 'hidden';
 
 function syncZenAudio() {
   zenAudio.sync({active: game.mode === 'zen' && !appPaused(),
-    music: zenSettings.music, ambience: zenSettings.ambience});
+    music: zenSettings.music, ambience: zenSettings.ambience,
+    musicTrack: zenSettings.musicTrack, ambienceSound: zenSettings.ambienceSound});
 }
 
 function updateBreathStep() {
@@ -1045,6 +1135,8 @@ function syncZenUI(resetBreath = false) {
   $('#zen-panel').hidden = game.mode !== 'zen';
   $('#zen-music').checked = zenSettings.music;
   $('#zen-ambience').checked = zenSettings.ambience;
+  $('#zen-track').value = zenSettings.musicTrack;
+  $('#zen-soundscape').value = zenSettings.ambienceSound;
   $('#zen-breath').value = zenSettings.breath;
   $('#zen-effects').value = zenSettings.effects;
   boardFrame.dataset.effects = game.mode === 'zen' ? zenSettings.effects : 'normal';
@@ -1623,6 +1715,18 @@ $('#zen-music').addEventListener('change', event => {
 });
 $('#zen-ambience').addEventListener('change', event => {
   zenSettings.ambience = event.target.checked;
+  saveZenSettings();
+  zenAudio.armed = true;
+  syncZenAudio();
+});
+$('#zen-track').addEventListener('change', event => {
+  zenSettings.musicTrack = normalizeZenSettings({musicTrack: event.target.value}).musicTrack;
+  saveZenSettings();
+  zenAudio.armed = true;
+  syncZenAudio();
+});
+$('#zen-soundscape').addEventListener('change', event => {
+  zenSettings.ambienceSound = normalizeZenSettings({ambienceSound: event.target.value}).ambienceSound;
   saveZenSettings();
   zenAudio.armed = true;
   syncZenAudio();

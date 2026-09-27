@@ -86,6 +86,14 @@ test('old Endless session opens as Classic and switching modes keeps both sessio
   effects.value = 'soft';
   effects.handlers.change({target: effects});
   assert.equal(JSON.parse(data.get('prisma.zen.settings')).effects, 'soft');
+  const track = elements.get('#zen-track');
+  track.value = 'cidade';
+  track.handlers.change({target: track});
+  const soundscape = elements.get('#zen-soundscape');
+  soundscape.value = 'field';
+  soundscape.handlers.change({target: soundscape});
+  assert.equal(JSON.parse(data.get('prisma.zen.settings')).musicTrack, 'cidade');
+  assert.equal(JSON.parse(data.get('prisma.zen.settings')).ambienceSound, 'field');
   assert.equal(elements.get('.board-frame').dataset.effects, 'soft');
   const breath = elements.get('#zen-breath');
   breath.value = 'balanced';
