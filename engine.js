@@ -186,7 +186,10 @@ export class Game {
         if (direct.target !== null) { cleared.add(direct.target); enqueue(direct.target); }
       }
       while (queue.length) {
-        const index = queue.shift();
+        // Finish bursts and crosses first so an indirectly triggered Spectrum
+        // chooses a color that can still clear stones in this same reaction.
+        const regular = queue.findIndex(cell => this.tile(cell)?.type !== 'spectrum');
+        const [index] = queue.splice(regular < 0 ? 0 : regular, 1);
         const tile = this.tile(index);
         if (!tile || seen.has(tile.id)) continue;
         seen.add(tile.id);
@@ -205,7 +208,7 @@ export class Game {
           for (let i = 0; i < SIZE; i++) { add(r * SIZE + i); add(i * SIZE + c); }
         } else if (tile.type === 'spectrum') {
           const color = direct?.spectrum.length === 2 ? 'all' :
-            direct?.spectrum.includes(index) ? this.tile(direct.target)?.color : this.nearbyColor(index);
+            direct?.spectrum.includes(index) ? this.tile(direct.target)?.color : this.nearbyColor(index, cleared);
           if (color === 'all' || color !== null && color !== undefined) for (let i = 0; i < SIZE * SIZE; i++)
             if (color === 'all' || this.tile(i)?.color === color) add(i);
         }
@@ -270,12 +273,22 @@ export class Game {
     return index;
   }
 
-  nearbyColor(index) {
+  nearbyColor(index, cleared = new Set()) {
     const [r, c] = position(index);
     for (let distance = 1; distance < SIZE; distance++)
       for (const next of [r * SIZE + c - distance, r * SIZE + c + distance])
-        if (Math.floor(next / SIZE) === r && this.tile(next)?.color != null) return this.tile(next).color;
-    return null;
+        if (Math.floor(next / SIZE) === r && !cleared.has(next) && this.tile(next)?.color != null)
+          return this.tile(next).color;
+    // A row may have been swept entirely by another special in the chain.
+    // Use the closest surviving colored stone elsewhere on the board.
+    let closest = null;
+    for (let cell = 0; cell < SIZE * SIZE; cell++) {
+      if (cleared.has(cell) || this.tile(cell)?.color == null) continue;
+      const [row, column] = position(cell);
+      const distance = Math.abs(row - r) + Math.abs(column - c);
+      if (!closest || distance < closest.distance) closest = {color: this.tile(cell).color, distance};
+    }
+    return closest?.color ?? null;
   }
 
   shuffle(automatic = false) {
