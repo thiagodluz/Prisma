@@ -86,7 +86,11 @@
 @media(max-width:390px){.zen-settings-content{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.breath-orb.phase-in,.breath-orb.phase-out{animation:none}}
 
-/* The original CSS stones remain active unless the illustrated visual is selected. */
+/* Keep neighboring hues legible on small screens in the original CSS visual too. */
+:root[data-visual-style="original"] .gem-1{background:linear-gradient(140deg,#ffe6ab,#f38c17 47%,#aa4513)}
+:root[data-visual-style="original"] .gem-2{background:linear-gradient(145deg,#ffffe9,#f4e55c 43%,#a39a22)}
+:root[data-visual-style="original"] .gem-3{background:linear-gradient(145deg,#c9ffc3,#1cc46a 42%,#06664a)}
+:root[data-visual-style="original"] .gem-4{background:linear-gradient(145deg,#c9faff,#18b8e7 44%,#145d9f)}
 .legal-credits{margin:16px 4px 0;color:#aaa7c5;font-size:12px}
 .legal-credits summary{cursor:pointer;width:max-content;max-width:100%;padding:8px 0}
 .legal-credits-content{line-height:1.5}
