@@ -183,6 +183,26 @@ test('burst and cross chain reactions clear each cell once', () => {
   for (let r = 0; r < SIZE; r++) assert.ok(clear.cells.includes(at(r, 2)));
 });
 
+test('an indirectly triggered Spectrum clears a surviving color after surrounding bursts', () => {
+  const game = fixture();
+  place(game, 3, 1, 0);
+  place(game, 3, 2, 0, 'burst');
+  place(game, 3, 3, 1);
+  place(game, 2, 3, 0);
+  place(game, 2, 2, null, 'spectrum');
+  place(game, 2, 1, 3, 'burst');
+  place(game, 4, 2, 5, 'burst');
+
+  const result = game.move(at(2, 3), at(3, 3));
+  const clear = result.events[0];
+  assert.equal(result.valid, true);
+  assert.deepEqual(clear.activated.map(effect => effect.type),
+    ['burst', 'burst', 'burst', 'spectrum']);
+  assert.ok(clear.cells.includes(at(7, 7)),
+    'the Spectrum removes a distant stone of a color still present after the bursts');
+  assert.equal(new Set(clear.cells).size, clear.cells.length);
+});
+
 test('creating a special never replaces an existing special in the same match', () => {
   const game = fixture();
   for (let c = 0; c < 3; c++) place(game, 3, c, 0);

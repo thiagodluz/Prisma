@@ -1,5 +1,9 @@
 # Histórico de versões
 
+## 1.0.9 — 27/09/2026
+
+- Corrigida a ativação indireta do Espectro: após Pulso e Raio marcarem suas áreas, ele escolhe uma cor que ainda tenha pedras fora da explosão. Se a linha do Espectro estiver toda atingida, procura a pedra colorida restante mais próxima no tabuleiro.
+
 ## 1.0.8 — 26/09/2026
 
 - As pedras vermelhas especiais de Pulso e Raio têm um tom mais rosado e um brilho próprio no visual novo, para distingui-las da pedra laranja em telas pequenas.
