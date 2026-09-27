@@ -1,5 +1,9 @@
 # Histórico de versões
 
+## 1.0.6 — 26/09/2026
+
+- O visual “Anterior” agora separa melhor amarelo de laranja e verde de ciano, inclusive nas pedras especiais de Pulso e Raio. A correção completa a melhoria de cores iniciada na 1.0.5.
+
 ## 1.0.5 — 26/09/2026
 
 - As pedras verdes e ciano, assim como as amarelas e laranjas, têm cores mais distintas no visual ilustrado. A mudança abrange as pedras comuns, de Pulso e de Raio.
