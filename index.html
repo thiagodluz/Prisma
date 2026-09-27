@@ -11,13 +11,13 @@
   <link rel="preload" href="burst-atlas.webp" as="image">
   <link rel="preload" href="cross-atlas.webp" as="image">
   <link rel="preload" href="spectrum-gem.webp" as="image">
-  <link rel="stylesheet" href="style.css?v=1.0.4">
+  <link rel="stylesheet" href="style.css?v=1.0.5">
   <title>Prisma — combine pedras sem pressa</title>
 </head>
 <body>
   <main class="shell">
     <header class="header">
-      <div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 100 100" focusable="false"><path d="M50 9 C55 37 63 45 91 50 C63 55 55 63 50 91 C45 63 37 55 9 50 C37 45 45 37 50 9Z"/></svg></span><h1>PRISMA</h1></div>
+      <div class="brand"><span class="brand-mark" aria-hidden="true"><img src="icon-192.png" width="42" height="42" alt=""></span><h1>PRISMA</h1></div>
       <div class="header-actions">
         <button class="icon-button" id="vibration" type="button" aria-label="Ativar vibração" aria-pressed="false" title="Vibração" hidden>〰</button>
         <button class="icon-button" id="sound" type="button" aria-label="Desativar sons do jogo" title="Sons do jogo">♫</button>
@@ -51,10 +51,10 @@
       <div class="toolbar-actions">
         <button id="shuffle" class="quiet-button" type="button">⤨ <span>Embaralhar</span></button>
         <button id="hint" class="quiet-button" type="button">✧ <span>Dica</span></button>
+        <button id="new-game" class="quiet-button" type="button">↻ <span>Novo jogo</span></button>
       </div>
-      <div class="combo" id="combo" aria-live="polite">Combine três ou mais pedras</div>
-      <button id="new-game" class="quiet-button" type="button">↻ <span>Novo jogo</span></button>
     </div>
+    <div class="combo" id="combo" aria-live="polite"></div>
 
     <section class="mode-picker" aria-label="Modo de jogo">
       <button class="mode selected" data-mode="zen" type="button"><span class="mode-icon">☾</span><span><strong>Zen</strong><small>Sem pressa, sem derrota</small></span></button>
@@ -96,7 +96,6 @@
         <span class="breath-copy"><strong id="breath-phase" aria-live="polite">Inspire</strong><small id="breath-count" aria-hidden="true">4 segundos</small></span>
       </div>
     </section>
-    <p class="hint">Toque duas pedras vizinhas ou arraste para trocar.</p>
     <details class="records">
       <summary>Ver recordes</summary>
       <div class="records-grid">
@@ -127,6 +126,6 @@
       </div>
     </details>
   </main>
-  <script type="module" src="app.js?v=1.0.4"></script>
+  <script type="module" src="app.js?v=1.0.5"></script>
 </body>
 </html>

@@ -319,8 +319,8 @@ test('score rewards special creation and cascades with a capped multiplier', () 
 });
 
 test('level goals grow gradually and progress can cross multiple levels', () => {
-  assert.deepEqual([1, 2, 3, 4, 5, 10, 19, 20, 21, 100].map(levelGoal),
-    [1800, 1950, 2100, 2250, 2400, 3150, 4500, 4650, 4650, 4650]);
+  assert.deepEqual([1, 2, 3, 4, 5, 10, 19, 20, 21, 22, 23, 100].map(levelGoal),
+    [1800, 1950, 2100, 2250, 2400, 3150, 4500, 4650, 4800, 4950, 5000, 5000]);
   const game = new Game();
   game.score = levelGoal(1) - 50;
   const move = matchMove(game);
@@ -340,7 +340,7 @@ test('hint returns a legal move and prioritizes a pair of spectra', () => {
   assert.equal(game.hint(), null);
 });
 
-test('new progression save restores exact level position', () => {
+test('v2 progression migrates without losing achieved levels, points or progress', () => {
   const original = fixture();
   const copy = new Game();
   assert.ok(copy.restore({mode: 'zen', score: 4321, board: original.board,
@@ -348,6 +348,19 @@ test('new progression save restores exact level position', () => {
   assert.equal(copy.level, 3);
   assert.equal(copy.levelStartScore, 3750);
   assert.equal(copy.score - copy.levelStartScore, 571);
+  const high = new Game();
+  const legacyStart = 19 * 1800 + 19 * 18 * 75 + 5 * 4650;
+  assert.ok(high.restore({mode: 'zen', score: legacyStart + 4400, board: original.board,
+    progressionVersion: 2, level: 25, levelStartScore: legacyStart}));
+  assert.equal(high.level, 25);
+  assert.equal(high.score - high.levelStartScore, 4400);
+  const resumed = new Game();
+  assert.ok(resumed.restore({mode: high.mode, score: high.score, board: high.board,
+    progressionVersion: 3, level: high.level, levelStartScore: high.levelStartScore,
+    progressionOffset: high.progressionOffset}));
+  assert.equal(resumed.level, high.level);
+  assert.equal(resumed.levelStartScore, high.levelStartScore);
+  assert.equal(resumed.progressionOffset, high.progressionOffset);
 });
 
 test('corrupt saves leave the current game untouched', () => {
