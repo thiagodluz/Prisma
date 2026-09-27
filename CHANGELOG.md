@@ -1,5 +1,12 @@
 # Histórico de versões
 
+## 1.0.10 — 27/09/2026
+
+- Novo jogo pede confirmação antes de substituir a partida atual, inclusive pelo botão Jogar novamente.
+- A animação de embaralhamento dura 440 ms, com transição mais suave entre os tabuleiros.
+- A meta de nível que dispara o embaralhamento automático cresce até 6.000 pontos no nível 29. Partidas salvas mantêm nível, pontuação e avanço da meta ao migrar.
+- Créditos e licenças mostra a versão atual do app, sincronizada com a versão Android e web.
+
 ## 1.0.9 — 27/09/2026
 
 - Corrigida a ativação indireta do Espectro: após Pulso e Raio marcarem suas áreas, ele escolhe uma cor que ainda tenha pedras fora da explosão. Se a linha do Espectro estiver toda atingida, procura a pedra colorida restante mais próxima no tabuleiro.

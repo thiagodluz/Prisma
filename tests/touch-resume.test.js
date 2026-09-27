@@ -98,7 +98,7 @@ test('drag commits before animation and settles on Android pause or page hide', 
   assert.equal(board.children[hint.b].classList.contains('drag-target'), false);
   const committed = JSON.parse(storage.get('prisma.session.zen'));
   assert.ok(committed.score > saved.score);
-  assert.equal(committed.progressionVersion, 3);
+  assert.equal(committed.progressionVersion, 4);
   assert.equal(elements.get('#score').textContent, saved.score.toLocaleString('pt-BR'),
     'the display must not reveal points before the first clear');
   assert.equal(elements.get('#score-gain').classList.contains('visible'), false);

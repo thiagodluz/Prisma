@@ -16,7 +16,7 @@ test('old Endless session opens as Classic and switching modes keeps both sessio
   const makeElement = () => {
     const classes = new Set();
     return {
-      children: [], dataset: {}, style: {setProperty(name, value) { this[name] = value; }}, handlers: {},
+      children: [], dataset: {}, style: {setProperty(name, value) { this[name] = value; }}, handlers: {}, open: false,
       classList: {
         add(name) { classes.add(name); },
         remove(name) { classes.delete(name); },
@@ -25,6 +25,8 @@ test('old Endless session opens as Classic and switching modes keeps both sessio
       },
       setAttribute() {},
       addEventListener(name, listener) { this.handlers[name] = listener; },
+      showModal() { this.open = true; },
+      close() { this.open = false; },
       append(child) { this.children.push(child); },
       replaceChildren(...children) { this.children = children; }
     };
@@ -99,4 +101,16 @@ test('old Endless session opens as Classic and switching modes keeps both sessio
   assert.equal(JSON.parse(data.get('prisma.session.zen')).score, 0);
   breath.value = 'off';
   breath.handlers.change({target: breath});
+  const dialog = elements.get('#new-game-dialog');
+  const currentSession = data.get('prisma.session.classic');
+  elements.get('#new-game').handlers.click();
+  assert.equal(dialog.open, true);
+  assert.equal(data.get('prisma.session.classic'), currentSession);
+  elements.get('#cancel-new-game').handlers.click();
+  assert.equal(dialog.open, false);
+  assert.equal(data.get('prisma.session.classic'), currentSession);
+  elements.get('#new-game').handlers.click();
+  elements.get('#confirm-new-game').handlers.click();
+  assert.equal(dialog.open, false);
+  assert.equal(JSON.parse(data.get('prisma.session.classic')).score, 0);
 });
