@@ -11,7 +11,7 @@
   <link rel="preload" href="burst-atlas.webp" as="image">
   <link rel="preload" href="cross-atlas.webp" as="image">
   <link rel="preload" href="spectrum-gem.webp" as="image">
-  <link rel="stylesheet" href="style.css?v=1.0.10">
+  <link rel="stylesheet" href="style.css?v=1.1.0">
   <title>Prisma — combine pedras sem pressa</title>
 </head>
 <body>
@@ -84,6 +84,8 @@
         <div class="zen-settings-content">
           <label class="zen-check"><span><strong>Música</strong><small>Melodia tranquila</small></span><input id="zen-music" type="checkbox"></label>
           <label class="zen-check"><span><strong>Ambiente</strong><small>Som suave de fundo</small></span><input id="zen-ambience" type="checkbox"></label>
+          <label class="zen-field" for="zen-track"><span>Escolher música</span><select id="zen-track"><option value="sereno">Sereno</option><option value="cidade">Cidade ao entardecer</option><option value="jardim">Jardim noturno</option><option value="horizonte">Horizonte</option><option value="estrelas">Constelações</option></select></label>
+          <label class="zen-field" for="zen-soundscape"><span>Escolher ambiente</span><select id="zen-soundscape"><option value="white">Ruído branco</option><option value="stream">Riacho</option><option value="rain">Chuva</option><option value="storm">Tempestade</option><option value="field">Campo · pássaros e grilos</option></select></label>
           <label class="zen-field" for="zen-breath"><span>Respiração guiada</span><select id="zen-breath"><option value="off">Desligada</option><option value="balanced">4 s inspirar · 4 s expirar</option><option value="slow">4 s inspirar · 6 s expirar</option></select></label>
           <label class="zen-field" for="zen-effects"><span>Intensidade dos efeitos</span><select id="zen-effects"><option value="soft">Suave</option><option value="normal">Padrão</option><option value="vivid">Vibrante</option></select></label>
           <p class="zen-note">Música e ambiente começam no primeiro toque depois que você abrir o jogo.</p>
@@ -119,7 +121,7 @@
     <details class="legal-credits">
       <summary>Créditos e licenças</summary>
       <div class="legal-credits-content">
-        <p class="app-version">Versão 1.0.10</p>
+        <p class="app-version">Versão 1.1.0</p>
         <p>Prisma é um jogo original criado por Thiago Luz (2026). Versões derivadas devem preservar os créditos e identificar suas alterações.</p>
         <p>Código: <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener noreferrer">GPLv3</a>. Arte das pedras e fundo: <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>. Nome e ícone não integram a licença da arte.</p>
       </div>
@@ -133,6 +135,6 @@
       <button id="confirm-new-game" type="button">Novo jogo</button>
     </div>
   </dialog>
-  <script type="module" src="app.js?v=1.0.10"></script>
+  <script type="module" src="app.js?v=1.1.0"></script>
 </body>
 </html>

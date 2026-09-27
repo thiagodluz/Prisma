@@ -1,5 +1,12 @@
 # Histórico de versões
 
+## 1.1.0 — 27/09/2026
+
+- O modo Zen oferece cinco composições originais selecionáveis: Sereno, Cidade ao entardecer, Jardim noturno, Horizonte e Constelações.
+- Há cinco ambientes sonoros: ruído branco, riacho, chuva, tempestade e campo com pássaros e grilos. Música e ambiente podem tocar juntos, com volume independente.
+- As escolhas ficam salvas e podem ser trocadas durante a partida. O áudio para ao pausar, ocultar o jogo ou sair do Zen. As preferências anteriores são mantidas.
+
+
 ## 1.0.10 — 27/09/2026
 
 - Novo jogo pede confirmação antes de substituir a partida atual, inclusive pelo botão Jogar novamente.

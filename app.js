@@ -1,6 +1,6 @@
-import {Game, SIZE, levelGoal} from './engine.js?v=1.0.10';
-import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=1.0.10';
-import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=1.0.10';
+import {Game, SIZE, levelGoal} from './engine.js?v=1.1.0';
+import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=1.1.0';
+import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=1.1.0';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
@@ -104,7 +104,8 @@ const appPaused = () => nativePaused || document.visibilityState === 'hidden';
 
 function syncZenAudio() {
   zenAudio.sync({active: game.mode === 'zen' && !appPaused(),
-    music: zenSettings.music, ambience: zenSettings.ambience});
+    music: zenSettings.music, ambience: zenSettings.ambience,
+    musicTrack: zenSettings.musicTrack, ambienceSound: zenSettings.ambienceSound});
 }
 
 function updateBreathStep() {
@@ -142,6 +143,8 @@ function syncZenUI(resetBreath = false) {
   $('#zen-panel').hidden = game.mode !== 'zen';
   $('#zen-music').checked = zenSettings.music;
   $('#zen-ambience').checked = zenSettings.ambience;
+  $('#zen-track').value = zenSettings.musicTrack;
+  $('#zen-soundscape').value = zenSettings.ambienceSound;
   $('#zen-breath').value = zenSettings.breath;
   $('#zen-effects').value = zenSettings.effects;
   boardFrame.dataset.effects = game.mode === 'zen' ? zenSettings.effects : 'normal';
@@ -720,6 +723,18 @@ $('#zen-music').addEventListener('change', event => {
 });
 $('#zen-ambience').addEventListener('change', event => {
   zenSettings.ambience = event.target.checked;
+  saveZenSettings();
+  zenAudio.armed = true;
+  syncZenAudio();
+});
+$('#zen-track').addEventListener('change', event => {
+  zenSettings.musicTrack = normalizeZenSettings({musicTrack: event.target.value}).musicTrack;
+  saveZenSettings();
+  zenAudio.armed = true;
+  syncZenAudio();
+});
+$('#zen-soundscape').addEventListener('change', event => {
+  zenSettings.ambienceSound = normalizeZenSettings({ambienceSound: event.target.value}).ambienceSound;
   saveZenSettings();
   zenAudio.armed = true;
   syncZenAudio();
