@@ -1,5 +1,10 @@
 # Histórico de versões
 
+## 1.0.8 — 26/09/2026
+
+- As pedras vermelhas especiais de Pulso e Raio têm um tom mais rosado e um brilho próprio no visual novo, para distingui-las da pedra laranja em telas pequenas.
+- Embaralhar, Dica e Novo jogo ganharam aparência de botões, com fundo, borda e área de toque maior no celular.
+
 ## 1.0.7 — 26/09/2026
 
 - Removida a faixa de mensagens abaixo do tabuleiro que descrevia ou avaliava cada jogada. A dica continua destacando as duas pedras e as animações, a pontuação e os avisos dentro do tabuleiro permanecem.
