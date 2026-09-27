@@ -1,6 +1,6 @@
-import {Game, SIZE, levelGoal} from './engine.js?v=1.0.9';
-import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=1.0.9';
-import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=1.0.9';
+import {Game, SIZE, levelGoal} from './engine.js?v=1.0.10';
+import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=1.0.10';
+import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=1.0.10';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
@@ -191,7 +191,7 @@ function save() {
   try {
     localStorage.setItem(sessionKey(game.mode), JSON.stringify({
       mode: game.mode, score: game.score, board: game.board, ended: game.ended,
-      progressionVersion: 3, level: game.level, levelStartScore: game.levelStartScore,
+      progressionVersion: 4, level: game.level, levelStartScore: game.levelStartScore,
       progressionOffset: game.progressionOffset
     }));
     localStorage.setItem('prisma.activeMode', game.mode);
@@ -491,10 +491,10 @@ async function animateLevel() {
 
 async function animateShuffle(board) {
   if (!reducedMotion()) await waitAnimations([boardElement.animate(
-    [{opacity: 1}, {opacity: .12}], {duration: 125, easing: 'ease-in', fill: 'both'})]);
+    [{opacity: 1}, {opacity: .12}], {duration: 190, easing: 'ease-in', fill: 'both'})]);
   draw(board);
   if (!reducedMotion()) await waitAnimations([boardElement.animate(
-    [{opacity: .12}, {opacity: 1}], {duration: 170, easing: 'ease-out'})]);
+    [{opacity: .12}, {opacity: 1}], {duration: 250, easing: 'ease-out'})]);
 }
 
 async function attempt(a, b) {
@@ -684,8 +684,17 @@ function startNewGame() {
   game.newGame();
   draw(); hud(); save();
 }
-$('#new-game').addEventListener('click', startNewGame);
-$('#play-again').addEventListener('click', startNewGame);
+const newGameDialog = $('#new-game-dialog');
+function askNewGame() {
+  if (!busy && !newGameDialog.open) newGameDialog.showModal();
+}
+$('#new-game').addEventListener('click', askNewGame);
+$('#play-again').addEventListener('click', askNewGame);
+$('#cancel-new-game').addEventListener('click', () => newGameDialog.close());
+$('#confirm-new-game').addEventListener('click', () => {
+  newGameDialog.close();
+  startNewGame();
+});
 document.querySelectorAll('.mode').forEach(button => button.addEventListener('click', () => {
   if (busy || game.mode === button.dataset.mode) return;
   clearScoreGain();

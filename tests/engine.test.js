@@ -338,9 +338,9 @@ test('score rewards special creation and cascades with a capped multiplier', () 
     assert.ok(event.comboMultiplier >= 1 && event.comboMultiplier <= 3);
 });
 
-test('level goals grow gradually and progress can cross multiple levels', () => {
-  assert.deepEqual([1, 2, 3, 4, 5, 10, 19, 20, 21, 22, 23, 100].map(levelGoal),
-    [1800, 1950, 2100, 2250, 2400, 3150, 4500, 4650, 4800, 4950, 5000, 5000]);
+test('level goals grow gradually to 6,000 and progress can cross multiple levels', () => {
+  assert.deepEqual([1, 2, 3, 4, 5, 10, 19, 20, 21, 22, 23, 28, 29, 100].map(levelGoal),
+    [1800, 1950, 2100, 2250, 2400, 3150, 4500, 4650, 4800, 4950, 5100, 5850, 6000, 6000]);
   const game = new Game();
   game.score = levelGoal(1) - 50;
   const move = matchMove(game);
@@ -360,7 +360,7 @@ test('hint returns a legal move and prioritizes a pair of spectra', () => {
   assert.equal(game.hint(), null);
 });
 
-test('v2 progression migrates without losing achieved levels, points or progress', () => {
+test('v2 and v3 progression migrate to 6,000 without losing level, points or progress', () => {
   const original = fixture();
   const copy = new Game();
   assert.ok(copy.restore({mode: 'zen', score: 4321, board: original.board,
@@ -376,11 +376,24 @@ test('v2 progression migrates without losing achieved levels, points or progress
   assert.equal(high.score - high.levelStartScore, 4400);
   const resumed = new Game();
   assert.ok(resumed.restore({mode: high.mode, score: high.score, board: high.board,
-    progressionVersion: 3, level: high.level, levelStartScore: high.levelStartScore,
+    progressionVersion: 4, level: high.level, levelStartScore: high.levelStartScore,
     progressionOffset: high.progressionOffset}));
   assert.equal(resumed.level, high.level);
   assert.equal(resumed.levelStartScore, high.levelStartScore);
   assert.equal(resumed.progressionOffset, high.progressionOffset);
+  const oldCapStart = 22 * 1800 + 22 * 21 * 75 + 6 * 5000;
+  const v3 = new Game();
+  assert.ok(v3.restore({mode: 'zen', score: oldCapStart + 4900, board: original.board,
+    progressionVersion: 3, level: 29, levelStartScore: oldCapStart, progressionOffset: 0}));
+  assert.equal(v3.level, 29);
+  assert.equal(v3.score - v3.levelStartScore, 4900);
+  assert.equal(levelGoal(v3.level), 6000);
+  const next = new Game();
+  assert.ok(next.restore({mode: v3.mode, score: v3.score, board: v3.board,
+    progressionVersion: 4, level: v3.level, levelStartScore: v3.levelStartScore,
+    progressionOffset: v3.progressionOffset}));
+  assert.equal(next.levelStartScore, oldCapStart);
+  assert.equal(next.progressionOffset, v3.progressionOffset);
 });
 
 test('corrupt saves leave the current game untouched', () => {

@@ -1,12 +1,13 @@
 export const SIZE = 8;
 export const COLORS = 7;
 export const SPECIALS = ['burst', 'cross', 'spectrum'];
-// The goal grows by 150 points per level until it reaches 5,000 at level 23.
-export const levelGoal = level => Math.min(5000, 1800 + (level - 1) * 150);
-const levelStartAt = (level, legacy = false) => {
-  const growing = Math.min(level - 1, legacy ? 19 : 22);
+// The goal grows by 150 points per level until it reaches 6,000 at level 29.
+const goalFor = (level, cap) => Math.min(cap, 1800 + (level - 1) * 150);
+export const levelGoal = level => goalFor(level, 6000);
+const levelStartAt = (level, cap = 6000) => {
+  const growing = Math.min(level - 1, Math.ceil((cap - 1800) / 150));
   return growing * 1800 + growing * (growing - 1) * 75 +
-    Math.max(0, level - (legacy ? 20 : 23)) * (legacy ? 4650 : 5000);
+    Math.max(0, level - growing - 1) * cap;
 };
 const creationPoints = {burst: 120, cross: 180, spectrum: 240};
 const copy = board => board.map(row => [...row]);
@@ -335,15 +336,16 @@ export class Game {
       !saved.board.every(row => Array.isArray(row) && row.length === SIZE && row.every(validTile))) return false;
     const existing = saved.board.flat().filter(tile => typeof tile !== 'number').map(tile => tile.id);
     if (new Set(existing).size !== existing.length) return false;
-    if ([2, 3].includes(saved.progressionVersion) &&
+    if ([2, 3, 4].includes(saved.progressionVersion) &&
       (!Number.isSafeInteger(saved.level) || saved.level < 1 ||
        !Number.isSafeInteger(saved.levelStartScore) ||
-       (saved.progressionVersion === 2 && saved.levelStartScore !== levelStartAt(saved.level, true)) ||
-       (saved.progressionVersion === 3 &&
+       (saved.progressionVersion === 2 && saved.levelStartScore !== levelStartAt(saved.level, 4650)) ||
+       ([3, 4].includes(saved.progressionVersion) &&
          (!Number.isSafeInteger(saved.progressionOffset) || saved.progressionOffset < 0 ||
-          saved.levelStartScore !== levelStartAt(saved.level) - saved.progressionOffset)) ||
+          saved.levelStartScore !== levelStartAt(saved.level, saved.progressionVersion === 3 ? 5000 : 6000) - saved.progressionOffset)) ||
        saved.levelStartScore > saved.score ||
-       saved.score - saved.levelStartScore >= levelGoal(saved.level))) return false;
+       saved.score - saved.levelStartScore >= goalFor(saved.level,
+         saved.progressionVersion === 2 ? 4650 : saved.progressionVersion === 3 ? 5000 : 6000))) return false;
     const candidate = Object.create(Game.prototype);
     candidate.random = this.random;
     candidate.nextId = Math.max(this.nextId, 1, ...existing.map(id => id + 1));
@@ -351,15 +353,15 @@ export class Game {
       typeof tile === 'number' ? candidate.gem(tile) : {...tile}));
     candidate.mode = saved.mode === 'endless' ? 'classic' : saved.mode;
     candidate.score = saved.score;
-    if ([2, 3].includes(saved.progressionVersion)) {
+    if ([2, 3, 4].includes(saved.progressionVersion)) {
       candidate.level = saved.level;
       candidate.levelStartScore = saved.levelStartScore;
-      // Preserve achieved levels and current progress in v2 saves. The offset
-      // keeps future 5,000-point goals consistent across subsequent restores.
-      candidate.progressionOffset = saved.progressionVersion === 2 ?
-        levelStartAt(saved.level) - saved.levelStartScore : saved.progressionOffset;
+      // Preserve achieved levels and current progress across both goal-cap
+      // changes; the offset keeps future 6,000-point goals consistent.
+      candidate.progressionOffset = saved.progressionVersion === 4 ?
+        saved.progressionOffset : levelStartAt(saved.level) - saved.levelStartScore;
     } else {
-      // Recalculate old progress against current thresholds before saving as v3.
+      // Recalculate old progress against current thresholds before saving as v4.
       let low = 1, high = 1 + Math.floor(candidate.score / 1800);
       while (low < high) {
         const middle = Math.ceil((low + high) / 2);

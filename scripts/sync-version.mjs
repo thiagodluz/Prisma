@@ -8,6 +8,8 @@ const versionCode = versionCodeFor(version);
 const check = process.argv.includes('--check');
 const files = [
   ['../index.html', /(style\.css|app\.js)\?v=[\w.-]+/g, (_, file) => `${file}?v=${version}`],
+  ['../index.html', /(<p class="app-version">Versão )[\w.-]+(<\/p>)/g,
+    (_, prefix, suffix) => `${prefix}${version}${suffix}`],
   ['../app.js', /(engine\.js|zen\.js|sound\.js)\?v=[\w.-]+/g, (_, file) => `${file}?v=${version}`],
   ['../android/app/build.gradle', /versionName '[^']+'/g, () => `versionName '${version}'`],
   ['../android/app/build.gradle', /versionCode \d+/g, () => `versionCode ${versionCode}`]

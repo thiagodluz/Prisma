@@ -150,3 +150,12 @@ html{overscroll-behavior-y:none}:root{font-family:Inter,ui-sans-serif,system-ui,
 .quiet-button:focus-visible{outline:2px solid #b1f7e9;outline-offset:2px}
 .quiet-button:disabled{opacity:.4}
 @media(max-width:390px){.toolbar-actions{gap:5px}.quiet-button{font-size:12px;min-height:56px}}
+.app-version{font-weight:700;color:#ebe5ff}
+#new-game-dialog{width:min(340px,calc(100% - 32px));max-width:none;padding:23px 21px;border:1px solid #c4b5f48a;border-radius:18px;background:linear-gradient(155deg,#343451,#1a1e39);box-shadow:0 20px 60px #050718bd;color:#fff}
+#new-game-dialog::backdrop{background:#06091dc4;backdrop-filter:blur(3px)}
+#new-game-dialog h2{font-size:20px;line-height:1.25;margin:0 0 9px}
+#new-game-dialog p{font-size:14px;line-height:1.45;color:#d0cce5;margin:0 0 22px}
+.dialog-actions{display:flex;justify-content:flex-end;gap:9px}
+.dialog-actions button{min-height:44px;padding:9px 14px;border:1px solid #d5cbf36b;border-radius:10px;background:#ffffff13;font-size:14px;font-weight:700}
+.dialog-actions #confirm-new-game{background:linear-gradient(120deg,#8be2da,#b7a2ff);border-color:transparent;color:#19213c}
+.dialog-actions button:focus-visible{outline:2px solid #b1f7e9;outline-offset:2px}
