@@ -1,6 +1,6 @@
-import {Game, SIZE, levelGoal} from './engine.js?v=1.0.6';
-import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=1.0.6';
-import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=1.0.6';
+import {Game, SIZE, levelGoal} from './engine.js?v=1.0.7';
+import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=1.0.7';
+import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=1.0.7';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
@@ -17,7 +17,6 @@ const progress = $('#progress');
 const progressFill = $('#progress-fill');
 const progressLabel = $('#progress-label');
 const scoreGain = $('#score-gain');
-const combo = $('#combo');
 const toast = $('#toast');
 const gameOver = $('#game-over');
 const levelUp = $('#level-up');
@@ -69,7 +68,6 @@ let selected = null;
 let pointerStart = null;
 let busy = false;
 let hintTimer;
-let comboTimer;
 let soundOn = true;
 try { soundOn = localStorage.getItem('prisma.sound') !== 'off'; } catch { /* Some local file views deny storage. */ }
 let audioSettings;
@@ -308,7 +306,6 @@ function hud(moveEarned = 0, finishedGame = false) {
 
 function clearHint() {
   clearTimeout(hintTimer);
-  clearTimeout(comboTimer);
   for (const cell of boardElement.querySelectorAll?.('.cell.hinted') ?? []) cell.classList.remove('hinted');
 }
 
@@ -519,17 +516,12 @@ async function attempt(a, b) {
     for (const frame of result.events) {
       if (document.visibilityState === 'hidden') break;
       if (frame.type === 'shuffle') {
-        combo.textContent = 'Tabuleiro reorganizado!';
         await animateShuffle(frame.board);
         continue;
       }
       draw(frame.board, frame.type === 'clear' ? frame.cells : []);
       if (frame.type === 'clear') {
         playTone(cueForFrame(frame), frame.chain);
-        combo.textContent = frame.activated.some(effect => effect.type === 'spectrum') ? 'Explosão de cores!' :
-          frame.activated.length ? 'Reação em cadeia!' :
-          frame.creations.length ? 'Pedra especial criada!' :
-          frame.chain > 1 ? `Cascata ×${frame.chain}!` : 'Boa combinação!';
         await animateClear(frame);
         stage.score += frame.earned;
         while (stage.score - stage.levelStartScore >= levelGoal(stage.level)) {
@@ -548,7 +540,6 @@ async function attempt(a, b) {
         if (frame.creations.length) playTone('create');
       } else if (frame.type === 'fall') await animateFall(frame.falls);
       else if (frame.type === 'rescue') {
-        combo.textContent = 'O Espectro abriu uma nova jogada';
         playTone('rescue');
         if (!reducedMotion()) {
           const mover = boardElement.querySelectorAll('.cell')[frame.index]?.querySelector('.mover');
@@ -566,11 +557,6 @@ async function attempt(a, b) {
     draw();
     if (result.valid) {
       hud(result.earned, result.ended);
-      if (result.ended) combo.textContent = 'Sem jogadas restantes';
-      else if (result.levelsGained) combo.textContent = `Nível ${game.level}!`;
-      else if (!result.rescued) comboTimer = setTimeout(() => {
-        if (!busy) combo.textContent = '';
-      }, 1500);
     }
     boardElement.classList.remove('busy');
     busy = false;
@@ -672,11 +658,7 @@ $('#hint').addEventListener('click', () => {
   const cells = boardElement.querySelectorAll('.cell');
   cells[hint.a]?.classList.add('hinted');
   cells[hint.b]?.classList.add('hinted');
-  combo.textContent = 'Troque as duas pedras destacadas';
-  hintTimer = setTimeout(() => {
-    clearHint();
-    if (!busy) combo.textContent = '';
-  }, 2600);
+  hintTimer = setTimeout(clearHint, 2600);
 });
 $('#shuffle').addEventListener('click', async () => {
   if (busy) return;
@@ -700,7 +682,6 @@ function startNewGame() {
   clearHint();
   selected = null;
   game.newGame();
-  combo.textContent = '';
   draw(); hud(); save();
 }
 $('#new-game').addEventListener('click', startNewGame);
@@ -712,7 +693,6 @@ document.querySelectorAll('.mode').forEach(button => button.addEventListener('cl
   selected = null;
   save();
   restoreMode(button.dataset.mode);
-  combo.textContent = game.ended ? 'Sem jogadas restantes' : '';
   draw(); hud(); save();
   zenAudio.armed = true;
   syncZenUI(true);
