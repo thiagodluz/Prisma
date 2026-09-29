@@ -261,8 +261,7 @@ function draw(board = game.board, matched = []) {
   }));
 }
 
-function hud(moveEarned = 0, finishedGame = false) {
-  scoreElement.textContent = game.score.toLocaleString('pt-BR');
+function commitRecords(moveEarned = 0, finishedGame = false) {
   const record = safeRecord(game.mode);
   const previous = {...record};
   record.bestScore = Math.max(record.bestScore, game.score);
@@ -275,6 +274,12 @@ function hud(moveEarned = 0, finishedGame = false) {
       localStorage.setItem('prisma.best.' + game.mode, String(record.bestScore));
     } catch {}
   }
+  return record;
+}
+
+function hud() {
+  scoreElement.textContent = game.score.toLocaleString('pt-BR');
+  const record = commitRecords();
   bestElement.textContent = record.bestScore.toLocaleString('pt-BR');
   levelElement.textContent = String(game.level);
   modeLabel.textContent = 'NÍVEL';
@@ -511,6 +516,7 @@ async function attempt(a, b) {
   if (result.valid) {
     // The engine has already committed all cascades; persist before any visual delay.
     save();
+    commitRecords(result.earned, result.ended);
     vibrate(result.levelsGained ? [28, 55, 35] : result.events.some(frame => frame.activated?.length) ? 45 : 28);
   } else playTone('invalid');
   try {
@@ -559,7 +565,7 @@ async function attempt(a, b) {
     levelUp.hidden = true;
     draw();
     if (result.valid) {
-      hud(result.earned, result.ended);
+      hud();
     }
     boardElement.classList.remove('busy');
     busy = false;
