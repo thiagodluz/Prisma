@@ -276,7 +276,7 @@
     <details class="legal-credits">
       <summary>Créditos e licenças</summary>
       <div class="legal-credits-content">
-        <p class="app-version">Versão 1.1.0</p>
+        <p class="app-version">Versão 1.1.1</p>
         <p>Prisma é um jogo original criado por Thiago Luz (2026). Versões derivadas devem preservar os créditos e identificar suas alterações.</p>
         <p>Código: <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener noreferrer">GPLv3</a>. Arte das pedras e fundo: <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>. Nome e ícone não integram a licença da arte.</p>
       </div>
@@ -814,7 +814,9 @@ class ZenAudio {
           this.musicOutput.connect(ctx.destination);
         }
         this.playChord(ctx);
-        this.musicTimer = setInterval(() => this.playChord(ctx), TRACKS[musicTrack].seconds * 1000);
+        this.musicTimer = setInterval(() => {
+          if (ctx.state === 'running') this.playChord(ctx);
+        }, TRACKS[musicTrack].seconds * 1000);
       } else if (!music) this.stopMusic();
       if (ambience && (this.ambienceSound !== ambienceSound || !this.ambienceSource)) {
         this.stopAmbience();
@@ -1253,8 +1255,7 @@ function draw(board = game.board, matched = []) {
   }));
 }
 
-function hud(moveEarned = 0, finishedGame = false) {
-  scoreElement.textContent = game.score.toLocaleString('pt-BR');
+function commitRecords(moveEarned = 0, finishedGame = false) {
   const record = safeRecord(game.mode);
   const previous = {...record};
   record.bestScore = Math.max(record.bestScore, game.score);
@@ -1267,6 +1268,12 @@ function hud(moveEarned = 0, finishedGame = false) {
       localStorage.setItem('prisma.best.' + game.mode, String(record.bestScore));
     } catch {}
   }
+  return record;
+}
+
+function hud() {
+  scoreElement.textContent = game.score.toLocaleString('pt-BR');
+  const record = commitRecords();
   bestElement.textContent = record.bestScore.toLocaleString('pt-BR');
   levelElement.textContent = String(game.level);
   modeLabel.textContent = 'NÍVEL';
@@ -1503,6 +1510,7 @@ async function attempt(a, b) {
   if (result.valid) {
     // The engine has already committed all cascades; persist before any visual delay.
     save();
+    commitRecords(result.earned, result.ended);
     vibrate(result.levelsGained ? [28, 55, 35] : result.events.some(frame => frame.activated?.length) ? 45 : 28);
   } else playTone('invalid');
   try {
@@ -1551,7 +1559,7 @@ async function attempt(a, b) {
     levelUp.hidden = true;
     draw();
     if (result.valid) {
-      hud(result.earned, result.ended);
+      hud();
     }
     boardElement.classList.remove('busy');
     busy = false;

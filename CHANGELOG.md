@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.1.1 — 29/09/2026
+
+- Recordes e partidas clássicas finalizadas são salvos assim que a jogada é concluída, antes das animações.
+- O cache offline busca os arquivos atualizados na rede durante a instalação de uma nova versão.
+- O Android preserva a Activity em mudanças de tamanho, layout, teclado e tema do sistema.
+- A música do Zen não agenda acordes adicionais enquanto o áudio está suspenso.
+- O README passou a indicar a versão 1.1.1.
+
 ## 1.1.0 — 27/09/2026
 
 - O modo Zen oferece cinco composições originais selecionáveis: Sereno, Cidade ao entardecer, Jardim noturno, Horizonte e Constelações.
