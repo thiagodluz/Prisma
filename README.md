@@ -99,6 +99,6 @@ Consulte os arquivos de licença para saber exatamente quais direitos se aplicam
 
 ## Estado do projeto
 
-O Prisma é um projeto independente em desenvolvimento. A versão 1.0.2 está jogável, mas a experiência em aparelhos Android reais — especialmente consumo de bateria, retomada, áudio e leitura das pedras em telas pequenas — ainda deve ser validada antes de ser tratada como uma versão final de distribuição.
+O Prisma é um projeto independente em desenvolvimento. A versão 1.1.1 está jogável, mas a experiência em aparelhos Android reais — especialmente consumo de bateria, retomada, áudio e leitura das pedras em telas pequenas — ainda deve ser validada antes de ser tratada como uma versão final de distribuição.
 
 Sugestões, relatos de problemas e contribuições são bem-vindos. Ao abrir uma issue, informe o aparelho, a versão do Android, o modo de jogo e os passos para reproduzir o problema.
