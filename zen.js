@@ -135,7 +135,9 @@ export class ZenAudio {
           this.musicOutput.connect(ctx.destination);
         }
         this.playChord(ctx);
-        this.musicTimer = setInterval(() => this.playChord(ctx), TRACKS[musicTrack].seconds * 1000);
+        this.musicTimer = setInterval(() => {
+          if (ctx.state === 'running') this.playChord(ctx);
+        }, TRACKS[musicTrack].seconds * 1000);
       } else if (!music) this.stopMusic();
       if (ambience && (this.ambienceSound !== ambienceSound || !this.ambienceSource)) {
         this.stopAmbience();

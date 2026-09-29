@@ -66,3 +66,41 @@ test('music and ambience start independently and both stop outside Zen', () => {
     assert.equal(audio.ambienceSource, null);
   } finally { audio.stop(); }
 });
+
+test('Zen does not queue repeated chords while the audio context is suspended', () => {
+  const notes = [];
+  const param = () => ({value: 0, setValueAtTime() {}, linearRampToValueAtTime() {},
+    exponentialRampToValueAtTime() {}, setTargetAtTime() {}});
+  const ctx = {
+    state: 'running', currentTime: 0, destination: {},
+    createGain() { return {context: ctx, gain: param(), connect(target) { return target; }, disconnect() {}}; },
+    createOscillator() {
+      const voice = {context: ctx, frequency: {value: 0}, connect(target) { return target; },
+        start() {}, stop() {}, disconnect() {}};
+      notes.push(voice);
+      return voice;
+    }
+  };
+  const originalSetInterval = globalThis.setInterval;
+  const originalClearInterval = globalThis.clearInterval;
+  let tick;
+  globalThis.setInterval = callback => { tick = callback; return 1; };
+  globalThis.clearInterval = () => {};
+  const audio = new ZenAudio(() => ctx);
+  try {
+    audio.armed = true;
+    audio.sync({active: true, music: true, ambience: false});
+    assert.equal(notes.length, 7, 'the first chord plays immediately');
+    ctx.state = 'suspended';
+    tick();
+    tick();
+    assert.equal(notes.length, 7, 'suspension does not queue additional notes');
+    ctx.state = 'running';
+    tick();
+    assert.equal(notes.length, 14, 'music continues when audio resumes');
+  } finally {
+    audio.stop();
+    globalThis.setInterval = originalSetInterval;
+    globalThis.clearInterval = originalClearInterval;
+  }
+});
