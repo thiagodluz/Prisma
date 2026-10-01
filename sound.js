@@ -61,6 +61,11 @@ export class SoundDesign {
         const notes = [523.25, 659.25, 783.99];
         notes.forEach((frequency, i) => this.note(ctx, frequency * 2 ** (lift / 12),
           now + i * .057, .21, kind === 'cascade' ? .055 : .047, 'triangle'));
+      } else if (kind === 'supernova') {
+        this.note(ctx, 130.81, now, .25, .06, 'sine', 523.25);
+        this.note(ctx, 220, now + .24, .44, .09, 'sine', 55);
+        [523.25, 783.99, 1046.5, 1567.98].forEach((frequency, i) =>
+          this.note(ctx, frequency, now + .24 + i * .045, .32, .045, 'triangle'));
       } else if (kind === 'burst') {
         this.note(ctx, 190, now, .31, .085, 'sine', 63);
         [740, 988, 1318].forEach((frequency, i) =>
@@ -89,6 +94,7 @@ export class SoundDesign {
 
 export function cueForFrame(frame) {
   const types = frame.activated?.map(effect => effect.type) ?? [];
+  if (types.includes('supernova')) return 'supernova';
   if (types.includes('spectrum')) return 'spectrum';
   if (types.includes('cross')) return 'cross';
   if (types.includes('burst')) return 'burst';

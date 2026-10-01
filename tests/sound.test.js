@@ -27,6 +27,7 @@ test('special reactions get distinct audio cues before regular cascades', () => 
   assert.equal(cueForFrame({chain: 2, activated: [{type: 'burst'}]}), 'burst');
   assert.equal(cueForFrame({chain: 2, activated: [{type: 'cross'}, {type: 'burst'}]}), 'cross');
   assert.equal(cueForFrame({chain: 2, activated: [{type: 'cross'}, {type: 'spectrum'}]}), 'spectrum');
+  assert.equal(cueForFrame({chain: 2, activated: [{type: 'supernova'}, {type: 'spectrum'}]}), 'supernova');
 });
 
 test('invalid, match, burst and spectrum schedule different original sound shapes', () => {
@@ -55,4 +56,8 @@ test('invalid, match, burst and spectrum schedule different original sound shape
   assert.equal(played[4].frequency.last, 63);
   design.play('spectrum');
   assert.equal(played.length, 16);
+  design.play('supernova');
+  assert.equal(played.length, 22);
+  assert.equal(played[17].frequency.initial, 220);
+  assert.equal(played[17].frequency.last, 55);
 });
