@@ -27,6 +27,7 @@ Toque em duas pedras vizinhas ou arraste uma pedra para trocar de posição. A t
 - Uma formação em L ou T cria um **Raio**, que limpa a linha e a coluna.
 - Cinco ou mais pedras em linha criam um **Espectro**, que pode limpar uma cor inteira.
 - Combine especiais com cuidado: os efeitos podem atingir e ativar outras especiais.
+- Três ou mais **Pulsos ou Raios consecutivos da mesma cor**, numa linha válida, se fundem numa **Supernova**: uma explosão de até 5 × 5 casas, centrada na especial do meio, que ativa outras especiais atingidas. Também funciona em cascatas. Um grupo com quantidade par usa a central à esquerda ou acima. Espectros não têm cor e não entram nessa fusão.
 
 Use **Dica** quando quiser encontrar uma jogada. No Zen, **Embaralhar** reorganiza o tabuleiro sem apagar pontos nem especiais.
 

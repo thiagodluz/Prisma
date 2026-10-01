@@ -120,9 +120,12 @@ export class Game {
       } else {
         this.swap(a, b);
         const match = this.matches();
-        if (match.cells.length)
-          value = match.cells.length + this.creations(match, [b, a]).reduce(
-            (sum, gem) => sum + (gem.type === 'spectrum' ? 10 : gem.type === 'cross' ? 7 : 5), 0);
+        if (match.cells.length) {
+          const novas = this.supernovas(match);
+          value = match.cells.length + novas.length * 20 +
+            this.creations(match, [b, a], new Set(novas.flatMap(effect => effect.sources))).reduce(
+              (sum, gem) => sum + (gem.type === 'spectrum' ? 10 : gem.type === 'cross' ? 7 : 5), 0);
+        }
         this.swap(a, b);
       }
       if (value && (!best || value > best.value)) best = {a, b, value};
@@ -132,7 +135,7 @@ export class Game {
 
   // Connected same-color runs make one special. Prefer the destination of the
   // player's swap; cascades use the lowest matching cell.
-  creations(match, preferred = []) {
+  creations(match, preferred = [], fused = new Set()) {
     const components = [];
     for (const run of match.runs) {
       const overlapping = components.filter(component => component.color === run.color &&
@@ -142,6 +145,7 @@ export class Game {
       components.push({color: run.color, cells, runs: [run, ...overlapping.flatMap(component => component.runs)]});
     }
     return components.flatMap(component => {
+      if ([...component.cells].some(cell => fused.has(cell))) return [];
       const hasFive = component.runs.some(run => run.length >= 5);
       const intersects = component.runs.length > 1 &&
         component.cells.size < component.runs.reduce((sum, run) => sum + run.length, 0);
@@ -153,6 +157,30 @@ export class Game {
       return [{index: preferred.find(cell => candidates.includes(cell)) ?? Math.max(...candidates),
         type, color: component.color}];
     });
+  }
+
+  // Fuse each uninterrupted group of 3+ colored specials in a matching line.
+  // A crossing or a longer line must never consume the same special twice.
+  supernovas(match) {
+    const effects = [];
+    const consumed = new Set();
+    for (const run of match.runs) {
+      let group = [];
+      const finish = () => {
+        if (group.length >= 3) {
+          effects.push({type: 'supernova', index: group[Math.floor((group.length - 1) / 2)],
+            color: run.color, sources: [...group]});
+          group.forEach(cell => consumed.add(cell));
+        }
+        group = [];
+      };
+      for (const cell of run.cells) {
+        if (['burst', 'cross'].includes(this.tile(cell)?.type) && !consumed.has(cell)) group.push(cell);
+        else finish();
+      }
+      finish();
+    }
+    return effects;
   }
 
   move(a, b) {
@@ -170,13 +198,15 @@ export class Game {
     let direct = spectrum.length ? {spectrum, target: spectrum.length === 1 ? (spectrum[0] === a ? b : a) : null} : null;
     while (match.cells.length || direct) {
       chain++;
-      const creations = (direct ? [] : this.creations(match, chain === 1 ? [b, a] : []))
+      const supernovas = this.supernovas(match);
+      const fused = new Set(supernovas.flatMap(effect => effect.sources));
+      const creations = (direct ? [] : this.creations(match, chain === 1 ? [b, a] : [], fused))
         .map(creation => ({...creation, tile: this.gem(creation.color, creation.type)}));
       const protectedCells = new Set(creations.map(creation => creation.index));
       const cleared = new Set(match.cells.filter(index => !protectedCells.has(index)));
-      const activated = [];
+      const activated = [...supernovas];
       const queue = [];
-      const seen = new Set();
+      const seen = new Set([...fused].map(index => this.tile(index).id));
       const enqueue = index => {
         const tile = this.tile(index);
         if (!protectedCells.has(index) && tile && tile.type !== 'normal' && !seen.has(tile.id)) queue.push(index);
@@ -185,6 +215,16 @@ export class Game {
       if (direct) {
         for (const index of direct.spectrum) { cleared.add(index); enqueue(index); }
         if (direct.target !== null) { cleared.add(direct.target); enqueue(direct.target); }
+      }
+      for (const effect of supernovas) {
+        const [r, c] = position(effect.index);
+        for (let dr = -2; dr <= 2; dr++) for (let dc = -2; dc <= 2; dc++) {
+          if (r + dr < 0 || r + dr >= SIZE || c + dc < 0 || c + dc >= SIZE) continue;
+          const cell = (r + dr) * SIZE + c + dc;
+          if (protectedCells.has(cell) || !this.tile(cell)) continue;
+          cleared.add(cell);
+          enqueue(cell);
+        }
       }
       while (queue.length) {
         // Finish bursts and crosses first so an indirectly triggered Spectrum

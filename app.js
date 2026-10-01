@@ -1,6 +1,6 @@
-import {Game, SIZE, levelGoal} from './engine.js?v=1.1.1';
-import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=1.1.1';
-import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=1.1.1';
+import {Game, SIZE, levelGoal} from './engine.js?v=1.2.0';
+import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=1.2.0';
+import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=1.2.0';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
@@ -412,6 +412,43 @@ async function animateClear(frame) {
     overlays.push(element);
     effects.push(element.animate(keyframes, {fill: 'both', ...options}));
   };
+  const novas = frame.activated.filter(effect => effect.type === 'supernova');
+  const novaColors = ['#ff5774', '#ffad48', '#ffe36b', '#69ef98', '#6deeff', '#6d9fff', '#d795ff'];
+  const center = index => {
+    const rect = cells[index]?.getBoundingClientRect();
+    return rect && {x: rect.left + rect.width / 2 - frameRect.left,
+      y: rect.top + rect.height / 2 - frameRect.top};
+  };
+  if (novas.length) {
+    for (const nova of novas) {
+      const target = center(nova.index);
+      if (!target) continue;
+      for (const index of nova.sources) {
+        const source = center(index);
+        if (!source) continue;
+        const dx = target.x - source.x, dy = target.y - source.y;
+        const angle = Math.atan2(dy, dx);
+        if (index !== nova.index) addOverlay('effect-fusion', {
+          left: `${source.x}px`, top: `${source.y - 2}px`,
+          width: `${Math.hypot(dx, dy)}px`, height: '4px', '--nova-color': novaColors[nova.color]},
+        [{transform: `rotate(${angle}rad) scaleX(0)`, opacity: 0},
+          {transform: `rotate(${angle}rad) scaleX(1)`, opacity: 1, offset: .6},
+          {transform: `rotate(${angle}rad) scaleX(1)`, opacity: .6}],
+        {duration: 240 * scale, easing: 'ease-in'});
+        const mover = cells[index]?.querySelector('.mover');
+        if (mover) effects.push(mover.animate([
+          {transform: 'scale(1)', filter: 'brightness(1)'},
+          {transform: 'scale(1.16)', filter: 'brightness(1.8)', offset: .6},
+          {transform: 'scale(.9)', filter: 'brightness(2)'}],
+        {duration: 240 * scale, fill: 'both'}));
+      }
+    }
+    try { await waitAnimations(effects); }
+    finally { overlays.forEach(element => element.remove()); }
+    effects.length = 0;
+    overlays.length = 0;
+    if (reducedMotion()) return;
+  }
   const spray = (x, y, type, count) => {
     for (let i = 0; i < count; i++) {
       const angle = Math.PI * 2 * i / count + .18;
@@ -427,11 +464,21 @@ async function animateClear(frame) {
         {duration: 380 * scale, easing: 'cubic-bezier(.13,.65,.27,1)'});
     }
   };
-  for (const effect of frame.activated.slice(0, 3)) {
+  for (const effect of [...novas, ...frame.activated.filter(effect => effect.type !== 'supernova').slice(0, 3)]) {
     const rect = cells[effect.index]?.getBoundingClientRect();
     if (!rect) continue;
     const x = rect.left + rect.width / 2 - frameRect.left;
     const y = rect.top + rect.height / 2 - frameRect.top;
+    if (effect.type === 'supernova') {
+      const size = pitch * 5;
+      addOverlay('effect-supernova', {left: `${x - size / 2}px`, top: `${y - size / 2}px`,
+        width: `${size}px`, height: `${size}px`, '--nova-color': novaColors[effect.color]},
+      [{transform: 'scale(.08)', opacity: 0},
+        {transform: 'scale(.35)', opacity: .9, offset: .18},
+        {transform: 'scale(1)', opacity: .7, offset: .65},
+        {transform: 'scale(1)', opacity: 0}],
+      {duration: 480 * scale, easing: 'ease-out'});
+    }
     if (effect.type === 'burst' || effect.type === 'cross') {
       const size = pitch * 1.15;
       addOverlay('effect-wave', {left: `${x - size / 2}px`, top: `${y - size / 2}px`,
@@ -530,6 +577,7 @@ async function attempt(a, b) {
       }
       draw(frame.board, frame.type === 'clear' ? frame.cells : []);
       if (frame.type === 'clear') {
+        if (frame.activated.some(effect => effect.type === 'supernova')) showToast('Supernova');
         playTone(cueForFrame(frame), frame.chain);
         await animateClear(frame);
         stage.score += frame.earned;

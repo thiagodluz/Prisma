@@ -1,5 +1,11 @@
 # Histórico de versões
 
+## 1.2.0 — 01/10/2026
+
+- Supernova: três ou mais especiais coloridas consecutivas numa combinação se fundem numa explosão de até 5 × 5 casas e ativam outras especiais atingidas, inclusive nas cascatas.
+- A fusão substitui os efeitos individuais das especiais participantes e a criação de outra especial na mesma formação conectada.
+- Feixes de concentração, onda na cor das gemas, indicação “Supernova” e som próprio. Os pontos continuam aparecendo a cada etapa da cascata.
+
 ## 1.1.1 — 29/09/2026
 
 - Recordes e partidas clássicas finalizadas são salvos assim que a jogada é concluída, antes das animações.

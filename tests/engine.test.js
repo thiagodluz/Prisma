@@ -183,6 +183,103 @@ test('burst and cross chain reactions clear each cell once', () => {
   for (let r = 0; r < SIZE; r++) assert.ok(clear.cells.includes(at(r, 2)));
 });
 
+function novaMove(game, row = 3, column = 2, vertical = false, types = ['burst', 'burst', 'burst']) {
+  const indices = Array.from({length: 3}, (_, i) => at(row + (vertical ? i : 0), column + (vertical ? 0 : i)));
+  const source = vertical ? indices[2] + (column === 0 ? 1 : -1) : indices[2] - SIZE;
+  game.set(indices[0], game.gem(2, types[0]));
+  game.set(indices[1], game.gem(2, types[1]));
+  game.set(indices[2], game.gem(1));
+  game.set(source, game.gem(2, types[2]));
+  return game.move(source, indices[2]);
+}
+
+test('three colored specials fuse into one centered 5x5 blast in either direction', () => {
+  for (const vertical of [false, true]) for (const types of [
+    ['burst', 'burst', 'burst'], ['cross', 'burst', 'cross']]) {
+    const game = fixture();
+    const result = novaMove(game, 3, 2, vertical, types);
+    const first = result.events[0];
+    const center = vertical ? at(4, 2) : at(3, 3);
+    assert.equal(result.valid, true);
+    assert.deepEqual(first.activated.map(effect => effect.type), ['supernova']);
+    assert.equal(first.activated[0].index, center);
+    assert.equal(first.activated[0].color, 2);
+    assert.equal(first.activated[0].sources.length, 3);
+    assert.equal(first.creations.length, 0);
+    const expected = [];
+    for (let dr = -2; dr <= 2; dr++) for (let dc = -2; dc <= 2; dc++)
+      expected.push(center + dr * SIZE + dc);
+    assert.deepEqual([...first.cells].sort((a, b) => a - b), expected.sort((a, b) => a - b));
+    assert.equal(first.earned, 625);
+    assert.equal(result.earned, result.events.filter(event => event.type === 'clear')
+      .reduce((sum, event) => sum + event.earned, 0));
+    assert.equal(game.matches().cells.length, 0);
+    assert.equal(new Set(game.board.flat().map(tile => tile.id)).size, 64);
+  }
+});
+
+test('Supernova clips at the edge without wrapping to the opposite side', () => {
+  const game = fixture();
+  const first = novaMove(game, 0, 0, true).events[0];
+  assert.deepEqual(first.activated.map(effect => effect.type), ['supernova']);
+  const expected = [];
+  for (let r = 0; r <= 3; r++) for (let c = 0; c <= 2; c++) expected.push(at(r, c));
+  assert.deepEqual([...first.cells].sort((a, b) => a - b), expected);
+});
+
+test('Supernova activates other specials once, including a Spectrum beyond the fusion', () => {
+  const game = fixture();
+  place(game, 2, 2, 3, 'cross');
+  place(game, 2, 7, null, 'spectrum');
+  const first = novaMove(game).events[0];
+  assert.deepEqual(first.activated.map(effect => effect.type), ['supernova', 'cross', 'spectrum']);
+  assert.equal(new Set(first.cells).size, first.cells.length);
+  assert.ok(first.cells.includes(at(2, 7)));
+  assert.ok(first.cells.includes(at(7, 2)));
+});
+
+test('a later cascade can align three specials and trigger Supernova', () => {
+  const game = fixture();
+  place(game, 3, 2, 2, 'burst');
+  place(game, 3, 3, 2, 'cross');
+  place(game, 4, 4, 2, 'burst');
+  place(game, 4, 1, 0);
+  place(game, 4, 2, 0);
+  place(game, 4, 3, 1);
+  place(game, 5, 3, 0);
+  const result = game.move(at(5, 3), at(4, 3));
+  const clears = result.events.filter(event => event.type === 'clear');
+  assert.equal(clears[0].activated.length, 0);
+  assert.ok(clears.slice(1).some(event => event.chain > 1 &&
+    event.activated.some(effect => effect.type === 'supernova')));
+});
+
+test('two specials or specials separated by a normal gem keep their own effects', () => {
+  for (const types of [['burst', 'burst', 'normal'], ['burst', 'normal', 'cross']]) {
+    const first = novaMove(fixture(), 3, 2, false, types).events[0];
+    assert.ok(!first.activated.some(effect => effect.type === 'supernova'));
+    assert.equal(first.activated.length, 2);
+  }
+  const game = fixture();
+  for (let c = 1; c <= 5; c++) place(game, 3, c, 2, c % 2 ? 'burst' : 'normal');
+  assert.equal(game.supernovas(game.matches()).length, 0);
+});
+
+test('long and crossing runs fuse each special at most once', () => {
+  const long = fixture();
+  for (let c = 1; c <= 4; c++) place(long, 3, c, 2, 'cross');
+  const nova = long.supernovas(long.matches());
+  assert.equal(nova.length, 1);
+  assert.equal(nova[0].index, at(3, 2));
+  assert.equal(nova[0].sources.length, 4);
+  assert.deepEqual(long.creations(long.matches(), [], new Set(nova[0].sources)), []);
+  const crossing = fixture();
+  for (const [r, c] of [[3, 2], [3, 3], [3, 4], [2, 3], [4, 3]]) place(crossing, r, c, 2, 'burst');
+  const sources = crossing.supernovas(crossing.matches()).flatMap(effect => effect.sources);
+  assert.equal(sources.length, 3);
+  assert.equal(new Set(sources).size, sources.length);
+});
+
 test('an indirectly triggered Spectrum clears a surviving color after surrounding bursts', () => {
   const game = fixture();
   place(game, 3, 1, 0);
