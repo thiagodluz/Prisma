@@ -8,8 +8,8 @@ android {
         applicationId 'com.thiagodluz.prisma'
         minSdk 26
         targetSdk 35
-        versionCode 1020099
-        versionName '1.2.0'
+        versionCode 1020199
+        versionName '1.2.1'
     }
 
     signingConfigs {
@@ -51,3 +51,4 @@ tasks.configureEach {
     if ((name.startsWith('merge') && name.endsWith('Assets')) ||
         name.toLowerCase().contains('lint')) dependsOn tasks.named('syncPrismaAssets')
 }
+
