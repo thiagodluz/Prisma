@@ -1,6 +1,6 @@
-import {Game, SIZE, levelGoal} from './engine.js?v=1.2.0';
-import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=1.2.0';
-import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=1.2.0';
+import {Game, SIZE, levelGoal} from './engine.js?v=1.2.1';
+import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=1.2.1';
+import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=1.2.1';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
@@ -20,6 +20,9 @@ const scoreGain = $('#score-gain');
 const toast = $('#toast');
 const gameOver = $('#game-over');
 const levelUp = $('#level-up');
+const developerMenu = $('#developer-menu');
+const developerMenuTrigger = $('#developer-menu-trigger');
+const undoLastMoveButton = $('#undo-last-move');
 const game = new Game();
 const names = ['rubi', 'âmbar', 'sol', 'jade', 'água', 'safira', 'ametista'];
 let visualStyle = 'illustrated';
@@ -171,6 +174,7 @@ const effectScale = () => game.mode !== 'zen' ? 1 : zenSettings.effects === 'sof
   zenSettings.effects === 'vivid' ? 1.1 : 1;
 
 const records = new Map();
+let lastMoveRecordSnapshot = null;
 function safeRecord(mode) {
   if (records.has(mode)) return records.get(mode);
   try {
@@ -300,6 +304,7 @@ function hud() {
   for (const button of document.querySelectorAll('.mode')) button.classList.toggle('selected', button.dataset.mode === game.mode);
   $('#shuffle').hidden = game.mode === 'classic';
   $('#hint').disabled = game.ended;
+  undoLastMoveButton.disabled = !game.canUndoLastMove();
   boardElement.classList.toggle('finished', game.ended);
   gameOver.hidden = !game.ended;
   $('#final-score').textContent = game.score.toLocaleString('pt-BR');
@@ -557,10 +562,13 @@ async function attempt(a, b) {
   selected = null;
   clearScoreGain();
   const stage = {score: game.score, level: game.level, levelStartScore: game.levelStartScore};
+  const recordBeforeMove = {...safeRecord(game.mode)};
   const result = game.move(a, b);
   busy = true;
   boardElement.classList.add('busy');
   if (result.valid) {
+    // Keep score records reversible along with the game state for developer testing.
+    lastMoveRecordSnapshot = {mode: game.mode, record: recordBeforeMove};
     // The engine has already committed all cascades; persist before any visual delay.
     save();
     commitRecords(result.earned, result.ended);
@@ -722,6 +730,7 @@ $('#shuffle').addEventListener('click', async () => {
   clearHint();
   selected = null;
   if (!game.shuffle()) return;
+  lastMoveRecordSnapshot = null;
   save();
   busy = true;
   boardElement.classList.add('busy');
@@ -739,6 +748,7 @@ function startNewGame() {
   clearHint();
   selected = null;
   game.newGame();
+  lastMoveRecordSnapshot = null;
   draw(); hud(); save();
 }
 const newGameDialog = $('#new-game-dialog');
@@ -758,6 +768,7 @@ document.querySelectorAll('.mode').forEach(button => button.addEventListener('cl
   clearHint();
   selected = null;
   save();
+  lastMoveRecordSnapshot = null;
   restoreMode(button.dataset.mode);
   draw(); hud(); save();
   zenAudio.armed = true;
@@ -842,6 +853,39 @@ $('#vibration').addEventListener('click', () => {
     hud();
     showToast('Vibração indisponível neste aparelho');
   }
+});
+
+let developerTapCount = 0;
+let developerTapTimer;
+developerMenuTrigger.addEventListener('click', () => {
+  developerTapCount++;
+  clearTimeout(developerTapTimer);
+  if (developerTapCount >= 7) {
+    developerMenu.hidden = false;
+    developerMenuTrigger.setAttribute('aria-expanded', 'true');
+    developerTapCount = 0;
+    showToast('Ferramentas do desenvolvedor ativadas');
+  } else developerTapTimer = setTimeout(() => { developerTapCount = 0; }, 2200);
+});
+undoLastMoveButton.addEventListener('click', () => {
+  if (busy || !game.undoLastMove()) return;
+  if (lastMoveRecordSnapshot?.mode === game.mode) {
+    const previous = {...lastMoveRecordSnapshot.record};
+    records.set(game.mode, previous);
+    try {
+      localStorage.setItem('prisma.records.' + game.mode, JSON.stringify(previous));
+      localStorage.setItem('prisma.best.' + game.mode, String(previous.bestScore));
+    } catch {}
+  }
+  lastMoveRecordSnapshot = null;
+  selected = null;
+  clearHint();
+  clearScoreGain();
+  effectLayer.replaceChildren();
+  draw();
+  hud();
+  save();
+  showToast('Última jogada revertida');
 });
 
 draw(); hud(); syncAudioSettingsUI(); syncZenUI(true);

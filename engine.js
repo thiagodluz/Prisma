@@ -24,6 +24,7 @@ export class Game {
     this.progressionOffset = 0;
     this.mode = 'zen';
     this.ended = false;
+    this.lastMoveSnapshot = null;
     this.newGame();
   }
 
@@ -38,6 +39,7 @@ export class Game {
     this.levelStartScore = 0;
     this.progressionOffset = 0;
     this.ended = false;
+    this.lastMoveSnapshot = null;
     this.board = this.freshBoard();
   }
 
@@ -185,6 +187,12 @@ export class Game {
 
   move(a, b) {
     if (this.ended || !this.adjacent(a, b)) return {valid: false, events: []};
+    const previousState = {
+      nextId: this.nextId,
+      board: this.board.map(row => row.map(tile => tile ? {...tile} : null)),
+      score: this.score, level: this.level, levelStartScore: this.levelStartScore,
+      progressionOffset: this.progressionOffset, mode: this.mode, ended: this.ended
+    };
     this.swap(a, b);
     let match = this.matches();
     const spectrum = [a, b].filter(index => this.tile(index)?.type === 'spectrum');
@@ -192,6 +200,7 @@ export class Game {
       this.swap(a, b);
       return {valid: false, events: []};
     }
+    this.lastMoveSnapshot = previousState;
     const events = [];
     let chain = 0;
     let earned = 0;
@@ -305,6 +314,25 @@ export class Game {
       levelsGained: this.level - oldLevel};
   }
 
+  canUndoLastMove() {
+    return this.lastMoveSnapshot !== null;
+  }
+
+  undoLastMove() {
+    if (!this.lastMoveSnapshot) return false;
+    const previous = this.lastMoveSnapshot;
+    this.nextId = previous.nextId;
+    this.board = previous.board.map(row => row.map(tile => tile ? {...tile} : null));
+    this.score = previous.score;
+    this.level = previous.level;
+    this.levelStartScore = previous.levelStartScore;
+    this.progressionOffset = previous.progressionOffset;
+    this.mode = previous.mode;
+    this.ended = previous.ended;
+    this.lastMoveSnapshot = null;
+    return true;
+  }
+
   rescue() {
     // A new Espectro guarantees a move and keeps every other tile in place.
     const index = [27, 28, 35, 36, ...Array.from({length: SIZE * SIZE}, (_, i) => i)]
@@ -341,6 +369,7 @@ export class Game {
       const board = Array.from({length: SIZE}, (_, row) => tiles.slice(row * SIZE, (row + 1) * SIZE));
       if (this.matches(board).cells.length || !this.hasMove(board)) return false;
       this.board = board;
+      if (!automatic) this.lastMoveSnapshot = null;
       return true;
     };
 
@@ -421,6 +450,7 @@ export class Game {
     } else if (candidate.mode === 'classic' && saved.ended === true) candidate.ended = true;
     for (const key of ['nextId', 'board', 'mode', 'score', 'level', 'levelStartScore', 'progressionOffset', 'ended'])
       this[key] = candidate[key];
+    this.lastMoveSnapshot = null;
     return true;
   }
 }

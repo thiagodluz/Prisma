@@ -1,4 +1,4 @@
-const CACHE = 'prisma-v1.2.0-c95044fcc2';
+const CACHE = 'prisma-v1.2.1-1ed8a8e75a';
 const FILES = ['./', './index.html', './style.css', './app.js', './engine.js', './zen.js', './sound.js',
   './gem-atlas.webp', './burst-atlas.webp', './cross-atlas.webp', './spectrum-gem.webp', './prisma-bg.jpg',
   './icon.svg', './icon-192.png', './icon-512.png', './manifest.webmanifest'];
@@ -8,3 +8,4 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET' || new URL(event.request.url).origin !== self.location.origin) return;
   event.respondWith(caches.open(CACHE).then(cache => cache.match(event.request, {ignoreSearch: true})).then(hit => hit || fetch(event.request)));
 });
+

@@ -49,7 +49,7 @@ Também existe uma versão autônoma em [Prisma-jogar-offline.html](Prisma-jogar
 
 ### Android
 
-A versão atual é a **1.1.1**. Consulte o [changelog](CHANGELOG.md) para ver as mudanças. O APK pode ser gerado pelo GitHub Actions ou compilado localmente. O aplicativo exige Android 8 ou mais recente e Android System WebView atualizada.
+A versão atual é a **1.2.1**. Consulte o [changelog](CHANGELOG.md) para ver as mudanças. O APK pode ser gerado pelo GitHub Actions ou compilado localmente. O aplicativo exige Android 8 ou mais recente e Android System WebView atualizada.
 
 Os APKs de publicação são assinados com a mesma chave privada configurada nos segredos do repositório. Versões antigas instaladas a partir dos APKs de depuração têm outra assinatura: para instalar a primeira versão de publicação, será necessário desinstalá-las, o que apaga as partidas e preferências do aplicativo. O progresso da versão web fica separado.
 
@@ -100,6 +100,6 @@ Consulte os arquivos de licença para saber exatamente quais direitos se aplicam
 
 ## Estado do projeto
 
-O Prisma é um projeto independente em desenvolvimento. A versão 1.1.1 está jogável, mas a experiência em aparelhos Android reais — especialmente consumo de bateria, retomada, áudio e leitura das pedras em telas pequenas — ainda deve ser validada antes de ser tratada como uma versão final de distribuição.
+O Prisma é um projeto independente em desenvolvimento. A versão 1.2.1 está jogável, mas a experiência em aparelhos Android reais — especialmente consumo de bateria, retomada, áudio e leitura das pedras em telas pequenas — ainda deve ser validada antes de ser tratada como uma versão final de distribuição.
 
 Sugestões, relatos de problemas e contribuições são bem-vindos. Ao abrir uma issue, informe o aparelho, a versão do Android, o modo de jogo e os passos para reproduzir o problema.
