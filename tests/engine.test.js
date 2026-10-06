@@ -505,3 +505,40 @@ test('corrupt saves leave the current game untouched', () => {
   assert.deepEqual({board: JSON.stringify(game.board), nextId: game.nextId,
     mode: game.mode, score: game.score}, before);
 });
+
+
+test('developer undo restores the complete state before the last valid move', () => {
+  const game = new Game();
+  const [a, b] = matchMove(game);
+  const before = () => ({
+    nextId: game.nextId, board: JSON.parse(JSON.stringify(game.board)),
+    score: game.score, level: game.level, levelStartScore: game.levelStartScore,
+    progressionOffset: game.progressionOffset, mode: game.mode, ended: game.ended
+  });
+  const original = before();
+  assert.equal(game.canUndoLastMove(), false);
+  assert.equal(game.move(a, b).valid, true);
+  assert.equal(game.canUndoLastMove(), true);
+  assert.equal(game.move(0, 63).valid, false);
+  assert.equal(game.undoLastMove(), true);
+  assert.deepEqual(before(), original);
+  assert.equal(game.canUndoLastMove(), false);
+  assert.equal(game.undoLastMove(), false);
+});
+
+test('new games and restores clear developer undo', () => {
+  const game = new Game();
+  const [a, b] = matchMove(game);
+  assert.equal(game.move(a, b).valid, true);
+  game.newGame();
+  assert.equal(game.canUndoLastMove(), false);
+
+  const [nextA, nextB] = matchMove(game);
+  assert.equal(game.move(nextA, nextB).valid, true);
+  const saved = {mode: game.mode, score: game.score, board: game.board,
+    progressionVersion: 4, level: game.level, levelStartScore: game.levelStartScore,
+    progressionOffset: game.progressionOffset};
+  const restored = new Game();
+  assert.equal(restored.restore(saved), true);
+  assert.equal(restored.canUndoLastMove(), false);
+});
