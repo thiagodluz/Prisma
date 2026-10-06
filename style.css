@@ -161,3 +161,9 @@ html{overscroll-behavior-y:none}:root{font-family:Inter,ui-sans-serif,system-ui,
 .dialog-actions button{min-height:44px;padding:9px 14px;border:1px solid #d5cbf36b;border-radius:10px;background:#ffffff13;font-size:14px;font-weight:700}
 .dialog-actions #confirm-new-game{background:linear-gradient(120deg,#8be2da,#b7a2ff);border-color:transparent;color:#19213c}
 .dialog-actions button:focus-visible{outline:2px solid #b1f7e9;outline-offset:2px}
+
+.developer-menu-trigger{display:block;width:max-content;border:0;padding:0;background:none;text-align:left;font:inherit;cursor:default}
+.developer-menu-trigger:focus-visible,.developer-menu button:focus-visible{outline:2px solid #b1f7e9;outline-offset:3px}
+.developer-menu{margin-top:14px;padding:12px;border:1px solid #ffffff24;border-radius:12px;background:#ffffff0b}
+.developer-menu[hidden]{display:none}
+.developer-menu h2{margin:0 0 9px;font-size:13px;letter-spacing:.06em;color:#c9c6e8}
