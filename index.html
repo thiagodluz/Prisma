@@ -121,9 +121,13 @@
     <details class="legal-credits">
       <summary>Créditos e licenças</summary>
       <div class="legal-credits-content">
-        <p class="app-version">Versão 1.2.0</p>
+        <button class="app-version developer-menu-trigger" id="developer-menu-trigger" type="button" aria-label="Versão 1.2.0" aria-controls="developer-menu" aria-expanded="false">Versão 1.2.0</button>
         <p>Prisma é um jogo original criado por Thiago Luz (2026). Versões derivadas devem preservar os créditos e identificar suas alterações.</p>
         <p>Código: <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener noreferrer">GPLv3</a>. Arte das pedras e fundo: <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>. Nome e ícone não integram a licença da arte.</p>
+        <section class="developer-menu" id="developer-menu" aria-label="Ferramentas do desenvolvedor" hidden>
+          <h2>Ferramentas do desenvolvedor</h2>
+          <button class="quiet-button" id="undo-last-move" type="button" disabled>Retornar à última jogada</button>
+        </section>
       </div>
     </details>
   </main>
