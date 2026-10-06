@@ -53,6 +53,13 @@ test('old Endless session opens as Classic and switching modes keeps both sessio
   Object.defineProperty(globalThis, 'navigator', {value: {}, configurable: true});
 
   await import('../app.js?sessions');
+  const developerMenu = elements.get('#developer-menu');
+  const developerTrigger = elements.get('#developer-menu-trigger');
+  const undoButton = elements.get('#undo-last-move');
+  assert.notEqual(developerMenu.hidden, false);
+  assert.equal(undoButton.disabled, true);
+  for (let tap = 0; tap < 7; tap++) developerTrigger.handlers.click();
+  assert.equal(developerMenu.hidden, false);
   assert.equal(document.documentElement.dataset.visualStyle, 'illustrated');
   const classicBoard = data.get('prisma.session.classic');
   visuals[0].handlers.click();
