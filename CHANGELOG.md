@@ -1,3 +1,8 @@
+## 1.2.1 — 06/10/2026
+
+- Menu de desenvolvedor oculto nos créditos, aberto com sete toques rápidos na versão.
+- A ação “Retornar à última jogada” desfaz a última jogada válida e restaura tabuleiro, pontuação, nível e recordes.
+
 # Histórico de versões
 
 ## 1.2.0 — 01/10/2026
