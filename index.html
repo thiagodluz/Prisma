@@ -11,7 +11,7 @@
   <link rel="preload" href="burst-atlas.webp" as="image">
   <link rel="preload" href="cross-atlas.webp" as="image">
   <link rel="preload" href="spectrum-gem.webp" as="image">
-  <link rel="stylesheet" href="style.css?v=1.2.1">
+  <link rel="stylesheet" href="style.css?v=1.3.0">
   <title>Prisma — combine pedras sem pressa</title>
 </head>
 <body>
@@ -121,12 +121,36 @@
     <details class="legal-credits">
       <summary>Créditos e licenças</summary>
       <div class="legal-credits-content">
-        <button class="app-version developer-menu-trigger" id="developer-menu-trigger" type="button" aria-label="Versão 1.2.1" aria-controls="developer-menu" aria-expanded="false">Versão 1.2.1</button>
+        <button class="app-version developer-menu-trigger" id="developer-menu-trigger" type="button" aria-label="Versão 1.3.0" aria-controls="developer-menu" aria-expanded="false">Versão 1.3.0</button>
         <p>Prisma é um jogo original criado por Thiago Luz (2026). Versões derivadas devem preservar os créditos e identificar suas alterações.</p>
         <p>Código: <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener noreferrer">GPLv3</a>. Arte das pedras e fundo: <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>. Nome e ícone não integram a licença da arte.</p>
         <section class="developer-menu" id="developer-menu" aria-label="Ferramentas do desenvolvedor" hidden>
-          <h2>Ferramentas do desenvolvedor</h2>
-          <button class="quiet-button" id="undo-last-move" type="button" disabled>Retornar à última jogada</button>
+          <div class="developer-heading"><h2>Ferramentas do desenvolvedor</h2><button class="quiet-button" id="developer-close" type="button">Fechar</button></div>
+          <p id="developer-status" role="status"></p>
+          <fieldset><legend>Histórico</legend>
+            <button class="quiet-button" id="undo-last-move" type="button" disabled>Retornar à última ação</button>
+            <p id="developer-history"></p><p>Até 50 ações nesta sessão. O histórico é limpo ao reabrir, trocar de modo, começar outra partida ou usar o embaralhamento normal do Zen.</p>
+          </fieldset>
+          <fieldset><legend>Pontos e níveis</legend>
+            <div class="developer-actions"><button class="quiet-button" id="cheat-points-100" type="button">+100 pontos</button><button class="quiet-button" id="cheat-points-1000" type="button">+1.000 pontos</button></div>
+            <label>Pontos personalizados<input id="cheat-points" type="number" min="1" max="1000000" step="1" value="5000" inputmode="numeric"></label>
+            <button class="quiet-button" id="cheat-add-points" type="button">Adicionar pontos</button>
+            <label>Nível desejado<input id="cheat-level" type="number" min="1" max="10000" step="1" value="10" inputmode="numeric"></label>
+            <div class="developer-actions"><button class="quiet-button" id="cheat-next-level" type="button">Próximo nível</button><button class="quiet-button" id="cheat-set-level" type="button">Ir para o nível</button></div>
+            <p>A pontuação acompanha o nível escolhido.</p>
+          </fieldset>
+          <fieldset><legend>Especiais e Supernova</legend>
+            <div class="developer-actions"><label>Linha<input id="cheat-row" type="number" min="1" max="8" step="1" value="4" inputmode="numeric"></label><label>Coluna<input id="cheat-column" type="number" min="1" max="8" step="1" value="4" inputmode="numeric"></label></div>
+            <label>Especial<select id="cheat-special"><option value="burst">Pulso</option><option value="cross">Raio</option><option value="spectrum">Espectro</option></select></label>
+            <div class="developer-actions"><button class="quiet-button" id="cheat-spawn" type="button">Criar especial</button><button class="quiet-button" id="cheat-supernova" type="button">Forçar Supernova</button></div>
+            <p>A Supernova cria e funde três especiais na linha escolhida. Nas bordas, o centro fica na coluna 2 ou 7.</p>
+          </fieldset>
+          <fieldset><legend>Poderes da partida</legend>
+            <label class="developer-toggle"><input id="cheat-no-defeat" type="checkbox">Impedir derrota e continuar o Clássico</label>
+            <div class="developer-actions"><button class="quiet-button" id="cheat-shuffle" type="button">Embaralhar sem limite</button><button class="quiet-button" id="cheat-auto-move" type="button">Fazer jogada automática</button></div>
+            <button class="quiet-button" id="cheat-explode" type="button">Explodir todo o tabuleiro</button>
+            <p>A explosão ativa os especiais e resolve as cascatas normalmente.</p>
+          </fieldset>
         </section>
       </div>
     </details>
@@ -139,6 +163,6 @@
       <button id="confirm-new-game" type="button">Novo jogo</button>
     </div>
   </dialog>
-  <script type="module" src="app.js?v=1.2.1"></script>
+  <script type="module" src="app.js?v=1.3.0"></script>
 </body>
 </html>

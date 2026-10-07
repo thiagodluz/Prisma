@@ -1,4 +1,4 @@
-const CACHE = 'prisma-v1.2.1-b807a1fd3a';
+const CACHE = 'prisma-v1.3.0-027337aa8b';
 const FILES = ['./', './index.html', './style.css', './app.js', './engine.js', './zen.js', './sound.js',
   './gem-atlas.webp', './burst-atlas.webp', './cross-atlas.webp', './spectrum-gem.webp', './prisma-bg.jpg',
   './icon.svg', './icon-192.png', './icon-512.png', './manifest.webmanifest'];

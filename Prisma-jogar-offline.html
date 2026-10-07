@@ -174,6 +174,20 @@
 .developer-menu{margin-top:14px;padding:12px;border:1px solid #ffffff24;border-radius:12px;background:#ffffff0b}
 .developer-menu[hidden]{display:none}
 .developer-menu h2{margin:0 0 9px;font-size:13px;letter-spacing:.06em;color:#c9c6e8}
+
+.developer-heading {display:flex;align-items:center;justify-content:space-between;gap:8px}
+.developer-heading h2 {margin:0}
+.developer-menu p {font-size:12px;line-height:1.5;color:#b9b5d4;margin:8px 0}
+.developer-menu fieldset {min-width:0;margin:12px 0 0;padding:12px;border:1px solid rgba(255,255,255,.14);border-radius:10px}
+.developer-menu legend {font-size:13px;font-weight:700;padding:0 5px}
+.developer-menu label {display:flex;flex-direction:column;gap:5px;margin:10px 0;font-size:13px}
+.developer-menu input:not([type="checkbox"]), .developer-menu select {box-sizing:border-box;width:100%;min-width:0;min-height:44px;padding:8px 10px;border:1px solid rgba(255,255,255,.25);border-radius:8px;background:#202635;color:#fff;font:inherit}
+.developer-menu .quiet-button {min-height:44px;white-space:normal;line-height:1.3}
+.developer-menu .quiet-button:disabled {opacity:.45;cursor:default}
+.developer-actions {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.developer-menu .developer-toggle {flex-direction:row;align-items:center;gap:10px;min-height:44px}
+.developer-toggle input {width:20px;height:20px;flex-shrink:0}
+@media (max-width:360px) {.developer-actions {grid-template-columns:1fr}}
 </style>
   <title>Prisma — combine pedras sem pressa</title>
 </head>
@@ -284,12 +298,36 @@
     <details class="legal-credits">
       <summary>Créditos e licenças</summary>
       <div class="legal-credits-content">
-        <button class="app-version developer-menu-trigger" id="developer-menu-trigger" type="button" aria-label="Versão 1.2.1" aria-controls="developer-menu" aria-expanded="false">Versão 1.2.1</button>
+        <button class="app-version developer-menu-trigger" id="developer-menu-trigger" type="button" aria-label="Versão 1.3.0" aria-controls="developer-menu" aria-expanded="false">Versão 1.3.0</button>
         <p>Prisma é um jogo original criado por Thiago Luz (2026). Versões derivadas devem preservar os créditos e identificar suas alterações.</p>
         <p>Código: <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener noreferrer">GPLv3</a>. Arte das pedras e fundo: <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>. Nome e ícone não integram a licença da arte.</p>
         <section class="developer-menu" id="developer-menu" aria-label="Ferramentas do desenvolvedor" hidden>
-          <h2>Ferramentas do desenvolvedor</h2>
-          <button class="quiet-button" id="undo-last-move" type="button" disabled>Retornar à última jogada</button>
+          <div class="developer-heading"><h2>Ferramentas do desenvolvedor</h2><button class="quiet-button" id="developer-close" type="button">Fechar</button></div>
+          <p id="developer-status" role="status"></p>
+          <fieldset><legend>Histórico</legend>
+            <button class="quiet-button" id="undo-last-move" type="button" disabled>Retornar à última ação</button>
+            <p id="developer-history"></p><p>Até 50 ações nesta sessão. O histórico é limpo ao reabrir, trocar de modo, começar outra partida ou usar o embaralhamento normal do Zen.</p>
+          </fieldset>
+          <fieldset><legend>Pontos e níveis</legend>
+            <div class="developer-actions"><button class="quiet-button" id="cheat-points-100" type="button">+100 pontos</button><button class="quiet-button" id="cheat-points-1000" type="button">+1.000 pontos</button></div>
+            <label>Pontos personalizados<input id="cheat-points" type="number" min="1" max="1000000" step="1" value="5000" inputmode="numeric"></label>
+            <button class="quiet-button" id="cheat-add-points" type="button">Adicionar pontos</button>
+            <label>Nível desejado<input id="cheat-level" type="number" min="1" max="10000" step="1" value="10" inputmode="numeric"></label>
+            <div class="developer-actions"><button class="quiet-button" id="cheat-next-level" type="button">Próximo nível</button><button class="quiet-button" id="cheat-set-level" type="button">Ir para o nível</button></div>
+            <p>A pontuação acompanha o nível escolhido.</p>
+          </fieldset>
+          <fieldset><legend>Especiais e Supernova</legend>
+            <div class="developer-actions"><label>Linha<input id="cheat-row" type="number" min="1" max="8" step="1" value="4" inputmode="numeric"></label><label>Coluna<input id="cheat-column" type="number" min="1" max="8" step="1" value="4" inputmode="numeric"></label></div>
+            <label>Especial<select id="cheat-special"><option value="burst">Pulso</option><option value="cross">Raio</option><option value="spectrum">Espectro</option></select></label>
+            <div class="developer-actions"><button class="quiet-button" id="cheat-spawn" type="button">Criar especial</button><button class="quiet-button" id="cheat-supernova" type="button">Forçar Supernova</button></div>
+            <p>A Supernova cria e funde três especiais na linha escolhida. Nas bordas, o centro fica na coluna 2 ou 7.</p>
+          </fieldset>
+          <fieldset><legend>Poderes da partida</legend>
+            <label class="developer-toggle"><input id="cheat-no-defeat" type="checkbox">Impedir derrota e continuar o Clássico</label>
+            <div class="developer-actions"><button class="quiet-button" id="cheat-shuffle" type="button">Embaralhar sem limite</button><button class="quiet-button" id="cheat-auto-move" type="button">Fazer jogada automática</button></div>
+            <button class="quiet-button" id="cheat-explode" type="button">Explodir todo o tabuleiro</button>
+            <p>A explosão ativa os especiais e resolve as cascatas normalmente.</p>
+          </fieldset>
         </section>
       </div>
     </details>
@@ -328,7 +366,7 @@ class Game {
     this.progressionOffset = 0;
     this.mode = 'zen';
     this.ended = false;
-    this.lastMoveSnapshot = null;
+    this.undoHistory = [];
     this.newGame();
   }
 
@@ -343,7 +381,9 @@ class Game {
     this.levelStartScore = 0;
     this.progressionOffset = 0;
     this.ended = false;
-    this.lastMoveSnapshot = null;
+    this.undoHistory = [];
+    this.cheatsUsed = false;
+    this.noDefeat = false;
     this.board = this.freshBoard();
   }
 
@@ -491,12 +531,7 @@ class Game {
 
   move(a, b) {
     if (this.ended || !this.adjacent(a, b)) return {valid: false, events: []};
-    const previousState = {
-      nextId: this.nextId,
-      board: this.board.map(row => row.map(tile => tile ? {...tile} : null)),
-      score: this.score, level: this.level, levelStartScore: this.levelStartScore,
-      progressionOffset: this.progressionOffset, mode: this.mode, ended: this.ended
-    };
+    const previousState = this.snapshot();
     this.swap(a, b);
     let match = this.matches();
     const spectrum = [a, b].filter(index => this.tile(index)?.type === 'spectrum');
@@ -504,19 +539,23 @@ class Game {
       this.swap(a, b);
       return {valid: false, events: []};
     }
-    this.lastMoveSnapshot = previousState;
+    this.rememberState(previousState);
+    const direct = spectrum.length ? {spectrum, target: spectrum.length === 1 ? (spectrum[0] === a ? b : a) : null} : null;
+    return this.resolveBoard(match, direct, [b, a]);
+  }
+
+  resolveBoard(match, direct = null, preferred = [], initialCells = []) {
     const events = [];
     let chain = 0;
     let earned = 0;
-    let direct = spectrum.length ? {spectrum, target: spectrum.length === 1 ? (spectrum[0] === a ? b : a) : null} : null;
-    while (match.cells.length || direct) {
+    while (match.cells.length || direct || initialCells.length) {
       chain++;
       const supernovas = this.supernovas(match);
       const fused = new Set(supernovas.flatMap(effect => effect.sources));
-      const creations = (direct ? [] : this.creations(match, chain === 1 ? [b, a] : [], fused))
+      const creations = (direct ? [] : this.creations(match, chain === 1 ? preferred : [], fused))
         .map(creation => ({...creation, tile: this.gem(creation.color, creation.type)}));
       const protectedCells = new Set(creations.map(creation => creation.index));
-      const cleared = new Set(match.cells.filter(index => !protectedCells.has(index)));
+      const cleared = new Set([...match.cells, ...initialCells].filter(index => !protectedCells.has(index)));
       const activated = [...supernovas];
       const queue = [];
       const seen = new Set([...fused].map(index => this.tile(index).id));
@@ -589,6 +628,7 @@ class Game {
       }
       events.push({type: 'fall', board: copy(this.board), falls, chain});
       direct = null;
+      initialCells = [];
       match = this.matches();
     }
     this.score += earned;
@@ -605,7 +645,7 @@ class Game {
     }
     let rescued = false;
     if (!this.hasMove()) {
-      if (this.mode === 'classic') {
+      if (this.mode === 'classic' && !this.noDefeat) {
         this.ended = true;
         events.push({type: 'gameover', board: copy(this.board), chain});
       } else {
@@ -618,32 +658,122 @@ class Game {
       levelsGained: this.level - oldLevel};
   }
 
-  canUndoLastMove() {
-    return this.lastMoveSnapshot !== null;
+  snapshot() {
+    return {nextId: this.nextId, board: this.board.map(row => row.map(tile => ({...tile}))),
+      score: this.score, level: this.level, levelStartScore: this.levelStartScore,
+      progressionOffset: this.progressionOffset, mode: this.mode, ended: this.ended,
+      noDefeat: this.noDefeat};
   }
 
+  rememberState(previous = this.snapshot()) {
+    this.undoHistory.push(previous);
+    if (this.undoHistory.length > 50) this.undoHistory.shift();
+  }
+
+  canUndoLastMove() { return this.undoHistory.length > 0; }
+
   undoLastMove() {
-    if (!this.lastMoveSnapshot) return false;
-    const previous = this.lastMoveSnapshot;
-    this.nextId = previous.nextId;
-    this.board = previous.board.map(row => row.map(tile => tile ? {...tile} : null));
-    this.score = previous.score;
-    this.level = previous.level;
-    this.levelStartScore = previous.levelStartScore;
-    this.progressionOffset = previous.progressionOffset;
-    this.mode = previous.mode;
-    this.ended = previous.ended;
-    this.lastMoveSnapshot = null;
+    const previous = this.undoHistory.pop();
+    if (!previous) return false;
+    Object.assign(this, previous);
+    this.cheatsUsed = true;
     return true;
+  }
+
+  cheatAddPoints(amount) {
+    if (!Number.isSafeInteger(amount) || amount < 1 || amount > 1000000 ||
+      this.score + amount > 1000000000) return false;
+    this.rememberState();
+    this.cheatsUsed = true;
+    this.score += amount;
+    while (this.score - this.levelStartScore >= levelGoal(this.level)) {
+      this.levelStartScore += levelGoal(this.level);
+      this.level++;
+    }
+    return true;
+  }
+
+  cheatSetLevel(level) {
+    if (!Number.isInteger(level) || level < 1 || level > 10000) return false;
+    this.rememberState();
+    this.cheatsUsed = true;
+    const progress = Math.min(this.score - this.levelStartScore, levelGoal(level) - 1);
+    this.level = level;
+    this.levelStartScore = levelStartAt(level);
+    this.progressionOffset = 0;
+    this.score = this.levelStartScore + progress;
+    return true;
+  }
+
+  cheatSpawnSpecial(index, type) {
+    if (!Number.isInteger(index) || index < 0 || index >= SIZE * SIZE || !SPECIALS.includes(type)) return false;
+    const previous = this.snapshot();
+    const old = this.tile(index);
+    let color = old.color;
+    if (type !== 'spectrum' && color === null) {
+      color = Array.from({length: COLORS}, (_, value) => value).find(value => {
+        this.set(index, {...old, type, color: value});
+        return !this.matches().cells.length;
+      });
+      this.set(index, old);
+      if (color === undefined) return false;
+    }
+    this.rememberState(previous);
+    this.cheatsUsed = true;
+    this.set(index, this.gem(color, type));
+    return true;
+  }
+
+  cheatShuffle() {
+    const previous = this.snapshot();
+    this.ended = false;
+    if (!this.shuffle(true)) { this.ended = previous.ended; return false; }
+    this.rememberState(previous);
+    this.cheatsUsed = true;
+    return true;
+  }
+
+  cheatNoDefeat(enabled) {
+    if (typeof enabled !== 'boolean' || enabled === this.noDefeat) return false;
+    this.rememberState();
+    this.cheatsUsed = true;
+    this.noDefeat = enabled;
+    if (enabled) {
+      this.ended = false;
+      if (!this.hasMove()) this.rescue();
+    }
+    return true;
+  }
+
+  cheatExplode() {
+    this.rememberState();
+    this.cheatsUsed = true;
+    this.ended = false;
+    return this.resolveBoard({cells: [], runs: []}, null, [],
+      Array.from({length: SIZE * SIZE}, (_, index) => index));
+  }
+
+  cheatSupernova(index) {
+    if (!Number.isInteger(index) || index < 0 || index >= SIZE * SIZE) return {valid: false, events: []};
+    this.rememberState();
+    this.cheatsUsed = true;
+    this.ended = false;
+    const [row, column] = position(index);
+    const center = row * SIZE + Math.max(1, Math.min(SIZE - 2, column));
+    const sources = [center - 1, center, center + 1];
+    const color = this.tile(index).color ?? 0;
+    sources.forEach((cell, offset) => this.set(cell, this.gem(color, offset === 1 ? 'cross' : 'burst')));
+    return this.resolveBoard({cells: sources, runs: [{cells: sources, color, length: 3}]});
   }
 
   rescue() {
     // A new Espectro guarantees a move and keeps every other tile in place.
     const index = [27, 28, 35, 36, ...Array.from({length: SIZE * SIZE}, (_, i) => i)]
       .find(cell => this.tile(cell)?.type === 'normal');
-    if (index === undefined) throw new Error('Não há posição para recuperar o tabuleiro');
-    this.set(index, this.gem(null, 'spectrum'));
-    return index;
+    // A cheat can fill every cell with specials; recovery still needs one Spectrum.
+    const target = index ?? 27;
+    this.set(target, this.gem(null, 'spectrum'));
+    return target;
   }
 
   nearbyColor(index, cleared = new Set()) {
@@ -673,7 +803,7 @@ class Game {
       const board = Array.from({length: SIZE}, (_, row) => tiles.slice(row * SIZE, (row + 1) * SIZE));
       if (this.matches(board).cells.length || !this.hasMove(board)) return false;
       this.board = board;
-      if (!automatic) this.lastMoveSnapshot = null;
+      if (!automatic) this.undoHistory = [];
       return true;
     };
 
@@ -745,16 +875,18 @@ class Game {
       candidate.levelStartScore = levelStartAt(candidate.level);
       candidate.progressionOffset = 0;
     }
+    candidate.cheatsUsed = saved.cheatsUsed === true || saved.noDefeat === true;
+    candidate.noDefeat = saved.noDefeat === true;
     candidate.ended = false;
     // Saved boards with unresolved matches can still contain specials.
     if (candidate.matches().cells.length && !candidate.shuffle(true)) candidate.board = candidate.freshBoard();
     if (!candidate.hasMove()) {
-      if (candidate.mode === 'classic') candidate.ended = true;
+      if (candidate.mode === 'classic' && !candidate.noDefeat) candidate.ended = true;
       else candidate.rescue();
-    } else if (candidate.mode === 'classic' && saved.ended === true) candidate.ended = true;
-    for (const key of ['nextId', 'board', 'mode', 'score', 'level', 'levelStartScore', 'progressionOffset', 'ended'])
+    } else if (candidate.mode === 'classic' && !candidate.noDefeat && saved.ended === true) candidate.ended = true;
+    for (const key of ['nextId', 'board', 'mode', 'score', 'level', 'levelStartScore', 'progressionOffset', 'ended', 'cheatsUsed', 'noDefeat'])
       this[key] = candidate[key];
-    this.lastMoveSnapshot = null;
+    this.undoHistory = [];
     return true;
   }
 }
@@ -1256,7 +1388,7 @@ const effectScale = () => game.mode !== 'zen' ? 1 : zenSettings.effects === 'sof
   zenSettings.effects === 'vivid' ? 1.1 : 1;
 
 const records = new Map();
-let lastMoveRecordSnapshot = null;
+let recordHistory = [];
 function safeRecord(mode) {
   if (records.has(mode)) return records.get(mode);
   try {
@@ -1281,7 +1413,7 @@ function save() {
     localStorage.setItem(sessionKey(game.mode), JSON.stringify({
       mode: game.mode, score: game.score, board: game.board, ended: game.ended,
       progressionVersion: 4, level: game.level, levelStartScore: game.levelStartScore,
-      progressionOffset: game.progressionOffset
+      progressionOffset: game.progressionOffset, cheatsUsed: game.cheatsUsed, noDefeat: game.noDefeat
     }));
     localStorage.setItem('prisma.activeMode', game.mode);
   } catch {}
@@ -1349,6 +1481,7 @@ function draw(board = game.board, matched = []) {
 
 function commitRecords(moveEarned = 0, finishedGame = false) {
   const record = safeRecord(game.mode);
+  if (game.cheatsUsed) return record;
   const previous = {...record};
   record.bestScore = Math.max(record.bestScore, game.score);
   record.bestLevel = Math.max(record.bestLevel, game.level);
@@ -1386,7 +1519,7 @@ function hud() {
   for (const button of document.querySelectorAll('.mode')) button.classList.toggle('selected', button.dataset.mode === game.mode);
   $('#shuffle').hidden = game.mode === 'classic';
   $('#hint').disabled = game.ended;
-  undoLastMoveButton.disabled = !game.canUndoLastMove();
+  syncDeveloperMenu();
   boardElement.classList.toggle('finished', game.ended);
   gameOver.hidden = !game.ended;
   $('#final-score').textContent = game.score.toLocaleString('pt-BR');
@@ -1639,25 +1772,36 @@ async function animateShuffle(board) {
     [{opacity: .12}, {opacity: 1}], {duration: 250, easing: 'ease-out'})]);
 }
 
-async function attempt(a, b) {
+async function attempt(a, b, cheat = false) {
   if (busy) return;
   selected = null;
   clearScoreGain();
   const stage = {score: game.score, level: game.level, levelStartScore: game.levelStartScore};
   const recordBeforeMove = {...safeRecord(game.mode)};
   const result = game.move(a, b);
+  if (cheat && result.valid) game.cheatsUsed = true;
+  return animateResult(result, stage, recordBeforeMove, {a, b});
+}
+
+function rememberRecord(record) {
+  recordHistory.push({mode: game.mode, record});
+  recordHistory = recordHistory.slice(-game.undoHistory.length);
+}
+
+async function animateResult(result, stage, recordBeforeMove, swap = null) {
   busy = true;
+  syncDeveloperMenu();
   boardElement.classList.add('busy');
   if (result.valid) {
     // Keep score records reversible along with the game state for developer testing.
-    lastMoveRecordSnapshot = {mode: game.mode, record: recordBeforeMove};
+    rememberRecord(recordBeforeMove);
     // The engine has already committed all cascades; persist before any visual delay.
     save();
     commitRecords(result.earned, result.ended);
     vibrate(result.levelsGained ? [28, 55, 35] : result.events.some(frame => frame.activated?.length) ? 45 : 28);
   } else playTone('invalid');
   try {
-    await animateSwap(a, b, result.valid);
+    if (swap) await animateSwap(swap.a, swap.b, result.valid);
     if (!result.valid) return;
     for (const frame of result.events) {
       if (document.visibilityState === 'hidden') break;
@@ -1702,11 +1846,9 @@ async function attempt(a, b) {
     effectLayer.replaceChildren();
     levelUp.hidden = true;
     draw();
-    if (result.valid) {
-      hud();
-    }
     boardElement.classList.remove('busy');
     busy = false;
+    hud();
   }
 }
 
@@ -1812,15 +1954,17 @@ $('#shuffle').addEventListener('click', async () => {
   clearHint();
   selected = null;
   if (!game.shuffle()) return;
-  lastMoveRecordSnapshot = null;
+  recordHistory = [];
   save();
   busy = true;
+  syncDeveloperMenu();
   boardElement.classList.add('busy');
   try { await animateShuffle(game.board); }
   finally {
     draw();
     boardElement.classList.remove('busy');
     busy = false;
+    hud();
   }
   showToast('Tabuleiro reorganizado');
 });
@@ -1830,7 +1974,7 @@ function startNewGame() {
   clearHint();
   selected = null;
   game.newGame();
-  lastMoveRecordSnapshot = null;
+  recordHistory = [];
   draw(); hud(); save();
 }
 const newGameDialog = $('#new-game-dialog');
@@ -1850,7 +1994,7 @@ document.querySelectorAll('.mode').forEach(button => button.addEventListener('cl
   clearHint();
   selected = null;
   save();
-  lastMoveRecordSnapshot = null;
+  recordHistory = [];
   restoreMode(button.dataset.mode);
   draw(); hud(); save();
   zenAudio.armed = true;
@@ -1937,6 +2081,70 @@ $('#vibration').addEventListener('click', () => {
   }
 });
 
+const developerControls = ['undo-last-move', 'cheat-points-100', 'cheat-points-1000',
+  'cheat-add-points', 'cheat-points', 'cheat-next-level', 'cheat-set-level', 'cheat-level',
+  'cheat-row', 'cheat-column', 'cheat-special', 'cheat-spawn', 'cheat-shuffle',
+  'cheat-no-defeat', 'cheat-explode', 'cheat-supernova', 'cheat-auto-move'];
+function syncDeveloperMenu() {
+  for (const id of developerControls) $('#' + id).disabled = busy;
+  undoLastMoveButton.disabled = busy || !game.canUndoLastMove();
+  $('#cheat-no-defeat').checked = game.noDefeat;
+  $('#developer-status').textContent = game.cheatsUsed ?
+    'Partida com cheats: os recordes normais estão protegidos.' :
+    'Partida normal. Usar um cheat desativa os recordes nesta partida.';
+  $('#developer-history').textContent = `${game.undoHistory.length} de 50 ações disponíveis para desfazer`;
+}
+function developerPosition() {
+  const row = Number($('#cheat-row').value), column = Number($('#cheat-column').value);
+  return Number.isInteger(row) && row >= 1 && row <= SIZE &&
+    Number.isInteger(column) && column >= 1 && column <= SIZE ? (row - 1) * SIZE + column - 1 : -1;
+}
+function developerEdit(action, message) {
+  if (busy) return;
+  const previousRecord = {...safeRecord(game.mode)};
+  if (!action()) { showToast('Confira os valores ou tente outra ação'); syncDeveloperMenu(); return; }
+  rememberRecord(previousRecord);
+  selected = null;
+  clearHint(); clearScoreGain(); effectLayer.replaceChildren();
+  draw(); hud(); save();
+  showToast(message);
+}
+async function developerCascade(action) {
+  if (busy) return;
+  const stage = {score: game.score, level: game.level, levelStartScore: game.levelStartScore};
+  const previousRecord = {...safeRecord(game.mode)};
+  const result = action();
+  if (!result.valid) { showToast('Escolha uma linha e coluna de 1 a 8'); return; }
+  selected = null;
+  clearHint(); clearScoreGain();
+  await animateResult(result, stage, previousRecord);
+}
+$('#cheat-points-100').addEventListener('click', () => developerEdit(() => game.cheatAddPoints(100), '+100 pontos'));
+$('#cheat-points-1000').addEventListener('click', () => developerEdit(() => game.cheatAddPoints(1000), '+1.000 pontos'));
+$('#cheat-add-points').addEventListener('click', () => developerEdit(
+  () => game.cheatAddPoints(Number($('#cheat-points').value)), 'Pontos adicionados'));
+$('#cheat-next-level').addEventListener('click', () => developerEdit(() => game.cheatSetLevel(game.level + 1), 'Nível avançado'));
+$('#cheat-set-level').addEventListener('click', () => developerEdit(
+  () => game.cheatSetLevel(Number($('#cheat-level').value)), 'Nível alterado'));
+$('#cheat-spawn').addEventListener('click', () => developerEdit(
+  () => game.cheatSpawnSpecial(developerPosition(), $('#cheat-special').value), 'Especial criado'));
+$('#cheat-shuffle').addEventListener('click', () => developerEdit(() => game.cheatShuffle(), 'Tabuleiro reorganizado'));
+$('#cheat-no-defeat').addEventListener('change', event => developerEdit(
+  () => game.cheatNoDefeat(event.target.checked), 'Proteção contra derrota atualizada'));
+$('#cheat-explode').addEventListener('click', () => developerCascade(() => game.cheatExplode()));
+$('#cheat-supernova').addEventListener('click', () => developerCascade(() => game.cheatSupernova(developerPosition())));
+$('#cheat-auto-move').addEventListener('click', () => {
+  if (busy) return;
+  const move = game.hint();
+  if (!move) { showToast('Embaralhe ou ative a proteção contra derrota'); return; }
+  clearHint();
+  return attempt(move.a, move.b, true);
+});
+$('#developer-close').addEventListener('click', () => {
+  developerMenu.hidden = true;
+  developerMenuTrigger.setAttribute('aria-expanded', 'false');
+});
+
 let developerTapCount = 0;
 let developerTapTimer;
 developerMenuTrigger.addEventListener('click', () => {
@@ -1951,15 +2159,15 @@ developerMenuTrigger.addEventListener('click', () => {
 });
 undoLastMoveButton.addEventListener('click', () => {
   if (busy || !game.undoLastMove()) return;
-  if (lastMoveRecordSnapshot?.mode === game.mode) {
-    const previous = {...lastMoveRecordSnapshot.record};
+  const recordSnapshot = recordHistory.pop();
+  if (recordSnapshot?.mode === game.mode) {
+    const previous = {...recordSnapshot.record};
     records.set(game.mode, previous);
     try {
       localStorage.setItem('prisma.records.' + game.mode, JSON.stringify(previous));
       localStorage.setItem('prisma.best.' + game.mode, String(previous.bestScore));
     } catch {}
   }
-  lastMoveRecordSnapshot = null;
   selected = null;
   clearHint();
   clearScoreGain();
@@ -1967,7 +2175,7 @@ undoLastMoveButton.addEventListener('click', () => {
   draw();
   hud();
   save();
-  showToast('Última jogada revertida');
+  showToast('Última ação revertida');
 });
 
 draw(); hud(); syncAudioSettingsUI(); syncZenUI(true);

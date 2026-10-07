@@ -49,7 +49,7 @@ Também existe uma versão autônoma em [Prisma-jogar-offline.html](Prisma-jogar
 
 ### Android
 
-A versão atual é a **1.2.1**. Consulte o [changelog](CHANGELOG.md) para ver as mudanças. O APK pode ser gerado pelo GitHub Actions ou compilado localmente. O aplicativo exige Android 8 ou mais recente e Android System WebView atualizada.
+A versão atual é a **1.3.0**. Consulte o [changelog](CHANGELOG.md) para ver as mudanças. O APK pode ser gerado pelo GitHub Actions ou compilado localmente. O aplicativo exige Android 8 ou mais recente e Android System WebView atualizada.
 
 Os APKs de publicação são assinados com a mesma chave privada configurada nos segredos do repositório. Versões antigas instaladas a partir dos APKs de depuração têm outra assinatura: para instalar a primeira versão de publicação, será necessário desinstalá-las, o que apaga as partidas e preferências do aplicativo. O progresso da versão web fica separado.
 
@@ -100,6 +100,12 @@ Consulte os arquivos de licença para saber exatamente quais direitos se aplicam
 
 ## Estado do projeto
 
-O Prisma é um projeto independente em desenvolvimento. A versão 1.2.1 está jogável, mas a experiência em aparelhos Android reais — especialmente consumo de bateria, retomada, áudio e leitura das pedras em telas pequenas — ainda deve ser validada antes de ser tratada como uma versão final de distribuição.
+O Prisma é um projeto independente em desenvolvimento. A versão 1.3.0 está jogável, mas a experiência em aparelhos Android reais — especialmente consumo de bateria, retomada, áudio e leitura das pedras em telas pequenas — ainda deve ser validada antes de ser tratada como uma versão final de distribuição.
 
 Sugestões, relatos de problemas e contribuições são bem-vindos. Ao abrir uma issue, informe o aparelho, a versão do Android, o modo de jogo e os passos para reproduzir o problema.
+
+## Menu secreto de desenvolvedor
+
+Nos créditos, toque sete vezes rapidamente em **Versão 1.3.0**. Todos os cheats ficam nesse menu: pontos personalizados, escolha de nível, criação de Pulso/Raio/Espectro por linha e coluna, embaralhamento no Clássico, proteção contra derrota, explosão total, Supernova e jogada automática.
+
+O histórico permite desfazer até 50 jogadas ou ações enquanto o jogo está aberto. É limpo ao reabrir, trocar de modo, começar outra partida ou usar o embaralhamento normal do Zen. Usar qualquer cheat, inclusive desfazer, marca a partida: ela continua salva, mas deixa de atualizar os recordes normais. A marca permanece após reabrir e desfazer; uma nova partida começa sem cheats.

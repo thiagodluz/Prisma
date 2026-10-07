@@ -1,9 +1,16 @@
+# Histórico de versões
+
+## 1.3.0 — 07/10/2026
+
+- Todos os cheats reunidos no menu secreto dos créditos: +100/+1.000/pontos personalizados, próximo nível ou escolha de nível, criação de Pulso/Raio/Espectro, embaralhamento ilimitado inclusive no Clássico, impedir derrota e continuar, explosão total, Supernova e jogada automática.
+- Desfazer até 50 jogadas e ações, restaurando tabuleiro, pontuação, nível, estado da partida e recordes anteriores. O histórico dura apenas durante a sessão aberta.
+- Partidas com cheats não atualizam os recordes normais. A marca e a proteção contra derrota ficam salvas por modo e permanecem após reabrir o app.
+- Controles de linha/coluna e status aparecem somente dentro do menu secreto, aberto com sete toques rápidos na versão.
+
 ## 1.2.1 — 06/10/2026
 
 - Menu de desenvolvedor oculto nos créditos, aberto com sete toques rápidos na versão.
 - A ação “Retornar à última jogada” desfaz a última jogada válida e restaura tabuleiro, pontuação, nível e recordes.
-
-# Histórico de versões
 
 ## 1.2.0 — 01/10/2026
 

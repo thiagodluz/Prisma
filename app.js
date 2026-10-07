@@ -1,6 +1,6 @@
-import {Game, SIZE, levelGoal} from './engine.js?v=1.2.1';
-import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=1.2.1';
-import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=1.2.1';
+import {Game, SIZE, levelGoal} from './engine.js?v=1.3.0';
+import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=1.3.0';
+import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=1.3.0';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
@@ -174,7 +174,7 @@ const effectScale = () => game.mode !== 'zen' ? 1 : zenSettings.effects === 'sof
   zenSettings.effects === 'vivid' ? 1.1 : 1;
 
 const records = new Map();
-let lastMoveRecordSnapshot = null;
+let recordHistory = [];
 function safeRecord(mode) {
   if (records.has(mode)) return records.get(mode);
   try {
@@ -199,7 +199,7 @@ function save() {
     localStorage.setItem(sessionKey(game.mode), JSON.stringify({
       mode: game.mode, score: game.score, board: game.board, ended: game.ended,
       progressionVersion: 4, level: game.level, levelStartScore: game.levelStartScore,
-      progressionOffset: game.progressionOffset
+      progressionOffset: game.progressionOffset, cheatsUsed: game.cheatsUsed, noDefeat: game.noDefeat
     }));
     localStorage.setItem('prisma.activeMode', game.mode);
   } catch {}
@@ -267,6 +267,7 @@ function draw(board = game.board, matched = []) {
 
 function commitRecords(moveEarned = 0, finishedGame = false) {
   const record = safeRecord(game.mode);
+  if (game.cheatsUsed) return record;
   const previous = {...record};
   record.bestScore = Math.max(record.bestScore, game.score);
   record.bestLevel = Math.max(record.bestLevel, game.level);
@@ -304,7 +305,7 @@ function hud() {
   for (const button of document.querySelectorAll('.mode')) button.classList.toggle('selected', button.dataset.mode === game.mode);
   $('#shuffle').hidden = game.mode === 'classic';
   $('#hint').disabled = game.ended;
-  undoLastMoveButton.disabled = !game.canUndoLastMove();
+  syncDeveloperMenu();
   boardElement.classList.toggle('finished', game.ended);
   gameOver.hidden = !game.ended;
   $('#final-score').textContent = game.score.toLocaleString('pt-BR');
@@ -557,25 +558,36 @@ async function animateShuffle(board) {
     [{opacity: .12}, {opacity: 1}], {duration: 250, easing: 'ease-out'})]);
 }
 
-async function attempt(a, b) {
+async function attempt(a, b, cheat = false) {
   if (busy) return;
   selected = null;
   clearScoreGain();
   const stage = {score: game.score, level: game.level, levelStartScore: game.levelStartScore};
   const recordBeforeMove = {...safeRecord(game.mode)};
   const result = game.move(a, b);
+  if (cheat && result.valid) game.cheatsUsed = true;
+  return animateResult(result, stage, recordBeforeMove, {a, b});
+}
+
+function rememberRecord(record) {
+  recordHistory.push({mode: game.mode, record});
+  recordHistory = recordHistory.slice(-game.undoHistory.length);
+}
+
+async function animateResult(result, stage, recordBeforeMove, swap = null) {
   busy = true;
+  syncDeveloperMenu();
   boardElement.classList.add('busy');
   if (result.valid) {
     // Keep score records reversible along with the game state for developer testing.
-    lastMoveRecordSnapshot = {mode: game.mode, record: recordBeforeMove};
+    rememberRecord(recordBeforeMove);
     // The engine has already committed all cascades; persist before any visual delay.
     save();
     commitRecords(result.earned, result.ended);
     vibrate(result.levelsGained ? [28, 55, 35] : result.events.some(frame => frame.activated?.length) ? 45 : 28);
   } else playTone('invalid');
   try {
-    await animateSwap(a, b, result.valid);
+    if (swap) await animateSwap(swap.a, swap.b, result.valid);
     if (!result.valid) return;
     for (const frame of result.events) {
       if (document.visibilityState === 'hidden') break;
@@ -620,11 +632,9 @@ async function attempt(a, b) {
     effectLayer.replaceChildren();
     levelUp.hidden = true;
     draw();
-    if (result.valid) {
-      hud();
-    }
     boardElement.classList.remove('busy');
     busy = false;
+    hud();
   }
 }
 
@@ -730,15 +740,17 @@ $('#shuffle').addEventListener('click', async () => {
   clearHint();
   selected = null;
   if (!game.shuffle()) return;
-  lastMoveRecordSnapshot = null;
+  recordHistory = [];
   save();
   busy = true;
+  syncDeveloperMenu();
   boardElement.classList.add('busy');
   try { await animateShuffle(game.board); }
   finally {
     draw();
     boardElement.classList.remove('busy');
     busy = false;
+    hud();
   }
   showToast('Tabuleiro reorganizado');
 });
@@ -748,7 +760,7 @@ function startNewGame() {
   clearHint();
   selected = null;
   game.newGame();
-  lastMoveRecordSnapshot = null;
+  recordHistory = [];
   draw(); hud(); save();
 }
 const newGameDialog = $('#new-game-dialog');
@@ -768,7 +780,7 @@ document.querySelectorAll('.mode').forEach(button => button.addEventListener('cl
   clearHint();
   selected = null;
   save();
-  lastMoveRecordSnapshot = null;
+  recordHistory = [];
   restoreMode(button.dataset.mode);
   draw(); hud(); save();
   zenAudio.armed = true;
@@ -855,6 +867,70 @@ $('#vibration').addEventListener('click', () => {
   }
 });
 
+const developerControls = ['undo-last-move', 'cheat-points-100', 'cheat-points-1000',
+  'cheat-add-points', 'cheat-points', 'cheat-next-level', 'cheat-set-level', 'cheat-level',
+  'cheat-row', 'cheat-column', 'cheat-special', 'cheat-spawn', 'cheat-shuffle',
+  'cheat-no-defeat', 'cheat-explode', 'cheat-supernova', 'cheat-auto-move'];
+function syncDeveloperMenu() {
+  for (const id of developerControls) $('#' + id).disabled = busy;
+  undoLastMoveButton.disabled = busy || !game.canUndoLastMove();
+  $('#cheat-no-defeat').checked = game.noDefeat;
+  $('#developer-status').textContent = game.cheatsUsed ?
+    'Partida com cheats: os recordes normais estão protegidos.' :
+    'Partida normal. Usar um cheat desativa os recordes nesta partida.';
+  $('#developer-history').textContent = `${game.undoHistory.length} de 50 ações disponíveis para desfazer`;
+}
+function developerPosition() {
+  const row = Number($('#cheat-row').value), column = Number($('#cheat-column').value);
+  return Number.isInteger(row) && row >= 1 && row <= SIZE &&
+    Number.isInteger(column) && column >= 1 && column <= SIZE ? (row - 1) * SIZE + column - 1 : -1;
+}
+function developerEdit(action, message) {
+  if (busy) return;
+  const previousRecord = {...safeRecord(game.mode)};
+  if (!action()) { showToast('Confira os valores ou tente outra ação'); syncDeveloperMenu(); return; }
+  rememberRecord(previousRecord);
+  selected = null;
+  clearHint(); clearScoreGain(); effectLayer.replaceChildren();
+  draw(); hud(); save();
+  showToast(message);
+}
+async function developerCascade(action) {
+  if (busy) return;
+  const stage = {score: game.score, level: game.level, levelStartScore: game.levelStartScore};
+  const previousRecord = {...safeRecord(game.mode)};
+  const result = action();
+  if (!result.valid) { showToast('Escolha uma linha e coluna de 1 a 8'); return; }
+  selected = null;
+  clearHint(); clearScoreGain();
+  await animateResult(result, stage, previousRecord);
+}
+$('#cheat-points-100').addEventListener('click', () => developerEdit(() => game.cheatAddPoints(100), '+100 pontos'));
+$('#cheat-points-1000').addEventListener('click', () => developerEdit(() => game.cheatAddPoints(1000), '+1.000 pontos'));
+$('#cheat-add-points').addEventListener('click', () => developerEdit(
+  () => game.cheatAddPoints(Number($('#cheat-points').value)), 'Pontos adicionados'));
+$('#cheat-next-level').addEventListener('click', () => developerEdit(() => game.cheatSetLevel(game.level + 1), 'Nível avançado'));
+$('#cheat-set-level').addEventListener('click', () => developerEdit(
+  () => game.cheatSetLevel(Number($('#cheat-level').value)), 'Nível alterado'));
+$('#cheat-spawn').addEventListener('click', () => developerEdit(
+  () => game.cheatSpawnSpecial(developerPosition(), $('#cheat-special').value), 'Especial criado'));
+$('#cheat-shuffle').addEventListener('click', () => developerEdit(() => game.cheatShuffle(), 'Tabuleiro reorganizado'));
+$('#cheat-no-defeat').addEventListener('change', event => developerEdit(
+  () => game.cheatNoDefeat(event.target.checked), 'Proteção contra derrota atualizada'));
+$('#cheat-explode').addEventListener('click', () => developerCascade(() => game.cheatExplode()));
+$('#cheat-supernova').addEventListener('click', () => developerCascade(() => game.cheatSupernova(developerPosition())));
+$('#cheat-auto-move').addEventListener('click', () => {
+  if (busy) return;
+  const move = game.hint();
+  if (!move) { showToast('Embaralhe ou ative a proteção contra derrota'); return; }
+  clearHint();
+  return attempt(move.a, move.b, true);
+});
+$('#developer-close').addEventListener('click', () => {
+  developerMenu.hidden = true;
+  developerMenuTrigger.setAttribute('aria-expanded', 'false');
+});
+
 let developerTapCount = 0;
 let developerTapTimer;
 developerMenuTrigger.addEventListener('click', () => {
@@ -869,15 +945,15 @@ developerMenuTrigger.addEventListener('click', () => {
 });
 undoLastMoveButton.addEventListener('click', () => {
   if (busy || !game.undoLastMove()) return;
-  if (lastMoveRecordSnapshot?.mode === game.mode) {
-    const previous = {...lastMoveRecordSnapshot.record};
+  const recordSnapshot = recordHistory.pop();
+  if (recordSnapshot?.mode === game.mode) {
+    const previous = {...recordSnapshot.record};
     records.set(game.mode, previous);
     try {
       localStorage.setItem('prisma.records.' + game.mode, JSON.stringify(previous));
       localStorage.setItem('prisma.best.' + game.mode, String(previous.bestScore));
     } catch {}
   }
-  lastMoveRecordSnapshot = null;
   selected = null;
   clearHint();
   clearScoreGain();
@@ -885,7 +961,7 @@ undoLastMoveButton.addEventListener('click', () => {
   draw();
   hud();
   save();
-  showToast('Última jogada revertida');
+  showToast('Última ação revertida');
 });
 
 draw(); hud(); syncAudioSettingsUI(); syncZenUI(true);
