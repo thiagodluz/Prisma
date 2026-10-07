@@ -5,3 +5,7 @@ android/app/build/
 *.jks
 *.keystore
 *.p12
+
+# Rebuilt from verified local assets and published with every release.
+/Prisma-jogar-offline.html
+/audio/
