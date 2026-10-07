@@ -14,10 +14,10 @@ Prisma é um jogo independente para Android e navegador, criado para quem gosta 
 - **Clássico:** sem cronômetro, mas com desafio. A partida termina quando não restam jogadas possíveis.
 - **Tabuleiro 8×8:** combine três ou mais pedras, provoque cascatas e avance por níveis.
 - **Pedras especiais:** crie **Pulso**, **Raio** e **Espectro** para transformar uma boa jogada em uma reação em cadeia.
-- **Experiência tranquila:** cinco músicas originais e cinco ambientes selecionáveis no Zen, efeitos ajustáveis, vibração opcional e suporte à preferência do sistema por menos movimento.
+- **Experiência tranquila:** oito músicas e sete ambientes selecionáveis no Zen, efeitos ajustáveis, vibração opcional e suporte à preferência do sistema por menos movimento. A seleção inclui cinco composições originais, três músicas CC0 e quatro gravações ambientais.
 - **Offline e local:** o jogo não pede acesso à internet e salva partidas, recordes e preferências no armazenamento local do navegador ou do aplicativo.
 
-Prisma tem identidade visual, áudio, interface e regras próprias. A inspiração vem do prazer dos jogos de combinar pedras, mas nenhum arquivo, som ou recurso de outro jogo foi incorporado ao projeto.
+Prisma tem identidade visual, interface e regras próprias. A trilha do Zen combina composições originais com músicas licenciadas sob CC0; as fontes estão nos créditos. Nenhum arquivo ou som de outro jogo foi incorporado ao projeto.
 
 ## Como jogar
 
