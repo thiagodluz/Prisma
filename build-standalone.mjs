@@ -24,6 +24,15 @@ for (const file of ['zen.js', 'sound.js']) {
   module = replace(module, /export (const|function|class) /g, '$1 ', `exports de ${file}`);
   js += '\n' + module;
 }
+for (const [file, mime] of [
+  ['audio/music/magic-puzzle.ogg', 'audio/ogg'],
+  ['audio/music/cozy-puzzle.ogg', 'audio/ogg'],
+  ['audio/music/space-city.ogg', 'audio/ogg'],
+  ['audio/ambience/stream.mp3', 'audio/mpeg'],
+  ['audio/ambience/rain.ogg', 'audio/ogg'],
+  ['audio/ambience/forest.mp3', 'audio/mpeg'],
+  ['audio/ambience/rainforest.mp3', 'audio/mpeg']
+]) js = replace(js, new RegExp(`'${file}'`, 'g'), `'${dataUrl(file, mime)}'`, file);
 let app = read('app.js');
 for (const file of ['engine.js', 'zen.js', 'sound.js'])
   app = replace(app, new RegExp(`^import \\{[^}]+\\} from '\\./${file.replace('.', '\\.')}\\?v=[^']+';\\r?\\n`, 'm'), '', `import de ${file}`);

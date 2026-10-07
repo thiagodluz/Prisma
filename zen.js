@@ -1,13 +1,14 @@
-export const MUSIC_TRACKS = Object.freeze(['sereno', 'cidade', 'jardim', 'horizonte', 'estrelas']);
-export const AMBIENCE_SOUNDS = Object.freeze(['white', 'stream', 'rain', 'storm', 'field']);
-export const ZEN_DEFAULTS = Object.freeze({music: false, ambience: false, musicTrack: 'sereno',
+export const MUSIC_TRACKS = Object.freeze(['sereno', 'cidade', 'jardim', 'horizonte', 'estrelas',
+  'magicPuzzle', 'cozyPuzzle', 'spaceCity']);
+export const AMBIENCE_SOUNDS = Object.freeze(['white', 'stream', 'rain', 'storm', 'field', 'forest', 'rainforest']);
+export const ZEN_DEFAULTS = Object.freeze({music: false, ambience: false, musicTrack: 'cozyPuzzle',
   ambienceSound: 'white', breath: 'off', effects: 'normal'});
 
 export function normalizeZenSettings(value) {
   return {
     music: value?.music === true,
     ambience: value?.ambience === true,
-    musicTrack: MUSIC_TRACKS.includes(value?.musicTrack) ? value.musicTrack : 'sereno',
+    musicTrack: MUSIC_TRACKS.includes(value?.musicTrack) ? value.musicTrack : 'cozyPuzzle',
     ambienceSound: AMBIENCE_SOUNDS.includes(value?.ambienceSound) ? value.ambienceSound : 'white',
     breath: ['off', 'balanced', 'slow'].includes(value?.breath) ? value.breath : 'off',
     effects: ['soft', 'normal', 'vivid'].includes(value?.effects) ? value.effects : 'normal'
@@ -47,13 +48,17 @@ const TRACKS = {
       [[130.81, 196, 293.66], [783.99, 587.33, 659.25, 523.25]],
       [[146.83, 220, 329.63], [880, 659.25, 587.33, 659.25]],
       [[110, 164.81, 246.94], [739.99, 493.88, 554.37, 493.88]],
-      [[123.47, 185, 277.18], [554.37, 739.99, 659.25, 554.37]]]}
+      [[123.47, 185, 277.18], [554.37, 739.99, 659.25, 554.37]]]},
+  magicPuzzle: {src: 'audio/music/magic-puzzle.ogg'},
+  cozyPuzzle: {src: 'audio/music/cozy-puzzle.ogg'},
+  spaceCity: {src: 'audio/music/space-city.ogg'}
 };
 
 const AMBIENCE = {
-  white: {filter: 420, gain: .024}, stream: {filter: 1300, gain: .035},
-  rain: {filter: 3400, gain: .029}, storm: {filter: 2300, gain: .038},
-  field: {filter: 2700, gain: .032}
+  white: {filter: 420, gain: .024}, stream: {src: 'audio/ambience/stream.mp3', gain: .7},
+  rain: {src: 'audio/ambience/rain.ogg', gain: .7}, storm: {filter: 2300, gain: .038},
+  field: {filter: 2700, gain: .032}, forest: {src: 'audio/ambience/forest.mp3', gain: .65},
+  rainforest: {src: 'audio/ambience/rainforest.mp3', gain: .65}
 };
 
 // Synthetic soundscapes: flowing bubbles, rain, distant thunder, birds and crickets.
@@ -101,6 +106,7 @@ export class ZenAudio {
     this.musicTimer = null;
     this.voices = new Set();
     this.ambienceSource = null;
+    this.musicSource = null;
     this.musicOutput = null;
     this.musicVolume = 70;
     this.ambienceVolume = 65;
@@ -112,37 +118,50 @@ export class ZenAudio {
   setVolumes({music, ambience}) {
     this.musicVolume = Math.max(0, Math.min(100, Number(music) || 0));
     this.ambienceVolume = Math.max(0, Math.min(100, Number(ambience) || 0));
-    if (this.musicOutput) this.musicOutput.gain.setTargetAtTime(
+    if (this.musicSource) this.musicSource.volume = this.musicVolume / 100;
+    else if (this.musicOutput) this.musicOutput.gain.setTargetAtTime(
       this.musicVolume / 50, this.musicOutput.context.currentTime, .04);
-    if (this.ambienceSource) this.ambienceSource.volume.gain.setTargetAtTime(
+    if (this.ambienceSource?.audio) this.ambienceSource.audio.volume = this.ambienceVolume / 100;
+    else if (this.ambienceSource) this.ambienceSource.volume.gain.setTargetAtTime(
       this.ambienceVolume / 65 * AMBIENCE[this.ambienceSound].gain,
       this.ambienceSource.ctx.currentTime, .04);
   }
 
   sync({active, music, ambience, musicTrack = 'sereno', ambienceSound = 'white'}) {
     if (!this.armed || !active || (!music && !ambience)) { this.stop(); return; }
-    musicTrack = TRACKS[musicTrack] ? musicTrack : 'sereno';
+    musicTrack = TRACKS[musicTrack] ? musicTrack : 'cozyPuzzle';
     ambienceSound = AMBIENCE[ambienceSound] ? ambienceSound : 'white';
     try {
-      const ctx = this.getContext();
-      if (ctx.state !== 'running') ctx.resume().catch?.(() => {});
-      if (music && (this.musicTrack !== musicTrack || !this.musicTimer)) {
+      const track = TRACKS[musicTrack];
+      const soundscape = AMBIENCE[ambienceSound];
+      let ctx;
+      const audioContext = () => {
+        ctx ??= this.getContext();
+        if (ctx.state !== 'running') ctx.resume().catch?.(() => {});
+        return ctx;
+      };
+      if (music && (this.musicTrack !== musicTrack ||
+          (track.src ? !this.musicSource : !this.musicTimer))) {
         this.stopMusic();
         this.musicTrack = musicTrack;
-        if (!this.musicOutput || this.musicOutput.context !== ctx) {
-          this.musicOutput = ctx.createGain();
-          this.musicOutput.gain.value = this.musicVolume / 50;
-          this.musicOutput.connect(ctx.destination);
+        if (track.src) this.musicSource = this.createLoop(track.src, this.musicVolume / 100);
+        else {
+          const context = audioContext();
+          if (!this.musicOutput || this.musicOutput.context !== context) {
+            this.musicOutput = context.createGain();
+            this.musicOutput.gain.value = this.musicVolume / 50;
+            this.musicOutput.connect(context.destination);
+          }
+          this.playChord(context);
+          this.musicTimer = setInterval(() => {
+            if (context.state === 'running') this.playChord(context);
+          }, track.seconds * 1000);
         }
-        this.playChord(ctx);
-        this.musicTimer = setInterval(() => {
-          if (ctx.state === 'running') this.playChord(ctx);
-        }, TRACKS[musicTrack].seconds * 1000);
       } else if (!music) this.stopMusic();
       if (ambience && (this.ambienceSound !== ambienceSound || !this.ambienceSource)) {
         this.stopAmbience();
         this.ambienceSound = ambienceSound;
-        this.startAmbience(ctx);
+        this.startAmbience(soundscape.src ? null : audioContext());
       }
       else if (!ambience) this.stopAmbience();
     } catch { this.stop(); /* Audio can be unavailable in local-file views. */ }
@@ -177,6 +196,11 @@ export class ZenAudio {
   }
 
   startAmbience(ctx) {
+    if (AMBIENCE[this.ambienceSound].src) {
+      this.ambienceSource = {audio: this.createLoop(AMBIENCE[this.ambienceSound].src,
+        this.ambienceVolume / 100)};
+      return;
+    }
     const source = ctx.createBufferSource();
     const filter = ctx.createBiquadFilter();
     const volume = ctx.createGain();
@@ -195,6 +219,8 @@ export class ZenAudio {
     clearInterval(this.musicTimer);
     this.musicTimer = null;
     this.musicTrack = null;
+    this.musicSource?.pause();
+    this.musicSource = null;
     this.chord = 0;
     for (const {voice, volume} of this.voices) {
       volume.gain.cancelScheduledValues?.(voice.context?.currentTime ?? 0);
@@ -206,6 +232,12 @@ export class ZenAudio {
 
   stopAmbience() {
     if (!this.ambienceSource) return;
+    if (this.ambienceSource.audio) {
+      this.ambienceSource.audio.pause();
+      this.ambienceSource = null;
+      this.ambienceSound = null;
+      return;
+    }
     const {source, volume, ctx} = this.ambienceSource;
     volume.gain.setTargetAtTime(.0001, ctx.currentTime, .04);
     try { source.stop(ctx.currentTime + .22); } catch {}
@@ -216,5 +248,14 @@ export class ZenAudio {
   stop() {
     this.stopMusic();
     this.stopAmbience();
+  }
+
+  createLoop(src, volume) {
+    const audio = new Audio(src);
+    audio.preload = 'auto';
+    audio.loop = true;
+    audio.volume = volume;
+    audio.play().catch?.(() => {});
+    return audio;
   }
 }

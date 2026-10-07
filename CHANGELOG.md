@@ -1,6 +1,13 @@
 # Histórico de versões
 
-## 1.3.0 — 07/10/2026
+## 1.4.0 — Sound Revolution — 07/10/2026
+
+- O modo Zen oferece três músicas licenciadas sob CC0: Magic Puzzle, Cozy Puzzle e Space City. Cozy Puzzle é a seleção inicial.
+- Novos ambientes gravados de chuva, floresta, floresta após a chuva e riacho. O áudio fica nos arquivos do jogo e funciona offline no navegador, no HTML independente e no Android.
+- Os controles de volume continuam independentes e o áudio para ao pausar, ocultar o jogo ou sair do Zen.
+- Os efeitos de clique, explosão e vitória permanecem inalterados.
+
+## 1.3.0 — Secrets Inside — 07/10/2026
 
 - Todos os cheats reunidos no menu secreto dos créditos: +100/+1.000/pontos personalizados, próximo nível ou escolha de nível, criação de Pulso/Raio/Espectro, embaralhamento ilimitado inclusive no Clássico, impedir derrota e continuar, explosão total, Supernova e jogada automática.
 - Desfazer até 50 jogadas e ações, restaurando tabuleiro, pontuação, nível, estado da partida e recordes anteriores. O histórico dura apenas durante a sessão aberta.

@@ -4,17 +4,51 @@ import {ZenAudio, normalizeZenSettings, breathTiming, MUSIC_TRACKS, AMBIENCE_SOU
 
 test('Zen preferences accept only known rhythms and effect levels', () => {
   assert.deepEqual(normalizeZenSettings(null),
-    {music: false, ambience: false, musicTrack: 'sereno', ambienceSound: 'white',
+    {music: false, ambience: false, musicTrack: 'cozyPuzzle', ambienceSound: 'white',
       breath: 'off', effects: 'normal'});
   assert.deepEqual(normalizeZenSettings({music: 'true', ambience: true, breath: 'quick', effects: 'flash'}),
-    {music: false, ambience: true, musicTrack: 'sereno', ambienceSound: 'white',
+    {music: false, ambience: true, musicTrack: 'cozyPuzzle', ambienceSound: 'white',
       breath: 'off', effects: 'normal'});
-  assert.equal(MUSIC_TRACKS.length, 5);
-  assert.equal(AMBIENCE_SOUNDS.length, 5);
-  assert.equal(normalizeZenSettings({musicTrack: 'unknown', ambienceSound: 'unknown'}).musicTrack, 'sereno');
+  assert.equal(MUSIC_TRACKS.length, 8);
+  assert.equal(AMBIENCE_SOUNDS.length, 7);
+  assert.equal(normalizeZenSettings({musicTrack: 'unknown', ambienceSound: 'unknown'}).musicTrack, 'cozyPuzzle');
   assert.deepEqual(breathTiming('balanced'), [4, 4]);
   assert.deepEqual(breathTiming('slow'), [4, 6]);
   assert.equal(breathTiming('off'), null);
+});
+
+test('approved music and nature recordings play in loops and stop with Zen audio', async () => {
+  const created = [];
+  const previousAudio = globalThis.Audio;
+  globalThis.Audio = class {
+    constructor(src) { this.src = src; this.paused = true; created.push(this); }
+    play() { this.paused = false; return Promise.resolve(); }
+    pause() { this.paused = true; }
+  };
+  const audio = new ZenAudio(() => { throw new Error('recorded audio does not need Web Audio'); });
+  try {
+    audio.armed = true;
+    audio.setVolumes({music: 40, ambience: 30});
+    audio.sync({active: true, music: true, ambience: true,
+      musicTrack: 'cozyPuzzle', ambienceSound: 'stream'});
+    await Promise.resolve();
+    assert.equal(MUSIC_TRACKS.includes('cozyPuzzle'), true);
+    assert.equal(AMBIENCE_SOUNDS.includes('forest'), true);
+    assert.equal(AMBIENCE_SOUNDS.includes('rainforest'), true);
+    assert.deepEqual(created.map(sound => sound.src), [
+      'audio/music/cozy-puzzle.ogg', 'audio/ambience/stream.mp3'
+    ]);
+    assert.equal(created.every(sound => sound.loop), true);
+    assert.deepEqual(created.map(sound => sound.volume), [.4, .3]);
+    audio.setVolumes({music: 20, ambience: 15});
+    assert.deepEqual(created.map(sound => sound.volume), [.2, .15]);
+    audio.sync({active: false, music: true, ambience: true});
+    assert.equal(created.every(sound => sound.paused), true);
+  } finally {
+    audio.stop();
+    if (previousAudio === undefined) delete globalThis.Audio;
+    else globalThis.Audio = previousAudio;
+  }
 });
 
 test('music and ambience start independently and both stop outside Zen', () => {
@@ -40,19 +74,19 @@ test('music and ambience start independently and both stop outside Zen', () => {
     audio.sync({active: true, music: true, ambience: false});
     assert.equal(notes.length, 7);
     assert.equal(noises.length, 0);
-    audio.sync({active: true, music: false, ambience: true});
+    audio.sync({active: true, music: false, ambience: true, ambienceSound: 'white'});
     assert.equal(audio.musicTimer, null);
     assert.equal(notes.every(note => note.stopAt === .22), true);
     assert.equal(noises.length, 1);
     audio.setVolumes({music: 40, ambience: 30});
     assert.equal(audio.musicOutput.gain.target, .8);
     assert.equal(audio.ambienceSource.volume.gain.target, 30 / 65 * .024);
-    for (const sound of AMBIENCE_SOUNDS) {
+    for (const sound of ['white', 'storm', 'field']) {
       audio.sync({active: true, music: false, ambience: true, ambienceSound: sound});
       assert.equal(audio.ambienceSound, sound);
       assert.equal(audio.ambienceSource.source.started, true);
     }
-    assert.equal(noises.length, 5);
+    assert.equal(noises.length, 3);
     audio.sync({active: true, music: true, ambience: true, musicTrack: 'cidade', ambienceSound: 'field'});
     assert.equal(audio.musicTrack, 'cidade');
     assert.equal(notes.at(-1).type, 'triangle');
@@ -60,7 +94,7 @@ test('music and ambience start independently and both stop outside Zen', () => {
     audio.sync({active: true, music: true, ambience: true, musicTrack: 'estrelas', ambienceSound: 'field'});
     assert.equal(oldVoice.stopAt, .22);
     assert.equal(audio.musicTrack, 'estrelas');
-    assert.equal(noises.length, 5); // Changing music does not restart the ambience.
+    assert.equal(noises.length, 3); // Changing music does not restart the ambience.
     audio.sync({active: false, music: true, ambience: true});
     assert.equal(noises[0].stopAt, .22);
     assert.equal(audio.ambienceSource, null);
