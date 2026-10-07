@@ -17,7 +17,7 @@ Prisma é um jogo independente para Android e navegador, criado para quem gosta 
 - **Experiência tranquila:** três músicas e quatro ambientes selecionáveis no Zen, efeitos ajustáveis, vibração opcional e suporte à preferência do sistema por menos movimento. A seleção inclui as três músicas CC0 aprovadas e quatro gravações ambientais.
 - **Offline e local:** o jogo não pede acesso à internet e salva partidas, recordes e preferências no armazenamento local do navegador ou do aplicativo.
 
-Prisma tem identidade visual, interface e regras próprias. A trilha do Zen combina composições originais com músicas licenciadas sob CC0; as fontes estão nos créditos. Nenhum arquivo ou som de outro jogo foi incorporado ao projeto.
+Prisma tem identidade visual, interface e regras próprias. A trilha do Zen reúne as três músicas aprovadas, licenciadas sob CC0; as fontes estão nos créditos. Nenhum arquivo ou som de outro jogo foi incorporado ao projeto.
 
 ## Como jogar
 
