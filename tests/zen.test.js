@@ -2,139 +2,93 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {ZenAudio, normalizeZenSettings, breathTiming, MUSIC_TRACKS, AMBIENCE_SOUNDS} from '../zen.js';
 
-test('Zen preferences accept only known rhythms and effect levels', () => {
+test('Zen preferences accept only approved recordings and effect levels', () => {
   assert.deepEqual(normalizeZenSettings(null),
-    {music: false, ambience: false, musicTrack: 'cozyPuzzle', ambienceSound: 'white',
+    {music: false, ambience: false, musicTrack: 'cozyPuzzle', ambienceSound: 'rain',
       breath: 'off', effects: 'normal'});
   assert.deepEqual(normalizeZenSettings({music: 'true', ambience: true, breath: 'quick', effects: 'flash'}),
-    {music: false, ambience: true, musicTrack: 'cozyPuzzle', ambienceSound: 'white',
+    {music: false, ambience: true, musicTrack: 'cozyPuzzle', ambienceSound: 'rain',
       breath: 'off', effects: 'normal'});
-  assert.equal(MUSIC_TRACKS.length, 8);
-  assert.equal(AMBIENCE_SOUNDS.length, 7);
-  assert.equal(normalizeZenSettings({musicTrack: 'unknown', ambienceSound: 'unknown'}).musicTrack, 'cozyPuzzle');
   assert.deepEqual(breathTiming('balanced'), [4, 4]);
   assert.deepEqual(breathTiming('slow'), [4, 6]);
   assert.equal(breathTiming('off'), null);
 });
 
-test('approved music and nature recordings play in loops and stop with Zen audio', async () => {
+function fakeMedia(run) {
   const created = [];
-  const previousAudio = globalThis.Audio;
+  const previous = globalThis.Audio;
   globalThis.Audio = class {
-    constructor(src) { this.src = src; this.paused = true; created.push(this); }
-    play() { this.paused = false; return Promise.resolve(); }
+    constructor(src) { this.src = src; this.paused = true; this.plays = 0; created.push(this); }
+    play() { this.plays++; this.paused = false; return Promise.resolve(); }
     pause() { this.paused = true; }
+    removeAttribute() { this.released = true; }
+    load() {}
   };
-  const audio = new ZenAudio(() => { throw new Error('recorded audio does not need Web Audio'); });
-  try {
-    audio.armed = true;
-    audio.setVolumes({music: 40, ambience: 30});
-    audio.sync({active: true, music: true, ambience: true,
-      musicTrack: 'cozyPuzzle', ambienceSound: 'stream'});
-    await Promise.resolve();
-    assert.equal(MUSIC_TRACKS.includes('cozyPuzzle'), true);
-    assert.equal(AMBIENCE_SOUNDS.includes('forest'), true);
-    assert.equal(AMBIENCE_SOUNDS.includes('rainforest'), true);
-    assert.deepEqual(created.map(sound => sound.src), [
-      'audio/music/cozy-puzzle.ogg', 'audio/ambience/stream.mp3'
-    ]);
-    assert.equal(created.every(sound => sound.loop), true);
-    assert.deepEqual(created.map(sound => sound.volume), [.4, .3]);
-    audio.setVolumes({music: 20, ambience: 15});
-    assert.deepEqual(created.map(sound => sound.volume), [.2, .15]);
-    audio.sync({active: false, music: true, ambience: true});
-    assert.equal(created.every(sound => sound.paused), true);
-  } finally {
-    audio.stop();
-    if (previousAudio === undefined) delete globalThis.Audio;
-    else globalThis.Audio = previousAudio;
-  }
-});
+  return Promise.resolve().then(() => run(created)).finally(() => {
+    if (previous === undefined) delete globalThis.Audio;
+    else globalThis.Audio = previous;
+  });
+}
 
-test('music and ambience start independently and both stop outside Zen', () => {
-  const notes = [];
-  const noises = [];
-  const node = () => ({connect() { return this; }, disconnect() {}, start() { this.started = true; },
-    stop(time) { this.stopAt = time; if (time === undefined) { this.stopped = true; this.onended?.(); } }});
-  const param = () => ({value: 0, setValueAtTime() {}, linearRampToValueAtTime() {},
-    exponentialRampToValueAtTime() {}, setTargetAtTime(value) { this.target = value; }});
-  const ctx = {
-    state: 'running', currentTime: 0, sampleRate: 32, destination: {},
-    createOscillator() { const voice = {...node(), frequency: {value: 0}}; notes.push(voice); return voice; },
-    createGain() { return {...node(), context: ctx, gain: param()}; },
-    createBuffer(_channels, length) { return {getChannelData: () => new Float32Array(length)}; },
-    createBufferSource() { const source = node(); noises.push(source); return source; },
-    createBiquadFilter() { return {...node(), frequency: {value: 0}}; }
-  };
-  const audio = new ZenAudio(() => ctx);
-  try {
-    audio.sync({active: true, music: true, ambience: true});
-    assert.equal(notes.length, 0); // Restored choices never autoplay on page load.
-    audio.armed = true;
-    audio.sync({active: true, music: true, ambience: false});
-    assert.equal(notes.length, 7);
-    assert.equal(noises.length, 0);
-    audio.sync({active: true, music: false, ambience: true, ambienceSound: 'white'});
-    assert.equal(audio.musicTimer, null);
-    assert.equal(notes.every(note => note.stopAt === .22), true);
-    assert.equal(noises.length, 1);
-    audio.setVolumes({music: 40, ambience: 30});
-    assert.equal(audio.musicOutput.gain.target, .8);
-    assert.equal(audio.ambienceSource.volume.gain.target, 30 / 65 * .024);
-    for (const sound of ['white', 'storm', 'field']) {
-      audio.sync({active: true, music: false, ambience: true, ambienceSound: sound});
-      assert.equal(audio.ambienceSound, sound);
-      assert.equal(audio.ambienceSource.source.started, true);
-    }
-    assert.equal(noises.length, 3);
-    audio.sync({active: true, music: true, ambience: true, musicTrack: 'cidade', ambienceSound: 'field'});
-    assert.equal(audio.musicTrack, 'cidade');
-    assert.equal(notes.at(-1).type, 'triangle');
-    const oldVoice = notes.at(-1);
-    audio.sync({active: true, music: true, ambience: true, musicTrack: 'estrelas', ambienceSound: 'field'});
-    assert.equal(oldVoice.stopAt, .22);
-    assert.equal(audio.musicTrack, 'estrelas');
-    assert.equal(noises.length, 3); // Changing music does not restart the ambience.
-    audio.sync({active: false, music: true, ambience: true});
-    assert.equal(noises[0].stopAt, .22);
-    assert.equal(audio.ambienceSource, null);
-  } finally { audio.stop(); }
-});
+const tick = () => new Promise(resolve => setImmediate(resolve));
 
-test('Zen does not queue repeated chords while the audio context is suspended', () => {
-  const notes = [];
-  const param = () => ({value: 0, setValueAtTime() {}, linearRampToValueAtTime() {},
-    exponentialRampToValueAtTime() {}, setTargetAtTime() {}});
-  const ctx = {
-    state: 'running', currentTime: 0, destination: {},
-    createGain() { return {context: ctx, gain: param(), connect(target) { return target; }, disconnect() {}}; },
-    createOscillator() {
-      const voice = {context: ctx, frequency: {value: 0}, connect(target) { return target; },
-        start() {}, stop() {}, disconnect() {}};
-      notes.push(voice);
-      return voice;
-    }
-  };
-  const originalSetInterval = globalThis.setInterval;
-  const originalClearInterval = globalThis.clearInterval;
-  let tick;
-  globalThis.setInterval = callback => { tick = callback; return 1; };
-  globalThis.clearInterval = () => {};
-  const audio = new ZenAudio(() => ctx);
-  try {
-    audio.armed = true;
-    audio.sync({active: true, music: true, ambience: false});
-    assert.equal(notes.length, 7, 'the first chord plays immediately');
-    ctx.state = 'suspended';
-    tick();
-    tick();
-    assert.equal(notes.length, 7, 'suspension does not queue additional notes');
-    ctx.state = 'running';
-    tick();
-    assert.equal(notes.length, 14, 'music continues when audio resumes');
-  } finally {
-    audio.stop();
-    globalThis.setInterval = originalSetInterval;
-    globalThis.clearInterval = originalClearInterval;
-  }
-});
+test('recordings start independently, preserve the other channel, and release media on pause', () => fakeMedia(async created => {
+  const audio = new ZenAudio(() => { throw new Error('recordings do not need Web Audio'); });
+  audio.setVolumes({music: 40, ambience: 30});
+  audio.sync({active: true, music: true, ambience: true});
+  assert.equal(created.length, 0, 'restored preferences never autoplay');
+  audio.armed = true;
+  audio.sync({active: true, music: true, ambience: true, musicTrack: 'cozyPuzzle', ambienceSound: 'stream'});
+  await tick();
+  assert.deepEqual(created.map(sound => sound.src), ['audio/music/cozy-puzzle.ogg', 'audio/ambience/stream.mp3']);
+  assert.equal(created.every(sound => sound.loop), true);
+  assert.deepEqual(created.map(sound => sound.volume), [.4, .3]);
+  const stream = audio.ambienceSource.audio;
+  audio.sync({active: true, music: true, ambience: true, musicTrack: 'spaceCity', ambienceSound: 'stream'});
+  assert.equal(audio.ambienceSource.audio, stream, 'changing music does not restart ambience');
+  assert.equal(created[0].released, true);
+  audio.setVolumes({music: 0, ambience: 15});
+  assert.equal(audio.musicSource.volume, 0);
+  assert.equal(stream.volume, .15);
+  audio.sync({active: false, music: true, ambience: true});
+  assert.equal(created.every(sound => sound.paused && sound.released), true);
+  assert.equal(audio.musicSource, null);
+  assert.equal(audio.ambienceSource, null);
+}));
+
+test('a mobile autoplay rejection is reported and retried on the next interaction', () => fakeMedia(async created => {
+  const reports = [];
+  const audio = new ZenAudio(null, (channel, error) => { if (error) reports.push([channel, error.name]); });
+  audio.armed = true;
+  audio.sync({active: true, music: true, ambience: false});
+  await tick();
+  const media = created[0];
+  media.paused = true;
+  media.play = () => Promise.reject(Object.assign(new Error('gesture required'), {name: 'NotAllowedError'}));
+  audio.sync({active: true, music: true, ambience: false});
+  await tick();
+  assert.deepEqual(reports, [['music', 'NotAllowedError']]);
+  let retried = false;
+  media.play = () => { retried = true; media.paused = false; return Promise.resolve(); };
+  audio.sync({active: true, music: true, ambience: false});
+  await tick();
+  assert.equal(retried, true);
+  audio.stop();
+}));
+
+test('obsolete playback failures cannot overwrite the status of a replacement track', () => fakeMedia(async created => {
+  const reports = [];
+  const audio = new ZenAudio(null, (channel, error) => { if (error) reports.push(channel); });
+  audio.armed = true;
+  audio.sync({active: true, music: true, ambience: false});
+  const media = created[0];
+  let reject;
+  media.paused = true;
+  media.play = () => new Promise((_resolve, fail) => { reject = fail; });
+  audio.sync({active: true, music: true, ambience: false});
+  audio.sync({active: true, music: true, ambience: false, musicTrack: 'spaceCity'});
+  reject(new Error('old load failed'));
+  await tick();
+  assert.deepEqual(reports, []);
+  audio.stop();
+}));

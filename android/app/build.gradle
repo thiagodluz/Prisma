@@ -8,8 +8,9 @@ android {
         applicationId 'com.thiagodluz.prisma'
         minSdk 26
         targetSdk 35
-        versionCode 1040099
-        versionName '1.4.0'
+        versionCode 1040199
+        versionName '1.4.1'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 
     signingConfigs {
@@ -57,4 +58,10 @@ android.sourceSets.main.assets.srcDirs = [layout.buildDirectory.dir('generated/p
 tasks.configureEach {
     if ((name.startsWith('merge') && name.endsWith('Assets')) ||
         name.toLowerCase().contains('lint')) dependsOn tasks.named('syncPrismaAssets')
+}
+
+// Only the test APK uses these libraries; the released game stays dependency-free.
+dependencies {
+    androidTestImplementation 'androidx.test:runner:1.7.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.3.0'
 }

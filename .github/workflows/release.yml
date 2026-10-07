@@ -92,6 +92,7 @@ jobs:
           unzip -l "$apk" | grep 'assets/engine.js'
           mkdir -p release
           cp "$apk" release/Prisma-Android.apk
+          cp Prisma-jogar-offline.html release/Prisma-jogar-offline.html
           sha256sum release/Prisma-Android.apk
       - name: Publish release
         if: steps.release.outputs.publish == 'true'
@@ -110,6 +111,6 @@ jobs:
             tag_options=(--target "$GITHUB_SHA")
           fi
           case "$RELEASE_TAG" in
-            *-*) gh release create "$RELEASE_TAG" release/Prisma-Android.apk "${tag_options[@]}" --title "Prisma $RELEASE_TAG — Android" --prerelease --latest=false "${notes[@]}" ;;
-            *)   gh release create "$RELEASE_TAG" release/Prisma-Android.apk "${tag_options[@]}" --title "Prisma $RELEASE_TAG — Android" --latest "${notes[@]}" ;;
+            *-*) gh release create "$RELEASE_TAG" release/Prisma-Android.apk release/Prisma-jogar-offline.html "${tag_options[@]}" --title "Prisma $RELEASE_TAG — Android" --prerelease --latest=false "${notes[@]}" ;;
+            *)   gh release create "$RELEASE_TAG" release/Prisma-Android.apk release/Prisma-jogar-offline.html "${tag_options[@]}" --title "Prisma $RELEASE_TAG — Android" --latest "${notes[@]}" ;;
           esac

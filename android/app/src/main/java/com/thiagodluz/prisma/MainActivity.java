@@ -35,6 +35,13 @@ public class MainActivity extends Activity {
         TYPES.put("icon-512.png", "image/png"); TYPES.put("gem-atlas.webp", "image/webp");
         TYPES.put("burst-atlas.webp", "image/webp"); TYPES.put("cross-atlas.webp", "image/webp");
         TYPES.put("spectrum-gem.webp", "image/webp"); TYPES.put("prisma-bg.jpg", "image/jpeg");
+        TYPES.put("audio/music/magic-puzzle.ogg", "audio/ogg");
+        TYPES.put("audio/music/cozy-puzzle.ogg", "audio/ogg");
+        TYPES.put("audio/music/space-city.ogg", "audio/ogg");
+        TYPES.put("audio/ambience/stream.mp3", "audio/mpeg");
+        TYPES.put("audio/ambience/rain.ogg", "audio/ogg");
+        TYPES.put("audio/ambience/forest.mp3", "audio/mpeg");
+        TYPES.put("audio/ambience/rainforest.mp3", "audio/mpeg");
     }
     private WebView webView;
     private boolean resumed;
@@ -92,6 +99,9 @@ public class MainActivity extends Activity {
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
+        // JavaScript arms playback only after interaction; allow it to resume
+        // an already-armed recording when the Activity returns to the foreground.
+        settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setAllowFileAccess(false);
         settings.setAllowContentAccess(false);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
@@ -110,7 +120,9 @@ public class MainActivity extends Activity {
                 String mime = TYPES.get(filename);
                 if (mime == null) return null;
                 try {
-                    return new WebResourceResponse(mime, "UTF-8", getAssets().open(filename));
+                    String encoding = mime.startsWith("text/") || mime.equals("application/javascript") ||
+                        mime.equals("application/manifest+json") || mime.equals("image/svg+xml") ? "UTF-8" : null;
+                    return new WebResourceResponse(mime, encoding, getAssets().open(filename));
                 } catch (IOException error) {
                     return null;
                 }

@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.4.1 — Sound Revolution — 07/10/2026
+
+- Corrigido o acesso local aos sete arquivos de áudio no WebView Android, com MIME correto e respostas binárias sem codificação de texto.
+- Removidas as cinco músicas sintetizadas e as ambiências antigas de ruído branco, tempestade e campo. Escolhas antigas salvas passam a Cozy Puzzle e Chuva; as opções aprovadas permanecem.
+- O cache atualiza também a página já aberta ao substituir uma versão antiga, preservando a partida pelo salvamento ao sair da página.
+- Falhas de reprodução agora são indicadas no painel Zen e podem ser tentadas novamente por interação.
+- Teste instrumental Android reproduz efetivamente todos os áudios no WebView.
+
 ## 1.4.0 — Sound Revolution — 07/10/2026
 
 - O modo Zen oferece três músicas licenciadas sob CC0: Magic Puzzle, Cozy Puzzle e Space City. Cozy Puzzle é a seleção inicial.

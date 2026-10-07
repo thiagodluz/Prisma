@@ -1,6 +1,6 @@
-import {Game, SIZE, levelGoal} from './engine.js?v=1.4.0';
-import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=1.4.0';
-import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=1.4.0';
+import {Game, SIZE, levelGoal} from './engine.js?v=1.4.1';
+import {ZenAudio, normalizeZenSettings, breathTiming} from './zen.js?v=1.4.1';
+import {SoundDesign, normalizeAudioSettings, cueForFrame} from './sound.js?v=1.4.1';
 
 const $ = selector => document.querySelector(selector);
 const boardElement = $('#board');
@@ -87,7 +87,15 @@ try { canVibrate = nativeHaptics ? nativeHaptics.isAvailable() : typeof navigato
 $('#vibration').hidden = !canVibrate;
 let audioContext;
 const getAudioContext = () => audioContext ??= new (window.AudioContext || window.webkitAudioContext)();
-const zenAudio = new ZenAudio(getAudioContext);
+const zenPlaybackErrors = new Map();
+const zenAudio = new ZenAudio(getAudioContext, (channel, error) => {
+  if (error) zenPlaybackErrors.set(channel, error);
+  else zenPlaybackErrors.delete(channel);
+  const status = $('#zen-audio-status');
+  status.hidden = !zenPlaybackErrors.size;
+  status.textContent = zenPlaybackErrors.size
+    ? 'O áudio não começou. Toque novamente em Música ou Ambiente para tentar de novo.' : '';
+});
 const soundDesign = new SoundDesign(getAudioContext);
 soundDesign.setVolume(audioSettings.effects);
 zenAudio.setVolumes(audioSettings);
@@ -966,4 +974,4 @@ undoLastMoveButton.addEventListener('click', () => {
 
 draw(); hud(); syncAudioSettingsUI(); syncZenUI(true);
 if (!new URLSearchParams(globalThis.location?.search ?? '').has('android') && 'serviceWorker' in navigator)
-  navigator.serviceWorker.register('./sw.js').catch(() => {});
+  navigator.serviceWorker.register('./sw.js', {updateViaCache: 'none'}).catch(() => {});

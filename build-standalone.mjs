@@ -36,7 +36,7 @@ for (const [file, mime] of [
 let app = read('app.js');
 for (const file of ['engine.js', 'zen.js', 'sound.js'])
   app = replace(app, new RegExp(`^import \\{[^}]+\\} from '\\./${file.replace('.', '\\.')}\\?v=[^']+';\\r?\\n`, 'm'), '', `import de ${file}`);
-app = replace(app, /if \(!new URLSearchParams\(globalThis\.location\?\.search \?\? ''\)\.has\('android'\) && 'serviceWorker' in navigator\)\s+navigator\.serviceWorker\.register\('\.\/sw\.js'\)\.catch\(\(\) => \{\}\);/, '', 'registro do Service Worker');
+app = replace(app, /if \(!new URLSearchParams\(globalThis\.location\?\.search \?\? ''\)\.has\('android'\) && 'serviceWorker' in navigator\)\s+navigator\.serviceWorker\.register\('\.\/sw\.js', \{updateViaCache: 'none'\}\)\.catch\(\(\) => \{\}\);/, '', 'registro do Service Worker');
 js += '\n' + app;
 new Script(js, {filename: 'Prisma-jogar-offline.html'});
 
