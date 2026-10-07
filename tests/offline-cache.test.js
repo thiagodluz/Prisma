@@ -32,7 +32,10 @@ test('versioned game scripts resolve from the offline cache', async () => {
   let installation;
   handlers.install({waitUntil(promise) { installation = promise; }});
   await installation;
-  for (const asset of ['./gem-atlas.webp', './burst-atlas.webp', './cross-atlas.webp', './spectrum-gem.webp', './prisma-bg.jpg', './sound.js'])
+  for (const asset of ['./gem-atlas.webp', './burst-atlas.webp', './cross-atlas.webp', './spectrum-gem.webp', './prisma-bg.jpg', './sound.js',
+    './audio/music/magic-puzzle.ogg', './audio/music/cozy-puzzle.ogg', './audio/music/space-city.ogg',
+    './audio/ambience/stream.mp3', './audio/ambience/rain.ogg', './audio/ambience/forest.mp3',
+    './audio/ambience/rainforest.mp3'])
     assert.ok(precached.includes(asset), `${asset} should be available offline`);
   assert.ok(requestModes.length && requestModes.every(mode => mode === 'reload'));
   let response;
@@ -40,4 +43,16 @@ test('versioned game scripts resolve from the offline cache', async () => {
     respondWith(promise) { response = promise; }});
   assert.equal(await response, cached);
   assert.equal(networkRequests, 0);
+});
+
+test('standalone HTML embeds every approved music and ambience recording', () => {
+  const standalone = readFileSync(new URL('../Prisma-jogar-offline.html', import.meta.url), 'utf8');
+  for (const file of ['audio/music/magic-puzzle.ogg', 'audio/music/cozy-puzzle.ogg',
+    'audio/music/space-city.ogg', 'audio/ambience/stream.mp3', 'audio/ambience/rain.ogg',
+    'audio/ambience/forest.mp3', 'audio/ambience/rainforest.mp3']) {
+    const bytes = readFileSync(new URL(`../${file}`, import.meta.url));
+    const mime = file.endsWith('.ogg') ? 'audio/ogg' : 'audio/mpeg';
+    assert.ok(standalone.includes(`data:${mime};base64,${bytes.toString('base64')}`),
+      `${file} should be embedded without a network dependency`);
+  }
 });

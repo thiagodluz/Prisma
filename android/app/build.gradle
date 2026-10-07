@@ -8,8 +8,8 @@ android {
         applicationId 'com.thiagodluz.prisma'
         minSdk 26
         targetSdk 35
-        versionCode 1030099
-        versionName '1.3.0'
+        versionCode 1040099
+        versionName '1.4.0'
     }
 
     signingConfigs {
@@ -36,12 +36,19 @@ android {
 }
 
 // Pack the same web files used by the hosted game. The APK never fetches them.
+tasks.register('downloadPrismaAudio', Exec) {
+    workingDir rootProject.projectDir.parentFile
+    commandLine 'node', 'scripts/download-audio.mjs'
+}
+
 tasks.register('syncPrismaAssets', Copy) {
+    dependsOn tasks.named('downloadPrismaAudio')
     from('../..') {
         include 'index.html', 'style.css', 'app.js', 'engine.js', 'zen.js', 'sound.js'
         include 'gem-atlas.webp', 'burst-atlas.webp', 'cross-atlas.webp'
         include 'spectrum-gem.webp', 'prisma-bg.jpg', 'icon.svg'
         include 'icon-192.png', 'icon-512.png', 'manifest.webmanifest'
+        include 'audio/**'
         include 'LICENSE', 'LICENSE-ART.md'
     }
     into layout.buildDirectory.dir('generated/prismaAssets')
@@ -51,4 +58,3 @@ tasks.configureEach {
     if ((name.startsWith('merge') && name.endsWith('Assets')) ||
         name.toLowerCase().contains('lint')) dependsOn tasks.named('syncPrismaAssets')
 }
-

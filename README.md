@@ -14,10 +14,10 @@ Prisma é um jogo independente para Android e navegador, criado para quem gosta 
 - **Clássico:** sem cronômetro, mas com desafio. A partida termina quando não restam jogadas possíveis.
 - **Tabuleiro 8×8:** combine três ou mais pedras, provoque cascatas e avance por níveis.
 - **Pedras especiais:** crie **Pulso**, **Raio** e **Espectro** para transformar uma boa jogada em uma reação em cadeia.
-- **Experiência tranquila:** cinco músicas originais e cinco ambientes selecionáveis no Zen, efeitos ajustáveis, vibração opcional e suporte à preferência do sistema por menos movimento.
+- **Experiência tranquila:** oito músicas e sete ambientes selecionáveis no Zen, efeitos ajustáveis, vibração opcional e suporte à preferência do sistema por menos movimento. A seleção inclui cinco composições originais, três músicas CC0 e quatro gravações ambientais.
 - **Offline e local:** o jogo não pede acesso à internet e salva partidas, recordes e preferências no armazenamento local do navegador ou do aplicativo.
 
-Prisma tem identidade visual, áudio, interface e regras próprias. A inspiração vem do prazer dos jogos de combinar pedras, mas nenhum arquivo, som ou recurso de outro jogo foi incorporado ao projeto.
+Prisma tem identidade visual, interface e regras próprias. A trilha do Zen combina composições originais com músicas licenciadas sob CC0; as fontes estão nos créditos. Nenhum arquivo ou som de outro jogo foi incorporado ao projeto.
 
 ## Como jogar
 
@@ -49,7 +49,7 @@ Também existe uma versão autônoma em [Prisma-jogar-offline.html](Prisma-jogar
 
 ### Android
 
-A versão atual é a **1.3.0**. Consulte o [changelog](CHANGELOG.md) para ver as mudanças. O APK pode ser gerado pelo GitHub Actions ou compilado localmente. O aplicativo exige Android 8 ou mais recente e Android System WebView atualizada.
+A versão atual é a **1.4.0 — Sound Revolution**. Consulte o [changelog](CHANGELOG.md) para ver as mudanças. O APK pode ser gerado pelo GitHub Actions ou compilado localmente. O aplicativo exige Android 8 ou mais recente e Android System WebView atualizada.
 
 Os APKs de publicação são assinados com a mesma chave privada configurada nos segredos do repositório. Versões antigas instaladas a partir dos APKs de depuração têm outra assinatura: para instalar a primeira versão de publicação, será necessário desinstalá-las, o que apaga as partidas e preferências do aplicativo. O progresso da versão web fica separado.
 
@@ -71,6 +71,14 @@ Para executar os testes:
 npm test
 ```
 
+Antes de testar ou gerar o HTML independente e o APK, obtenha as faixas e ambientes CC0:
+
+```bash
+node scripts/download-audio.mjs
+```
+
+O script confere o SHA-256 de cada arquivo. Depois de compilados, navegador, HTML independente e APK usam os próprios arquivos de áudio e não precisam de rede durante o jogo.
+
 Para reconstruir o arquivo HTML autônomo depois de editar o projeto:
 
 ```bash
@@ -85,7 +93,7 @@ O projeto não depende de bibliotecas externas em tempo de execução.
 
 A prioridade do Prisma é oferecer uma experiência legível, agradável e contínua em telas móveis. As sete pedras comuns têm silhuetas diferentes; as pedras especiais usam símbolos grandes o bastante para serem reconhecidas durante uma cascata; o fundo mantém o centro escuro para não competir com o tabuleiro.
 
-As cinco músicas, os cinco ambientes do Zen e os efeitos são sintetizados pelo próprio código. Os assets, decisões visuais e pontos que ainda precisam de validação em aparelhos Android estão documentados em [docs/arte-e-audio.md](docs/arte-e-audio.md). As regras de jogo e as decisões de equilíbrio estão em [docs/regras-e-direcao.md](docs/regras-e-direcao.md).
+O Zen combina músicas licenciadas sob CC0, ambientes gravados e opções sintetizadas. Os efeitos de jogo também são sintetizados. Autores e fontes estão em [LICENSE-ART.md](LICENSE-ART.md); os demais assets, decisões visuais e pontos que ainda precisam de validação em aparelhos Android estão em [docs/arte-e-audio.md](docs/arte-e-audio.md). As regras de jogo e as decisões de equilíbrio estão em [docs/regras-e-direcao.md](docs/regras-e-direcao.md).
 
 ## Licenças e autoria
 
@@ -100,12 +108,12 @@ Consulte os arquivos de licença para saber exatamente quais direitos se aplicam
 
 ## Estado do projeto
 
-O Prisma é um projeto independente em desenvolvimento. A versão 1.3.0 está jogável, mas a experiência em aparelhos Android reais — especialmente consumo de bateria, retomada, áudio e leitura das pedras em telas pequenas — ainda deve ser validada antes de ser tratada como uma versão final de distribuição.
+O Prisma é um projeto independente em desenvolvimento. A versão 1.4.0 está jogável, mas a experiência em aparelhos Android reais — especialmente consumo de bateria, retomada, áudio e leitura das pedras em telas pequenas — ainda deve ser validada antes de ser tratada como uma versão final de distribuição.
 
 Sugestões, relatos de problemas e contribuições são bem-vindos. Ao abrir uma issue, informe o aparelho, a versão do Android, o modo de jogo e os passos para reproduzir o problema.
 
 ## Menu secreto de desenvolvedor
 
-Nos créditos, toque sete vezes rapidamente em **Versão 1.3.0**. Todos os cheats ficam nesse menu: pontos personalizados, escolha de nível, criação de Pulso/Raio/Espectro por linha e coluna, embaralhamento no Clássico, proteção contra derrota, explosão total, Supernova e jogada automática.
+Nos créditos, toque sete vezes rapidamente em **Versão 1.4.0**. Todos os cheats ficam nesse menu: pontos personalizados, escolha de nível, criação de Pulso/Raio/Espectro por linha e coluna, embaralhamento no Clássico, proteção contra derrota, explosão total, Supernova e jogada automática.
 
 O histórico permite desfazer até 50 jogadas ou ações enquanto o jogo está aberto. É limpo ao reabrir, trocar de modo, começar outra partida ou usar o embaralhamento normal do Zen. Usar qualquer cheat, inclusive desfazer, marca a partida: ela continua salva, mas deixa de atualizar os recordes normais. A marca permanece após reabrir e desfazer; uma nova partida começa sem cheats.
