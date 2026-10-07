@@ -24,7 +24,7 @@ export class Game {
     this.progressionOffset = 0;
     this.mode = 'zen';
     this.ended = false;
-    this.lastMoveSnapshot = null;
+    this.undoHistory = [];
     this.newGame();
   }
 
@@ -39,7 +39,9 @@ export class Game {
     this.levelStartScore = 0;
     this.progressionOffset = 0;
     this.ended = false;
-    this.lastMoveSnapshot = null;
+    this.undoHistory = [];
+    this.cheatsUsed = false;
+    this.noDefeat = false;
     this.board = this.freshBoard();
   }
 
@@ -187,12 +189,7 @@ export class Game {
 
   move(a, b) {
     if (this.ended || !this.adjacent(a, b)) return {valid: false, events: []};
-    const previousState = {
-      nextId: this.nextId,
-      board: this.board.map(row => row.map(tile => tile ? {...tile} : null)),
-      score: this.score, level: this.level, levelStartScore: this.levelStartScore,
-      progressionOffset: this.progressionOffset, mode: this.mode, ended: this.ended
-    };
+    const previousState = this.snapshot();
     this.swap(a, b);
     let match = this.matches();
     const spectrum = [a, b].filter(index => this.tile(index)?.type === 'spectrum');
@@ -200,19 +197,23 @@ export class Game {
       this.swap(a, b);
       return {valid: false, events: []};
     }
-    this.lastMoveSnapshot = previousState;
+    this.rememberState(previousState);
+    const direct = spectrum.length ? {spectrum, target: spectrum.length === 1 ? (spectrum[0] === a ? b : a) : null} : null;
+    return this.resolveBoard(match, direct, [b, a]);
+  }
+
+  resolveBoard(match, direct = null, preferred = [], initialCells = []) {
     const events = [];
     let chain = 0;
     let earned = 0;
-    let direct = spectrum.length ? {spectrum, target: spectrum.length === 1 ? (spectrum[0] === a ? b : a) : null} : null;
-    while (match.cells.length || direct) {
+    while (match.cells.length || direct || initialCells.length) {
       chain++;
       const supernovas = this.supernovas(match);
       const fused = new Set(supernovas.flatMap(effect => effect.sources));
-      const creations = (direct ? [] : this.creations(match, chain === 1 ? [b, a] : [], fused))
+      const creations = (direct ? [] : this.creations(match, chain === 1 ? preferred : [], fused))
         .map(creation => ({...creation, tile: this.gem(creation.color, creation.type)}));
       const protectedCells = new Set(creations.map(creation => creation.index));
-      const cleared = new Set(match.cells.filter(index => !protectedCells.has(index)));
+      const cleared = new Set([...match.cells, ...initialCells].filter(index => !protectedCells.has(index)));
       const activated = [...supernovas];
       const queue = [];
       const seen = new Set([...fused].map(index => this.tile(index).id));
@@ -285,6 +286,7 @@ export class Game {
       }
       events.push({type: 'fall', board: copy(this.board), falls, chain});
       direct = null;
+      initialCells = [];
       match = this.matches();
     }
     this.score += earned;
@@ -301,7 +303,7 @@ export class Game {
     }
     let rescued = false;
     if (!this.hasMove()) {
-      if (this.mode === 'classic') {
+      if (this.mode === 'classic' && !this.noDefeat) {
         this.ended = true;
         events.push({type: 'gameover', board: copy(this.board), chain});
       } else {
@@ -314,32 +316,122 @@ export class Game {
       levelsGained: this.level - oldLevel};
   }
 
-  canUndoLastMove() {
-    return this.lastMoveSnapshot !== null;
+  snapshot() {
+    return {nextId: this.nextId, board: this.board.map(row => row.map(tile => ({...tile}))),
+      score: this.score, level: this.level, levelStartScore: this.levelStartScore,
+      progressionOffset: this.progressionOffset, mode: this.mode, ended: this.ended,
+      noDefeat: this.noDefeat};
   }
 
+  rememberState(previous = this.snapshot()) {
+    this.undoHistory.push(previous);
+    if (this.undoHistory.length > 50) this.undoHistory.shift();
+  }
+
+  canUndoLastMove() { return this.undoHistory.length > 0; }
+
   undoLastMove() {
-    if (!this.lastMoveSnapshot) return false;
-    const previous = this.lastMoveSnapshot;
-    this.nextId = previous.nextId;
-    this.board = previous.board.map(row => row.map(tile => tile ? {...tile} : null));
-    this.score = previous.score;
-    this.level = previous.level;
-    this.levelStartScore = previous.levelStartScore;
-    this.progressionOffset = previous.progressionOffset;
-    this.mode = previous.mode;
-    this.ended = previous.ended;
-    this.lastMoveSnapshot = null;
+    const previous = this.undoHistory.pop();
+    if (!previous) return false;
+    Object.assign(this, previous);
+    this.cheatsUsed = true;
     return true;
+  }
+
+  cheatAddPoints(amount) {
+    if (!Number.isSafeInteger(amount) || amount < 1 || amount > 1000000 ||
+      this.score + amount > 1000000000) return false;
+    this.rememberState();
+    this.cheatsUsed = true;
+    this.score += amount;
+    while (this.score - this.levelStartScore >= levelGoal(this.level)) {
+      this.levelStartScore += levelGoal(this.level);
+      this.level++;
+    }
+    return true;
+  }
+
+  cheatSetLevel(level) {
+    if (!Number.isInteger(level) || level < 1 || level > 10000) return false;
+    this.rememberState();
+    this.cheatsUsed = true;
+    const progress = Math.min(this.score - this.levelStartScore, levelGoal(level) - 1);
+    this.level = level;
+    this.levelStartScore = levelStartAt(level);
+    this.progressionOffset = 0;
+    this.score = this.levelStartScore + progress;
+    return true;
+  }
+
+  cheatSpawnSpecial(index, type) {
+    if (!Number.isInteger(index) || index < 0 || index >= SIZE * SIZE || !SPECIALS.includes(type)) return false;
+    const previous = this.snapshot();
+    const old = this.tile(index);
+    let color = old.color;
+    if (type !== 'spectrum' && color === null) {
+      color = Array.from({length: COLORS}, (_, value) => value).find(value => {
+        this.set(index, {...old, type, color: value});
+        return !this.matches().cells.length;
+      });
+      this.set(index, old);
+      if (color === undefined) return false;
+    }
+    this.rememberState(previous);
+    this.cheatsUsed = true;
+    this.set(index, this.gem(color, type));
+    return true;
+  }
+
+  cheatShuffle() {
+    const previous = this.snapshot();
+    this.ended = false;
+    if (!this.shuffle(true)) { this.ended = previous.ended; return false; }
+    this.rememberState(previous);
+    this.cheatsUsed = true;
+    return true;
+  }
+
+  cheatNoDefeat(enabled) {
+    if (typeof enabled !== 'boolean' || enabled === this.noDefeat) return false;
+    this.rememberState();
+    this.cheatsUsed = true;
+    this.noDefeat = enabled;
+    if (enabled) {
+      this.ended = false;
+      if (!this.hasMove()) this.rescue();
+    }
+    return true;
+  }
+
+  cheatExplode() {
+    this.rememberState();
+    this.cheatsUsed = true;
+    this.ended = false;
+    return this.resolveBoard({cells: [], runs: []}, null, [],
+      Array.from({length: SIZE * SIZE}, (_, index) => index));
+  }
+
+  cheatSupernova(index) {
+    if (!Number.isInteger(index) || index < 0 || index >= SIZE * SIZE) return {valid: false, events: []};
+    this.rememberState();
+    this.cheatsUsed = true;
+    this.ended = false;
+    const [row, column] = position(index);
+    const center = row * SIZE + Math.max(1, Math.min(SIZE - 2, column));
+    const sources = [center - 1, center, center + 1];
+    const color = this.tile(index).color ?? 0;
+    sources.forEach((cell, offset) => this.set(cell, this.gem(color, offset === 1 ? 'cross' : 'burst')));
+    return this.resolveBoard({cells: sources, runs: [{cells: sources, color, length: 3}]});
   }
 
   rescue() {
     // A new Espectro guarantees a move and keeps every other tile in place.
     const index = [27, 28, 35, 36, ...Array.from({length: SIZE * SIZE}, (_, i) => i)]
       .find(cell => this.tile(cell)?.type === 'normal');
-    if (index === undefined) throw new Error('Não há posição para recuperar o tabuleiro');
-    this.set(index, this.gem(null, 'spectrum'));
-    return index;
+    // A cheat can fill every cell with specials; recovery still needs one Spectrum.
+    const target = index ?? 27;
+    this.set(target, this.gem(null, 'spectrum'));
+    return target;
   }
 
   nearbyColor(index, cleared = new Set()) {
@@ -369,7 +461,7 @@ export class Game {
       const board = Array.from({length: SIZE}, (_, row) => tiles.slice(row * SIZE, (row + 1) * SIZE));
       if (this.matches(board).cells.length || !this.hasMove(board)) return false;
       this.board = board;
-      if (!automatic) this.lastMoveSnapshot = null;
+      if (!automatic) this.undoHistory = [];
       return true;
     };
 
@@ -441,16 +533,18 @@ export class Game {
       candidate.levelStartScore = levelStartAt(candidate.level);
       candidate.progressionOffset = 0;
     }
+    candidate.cheatsUsed = saved.cheatsUsed === true || saved.noDefeat === true;
+    candidate.noDefeat = saved.noDefeat === true;
     candidate.ended = false;
     // Saved boards with unresolved matches can still contain specials.
     if (candidate.matches().cells.length && !candidate.shuffle(true)) candidate.board = candidate.freshBoard();
     if (!candidate.hasMove()) {
-      if (candidate.mode === 'classic') candidate.ended = true;
+      if (candidate.mode === 'classic' && !candidate.noDefeat) candidate.ended = true;
       else candidate.rescue();
-    } else if (candidate.mode === 'classic' && saved.ended === true) candidate.ended = true;
-    for (const key of ['nextId', 'board', 'mode', 'score', 'level', 'levelStartScore', 'progressionOffset', 'ended'])
+    } else if (candidate.mode === 'classic' && !candidate.noDefeat && saved.ended === true) candidate.ended = true;
+    for (const key of ['nextId', 'board', 'mode', 'score', 'level', 'levelStartScore', 'progressionOffset', 'ended', 'cheatsUsed', 'noDefeat'])
       this[key] = candidate[key];
-    this.lastMoveSnapshot = null;
+    this.undoHistory = [];
     return true;
   }
 }
