@@ -1,4 +1,4 @@
-const CACHE = 'prisma-v1.4.2-pending';
+const CACHE = 'prisma-v1.4.2-afa481032e';
 const FILES = ['./', './index.html', './style.css', './app.js', './engine.js', './zen.js', './sound.js',
   './gem-atlas.webp', './burst-atlas.webp', './cross-atlas.webp', './spectrum-gem.webp', './prisma-bg.jpg',
   './audio/music/magic-puzzle.ogg', './audio/music/cozy-puzzle.ogg', './audio/music/space-city.ogg',
