@@ -4,7 +4,7 @@ import {MUSIC_TRACKS, AMBIENCE_SOUNDS, normalizeZenSettings} from '../zen.js';
 
 test('only approved recordings are selectable, and legacy saved choices migrate', () => {
   assert.deepEqual(MUSIC_TRACKS, ['magicPuzzle', 'cozyPuzzle', 'spaceCity']);
-  assert.deepEqual(AMBIENCE_SOUNDS, ['stream', 'rain', 'forest', 'rainforest']);
+  assert.deepEqual(AMBIENCE_SOUNDS, ['stream', 'rain', 'forest', 'rainforest', 'thunder', 'softNoise']);
   for (const musicTrack of ['sereno', 'cidade', 'jardim', 'horizonte', 'estrelas']) {
     const migrated = normalizeZenSettings({music: true, ambience: true, musicTrack, ambienceSound: 'white'});
     assert.equal(migrated.musicTrack, 'cozyPuzzle');

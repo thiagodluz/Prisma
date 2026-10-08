@@ -27,16 +27,21 @@ Esta concessão cobre apenas os direitos que o titular possa licenciar sobre ess
 
 ## Áudios de terceiros incluídos no jogo
 
-Os arquivos abaixo são obras independentes disponibilizadas sob CC0 1.0. Os créditos são apresentados como cortesia; a licença não exige atribuição.
+As músicas e cinco ambientes da tabela abaixo são obras independentes disponibilizadas sob CC0 1.0. Seus créditos são apresentados como cortesia. O sexto ambiente, Ruído suave, usa CC BY 4.0 e exige atribuição, indicada logo após a tabela.
 
 | Arquivo | Obra e autor | Fonte |
 | --- | --- | --- |
 | `audio/music/magic-puzzle.ogg` | “Magic Puzzle In-Game 1” — MintoDog | [OpenGameArt](https://opengameart.org/content/magic-puzzle-in-game-1) |
 | `audio/music/cozy-puzzle.ogg` | “Cozy Puzzle In-Game 3” — MintoDog | [OpenGameArt](https://opengameart.org/content/cozy-puzzle-in-game-3) |
 | `audio/music/space-city.ogg` | “Space City” — MintoDog | [OpenGameArt](https://opengameart.org/content/space-city) |
-| `audio/ambience/rain.ogg` | “Rain (loopable)”, faixa 1 — Ylmir | [OpenGameArt](https://opengameart.org/content/rain-loopable) |
-| `audio/ambience/forest.mp3` | “Forest Ambience” — TinyWorlds | [OpenGameArt](https://opengameart.org/content/forest-ambience) |
+| `audio/ambience/rain-soft.ogg` | “Soft Rain Loop” — _lynks | [Freesound, som 595717](https://freesound.org/people/_lynks/sounds/595717/) |
+| `audio/ambience/forest-cicadas.ogg` | “cicadas.wav” — fraska2 | [Freesound, som 434675](https://freesound.org/people/fraska2/sounds/434675/) |
 | `audio/ambience/rainforest.mp3` | “Rain Sound and Rainforest.mp3” — INNORECORDS | [Freesound, som 457447](https://freesound.org/people/INNORECORDS/sounds/457447/) |
 | `audio/ambience/stream.mp3` | “creek loop” — soundofsong | [Freesound, som 841987](https://freesound.org/people/soundofsong/sounds/841987/) |
+| `audio/ambience/rain-thunder.ogg` | “distant rain and thunder” — bastipictures | [Freesound, som 243777](https://freesound.org/people/bastipictures/sounds/243777/) |
+
+### Ruído suave — CC BY 4.0
+
+`audio/ambience/soft-noise.ogg`: [“Gentle White Noise Air Tone”](https://freesound.org/people/Geoff-Bremner-Audio/sounds/725423/) por [Geoff Bremner](https://freesound.org/people/Geoff-Bremner-Audio/), sob [Creative Commons Atribuição 4.0 Internacional](https://creativecommons.org/licenses/by/4.0/). No Prisma, a gravação é reproduzida em repetição. Os créditos também aparecem dentro do jogo e são incluídos no APK e no HTML offline.
 
 Os efeitos de clique, explosão e vitória continuam sendo os sintetizados pelo código do jogo e permanecem abrangidos por `LICENSE`.

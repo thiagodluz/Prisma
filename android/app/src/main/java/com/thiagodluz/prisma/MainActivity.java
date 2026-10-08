@@ -39,9 +39,11 @@ public class MainActivity extends Activity {
         TYPES.put("audio/music/cozy-puzzle.ogg", "audio/ogg");
         TYPES.put("audio/music/space-city.ogg", "audio/ogg");
         TYPES.put("audio/ambience/stream.mp3", "audio/mpeg");
-        TYPES.put("audio/ambience/rain.ogg", "audio/ogg");
-        TYPES.put("audio/ambience/forest.mp3", "audio/mpeg");
+        TYPES.put("audio/ambience/rain-soft.ogg", "audio/ogg");
+        TYPES.put("audio/ambience/forest-cicadas.ogg", "audio/ogg");
         TYPES.put("audio/ambience/rainforest.mp3", "audio/mpeg");
+        TYPES.put("audio/ambience/rain-thunder.ogg", "audio/ogg");
+        TYPES.put("audio/ambience/soft-noise.ogg", "audio/ogg");
     }
     private WebView webView;
     private boolean resumed;

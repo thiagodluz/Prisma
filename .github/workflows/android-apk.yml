@@ -15,6 +15,10 @@ jobs:
           fetch-depth: 0
       - name: Restore verified offline audio
         run: node scripts/download-audio.mjs
+      - name: Calculate release cache fingerprint
+        run: |
+          node scripts/sync-version.mjs
+          head -n 1 sw.js
       - name: Build standalone offline HTML
         run: npm run build:offline
       - uses: actions/setup-java@v4

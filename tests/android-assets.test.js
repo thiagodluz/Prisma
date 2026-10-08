@@ -8,7 +8,7 @@ test('every recording requested by Zen is served locally by the Android WebView'
   const routes = new Map([...activity.matchAll(/TYPES\.put\("([^"]+)", "([^"]+)"\)/g)]
     .map(([, path, type]) => [path, type]));
   const recordings = [...zen.matchAll(/src: '(audio\/[^']+)'/g)].map(([, path]) => path);
-  assert.equal(recordings.length, 7);
+  assert.equal(recordings.length, 9);
   for (const path of recordings) {
     assert.equal(routes.get(path), path.endsWith('.ogg') ? 'audio/ogg' : 'audio/mpeg',
       `${path} must resolve from APK assets instead of falling through to the network`);
