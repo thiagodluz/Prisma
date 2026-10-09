@@ -92,3 +92,22 @@ test('obsolete playback failures cannot overwrite the status of a replacement tr
   assert.deepEqual(reports, []);
   audio.stop();
 }));
+
+// A missing catalogue entry must not silently replace a saved new ambience with rain.
+test('new approved ambience preferences survive reload and select their own recording', () => fakeMedia(async () => {
+  const player = new ZenAudio(null);
+  player.armed = true;
+  for (const [ambienceSound, src] of [
+    ['forest', 'audio/ambience/forest-cicadas.ogg'],
+    ['rain', 'audio/ambience/rain-soft.ogg'],
+    ['thunder', 'audio/ambience/rain-thunder.ogg'],
+    ['softNoise', 'audio/ambience/soft-noise.ogg']
+  ]) {
+    const settings = normalizeZenSettings({ambience: true, ambienceSound});
+    assert.equal(settings.ambienceSound, ambienceSound);
+    player.sync({active: true, ...settings});
+    await tick();
+    assert.equal(player.ambienceSource.audio.src, src);
+  }
+  player.stop();
+}));

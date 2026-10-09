@@ -1,9 +1,9 @@
-const CACHE = 'prisma-v1.4.1-adb919c326';
+const CACHE = 'prisma-v1.4.2-afa481032e';
 const FILES = ['./', './index.html', './style.css', './app.js', './engine.js', './zen.js', './sound.js',
   './gem-atlas.webp', './burst-atlas.webp', './cross-atlas.webp', './spectrum-gem.webp', './prisma-bg.jpg',
   './audio/music/magic-puzzle.ogg', './audio/music/cozy-puzzle.ogg', './audio/music/space-city.ogg',
-  './audio/ambience/stream.mp3', './audio/ambience/rain.ogg', './audio/ambience/forest.mp3',
-  './audio/ambience/rainforest.mp3',
+  './audio/ambience/stream.mp3', './audio/ambience/rain-soft.ogg', './audio/ambience/forest-cicadas.ogg',
+  './audio/ambience/rainforest.mp3', './audio/ambience/rain-thunder.ogg', './audio/ambience/soft-noise.ogg',
   './icon.svg', './icon-192.png', './icon-512.png', './manifest.webmanifest'];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES.map(file => new Request(file, {cache: 'reload'})))).then(() => self.skipWaiting())));
 self.addEventListener('activate', event => event.waitUntil((async () => {

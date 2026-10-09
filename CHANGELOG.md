@@ -1,5 +1,12 @@
 # Histórico de versões
 
+## 1.4.2 — Sound Revolution — 08/10/2026
+
+- Substituídos Floresta por uma gravação de floresta com cigarras e Chuva por uma chuva suave em repetição.
+- Adicionados Chuva com trovoada e Ruído suave, chegando a seis ambientes no Zen.
+- Incluída atribuição a Geoff Bremner sob CC BY 4.0 para “Gentle White Noise Air Tone”; demais gravações permanecem CC0.
+- Novos arquivos incluídos no APK, no HTML independente e no cache offline da web, com teste de reprodução no WebView Android.
+
 ## 1.4.1 — Sound Revolution — 07/10/2026
 
 - Corrigido o acesso local aos sete arquivos de áudio no WebView Android, com MIME correto e respostas binárias sem codificação de texto.

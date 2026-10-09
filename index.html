@@ -11,7 +11,7 @@
   <link rel="preload" href="burst-atlas.webp" as="image">
   <link rel="preload" href="cross-atlas.webp" as="image">
   <link rel="preload" href="spectrum-gem.webp" as="image">
-  <link rel="stylesheet" href="style.css?v=1.4.1">
+  <link rel="stylesheet" href="style.css?v=1.4.2">
   <title>Prisma — combine pedras sem pressa</title>
 </head>
 <body>
@@ -85,7 +85,7 @@
           <label class="zen-check"><span><strong>Música</strong><small>Melodia tranquila</small></span><input id="zen-music" type="checkbox"></label>
           <label class="zen-check"><span><strong>Ambiente</strong><small>Som suave de fundo</small></span><input id="zen-ambience" type="checkbox"></label>
           <label class="zen-field" for="zen-track"><span>Escolher música</span><select id="zen-track"><option value="magicPuzzle">Magic Puzzle</option><option value="cozyPuzzle">Cozy Puzzle</option><option value="spaceCity">Space City</option></select></label>
-          <label class="zen-field" for="zen-soundscape"><span>Escolher ambiente</span><select id="zen-soundscape"><option value="stream">Riacho</option><option value="rain">Chuva</option><option value="forest">Floresta</option><option value="rainforest">Floresta após chuva</option></select></label>
+          <label class="zen-field" for="zen-soundscape"><span>Escolher ambiente</span><select id="zen-soundscape"><option value="stream">Riacho</option><option value="rain">Chuva</option><option value="forest">Floresta com cigarras</option><option value="rainforest">Floresta após chuva</option><option value="thunder">Chuva com trovoada</option><option value="softNoise">Ruído suave</option></select></label>
           <label class="zen-field" for="zen-breath"><span>Respiração guiada</span><select id="zen-breath"><option value="off">Desligada</option><option value="balanced">4 s inspirar · 4 s expirar</option><option value="slow">4 s inspirar · 6 s expirar</option></select></label>
           <label class="zen-field" for="zen-effects"><span>Intensidade dos efeitos</span><select id="zen-effects"><option value="soft">Suave</option><option value="normal">Padrão</option><option value="vivid">Vibrante</option></select></label>
           <p class="zen-note" id="zen-audio-status" role="status" hidden></p>
@@ -122,9 +122,10 @@
     <details class="legal-credits">
       <summary>Créditos e licenças</summary>
       <div class="legal-credits-content">
-        <button class="app-version developer-menu-trigger" id="developer-menu-trigger" type="button" aria-label="Versão 1.4.1" aria-controls="developer-menu" aria-expanded="false">Versão 1.4.1</button>
+        <button class="app-version developer-menu-trigger" id="developer-menu-trigger" type="button" aria-label="Versão 1.4.2" aria-controls="developer-menu" aria-expanded="false">Versão 1.4.2</button>
         <p>Prisma é um jogo original criado por Thiago Luz (2026). Versões derivadas devem preservar os créditos e identificar suas alterações.</p>
-        <p>Código: <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener noreferrer">GPLv3</a>. Arte das pedras e fundo: <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>. Músicas e gravações: CC0; autores e fontes em <a href="https://github.com/thiagodluz/Prisma/blob/main/LICENSE-ART.md" target="_blank" rel="noopener noreferrer">Créditos de áudio</a>. Nome e ícone não integram a licença da arte.</p>
+        <p>Código: <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener noreferrer">GPLv3</a>. Arte das pedras e fundo: <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>. Músicas e demais gravações: CC0; autores e fontes em <a href="https://github.com/thiagodluz/Prisma/blob/main/LICENSE-ART.md" target="_blank" rel="noopener noreferrer">Créditos de áudio</a>. Nome e ícone não integram a licença da arte.</p>
+        <p>Ruído suave: <a href="https://freesound.org/people/Geoff-Bremner-Audio/sounds/725423/" target="_blank" rel="noopener noreferrer">“Gentle White Noise Air Tone” — Geoff Bremner</a>, sob <a href="https://creativecommons.org/licenses/by/4.0/deed.pt-br" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Gravação reproduzida em repetição.</p>
         <section class="developer-menu" id="developer-menu" aria-label="Ferramentas do desenvolvedor" hidden>
           <div class="developer-heading"><h2>Ferramentas do desenvolvedor</h2><button class="quiet-button" id="developer-close" type="button">Fechar</button></div>
           <p id="developer-status" role="status"></p>
@@ -164,6 +165,6 @@
       <button id="confirm-new-game" type="button">Novo jogo</button>
     </div>
   </dialog>
-  <script type="module" src="app.js?v=1.4.1"></script>
+  <script type="module" src="app.js?v=1.4.2"></script>
 </body>
 </html>

@@ -58,10 +58,10 @@ public class AudioPlaybackTest {
             assertNotNull(web);
             awaitResult(web, "document.querySelectorAll('#board > *').length === 64 ? 'ready' : 'loading'", "ready");
             assertEquals("3", evaluate(web, "document.querySelector('#zen-track').options.length"));
-            assertEquals("4", evaluate(web, "document.querySelector('#zen-soundscape').options.length"));
+            assertEquals("6", evaluate(web, "document.querySelector('#zen-soundscape').options.length"));
             String[] paths = {"audio/music/magic-puzzle.ogg", "audio/music/cozy-puzzle.ogg",
-                "audio/music/space-city.ogg", "audio/ambience/stream.mp3", "audio/ambience/rain.ogg",
-                "audio/ambience/forest.mp3", "audio/ambience/rainforest.mp3"};
+                "audio/music/space-city.ogg", "audio/ambience/stream.mp3", "audio/ambience/rain-soft.ogg",
+                "audio/ambience/forest-cicadas.ogg", "audio/ambience/rainforest.mp3", "audio/ambience/rain-thunder.ogg", "audio/ambience/soft-noise.ogg"};
             for (String path : paths) {
                 // Probe the real asset-origin route and platform decoder, not a mocked Audio.
                 evaluate(web, "(() => { window.__audioProbe = 'loading'; " +

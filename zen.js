@@ -1,5 +1,5 @@
 export const MUSIC_TRACKS = Object.freeze(['magicPuzzle', 'cozyPuzzle', 'spaceCity']);
-export const AMBIENCE_SOUNDS = Object.freeze(['stream', 'rain', 'forest', 'rainforest']);
+export const AMBIENCE_SOUNDS = Object.freeze(['stream', 'rain', 'forest', 'rainforest', 'thunder', 'softNoise']);
 export const ZEN_DEFAULTS = Object.freeze({music: false, ambience: false, musicTrack: 'cozyPuzzle',
   ambienceSound: 'rain', breath: 'off', effects: 'normal'});
 
@@ -23,9 +23,11 @@ const TRACKS = {
 };
 const AMBIENCE = {
   stream: {src: 'audio/ambience/stream.mp3'},
-  rain: {src: 'audio/ambience/rain.ogg'},
-  forest: {src: 'audio/ambience/forest.mp3'},
-  rainforest: {src: 'audio/ambience/rainforest.mp3'}
+  rain: {src: 'audio/ambience/rain-soft.ogg'},
+  forest: {src: 'audio/ambience/forest-cicadas.ogg'},
+  rainforest: {src: 'audio/ambience/rainforest.mp3'},
+  thunder: {src: 'audio/ambience/rain-thunder.ogg'},
+  softNoise: {src: 'audio/ambience/soft-noise.ogg'}
 };
 
 export class ZenAudio {

@@ -29,9 +29,11 @@ for (const [file, mime] of [
   ['audio/music/cozy-puzzle.ogg', 'audio/ogg'],
   ['audio/music/space-city.ogg', 'audio/ogg'],
   ['audio/ambience/stream.mp3', 'audio/mpeg'],
-  ['audio/ambience/rain.ogg', 'audio/ogg'],
-  ['audio/ambience/forest.mp3', 'audio/mpeg'],
-  ['audio/ambience/rainforest.mp3', 'audio/mpeg']
+  ['audio/ambience/rain-soft.ogg', 'audio/ogg'],
+  ['audio/ambience/forest-cicadas.ogg', 'audio/ogg'],
+  ['audio/ambience/rainforest.mp3', 'audio/mpeg'],
+  ['audio/ambience/rain-thunder.ogg', 'audio/ogg'],
+  ['audio/ambience/soft-noise.ogg', 'audio/ogg']
 ]) js = replace(js, new RegExp(`'${file}'`, 'g'), `'${dataUrl(file, mime)}'`, file);
 let app = read('app.js');
 for (const file of ['engine.js', 'zen.js', 'sound.js'])
