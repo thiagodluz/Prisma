@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: thiagodluz/Mercadinho
-          ref: 364d155a93a051bcc33747e19c53a091b576971b
+          ref: 1f6ae45603b81d5f634e5ef130d70a385aad450e
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -67,10 +67,10 @@ jobs:
           cert=$("$verifier" verify --print-certs "$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | tr '[:lower:]' '[:upper:]')
           test "$cert" = C86E47B3A2A07CF21E7BEB971F0168BC516CA834FA0940A070C7570E66D20869
           unzip -tq "$apk"
-          cp "$apk" Mercadinho-0.1.4.apk
+          cp "$apk" Mercadinho-0.1.5.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: Mercadinho-0.1.4-assinado
-          path: Mercadinho-0.1.4.apk
+          name: Mercadinho-0.1.5-assinado
+          path: Mercadinho-0.1.5.apk
           if-no-files-found: error
           retention-days: 90
