@@ -1,0 +1,41 @@
+name: Publicar Prisma na web
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Recuperar áudios da versão 1.4.2
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v1.4.2 --pattern Prisma-jogar-offline.html --dir "$RUNNER_TEMP"
+          node scripts/restore-release-audio.mjs "$RUNNER_TEMP/Prisma-jogar-offline.html"
+          node scripts/download-audio.mjs
+      - name: Preparar jogo
+        run: |
+          mkdir -p public
+          cp index.html transferencia.html style.css app.js engine.js zen.js sound.js sw.js *.webp prisma-bg.jpg icon.svg icon-192.png icon-512.png manifest.webmanifest LICENSE LICENSE-ART.md public/
+          cp -r audio public/audio
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - uses: actions/deploy-pages@v4
+        id: deploy

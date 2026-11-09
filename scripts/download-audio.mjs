@@ -2,14 +2,6 @@ import {createHash} from 'node:crypto';
 import {mkdirSync, readFileSync, renameSync, writeFileSync} from 'node:fs';
 import {dirname, resolve} from 'node:path';
 
-const origin = 'https://prisma-jogo-thiago.thiagodluz.chatgpt.site/';
-// New recordings are fetched from their publisher and pinned by SHA-256.
-const sourceUrls = {
-  'audio/ambience/forest-cicadas.ogg': 'https://cdn.freesound.org/previews/434/434675_3555174-hq.ogg',
-  'audio/ambience/rain-soft.ogg': 'https://cdn.freesound.org/previews/595/595717_2530992-hq.ogg',
-  'audio/ambience/rain-thunder.ogg': 'https://cdn.freesound.org/previews/243/243777_997601-hq.ogg',
-  'audio/ambience/soft-noise.ogg': 'https://cdn.freesound.org/previews/725/725423_10643461-hq.ogg'
-};
 const assets = {
   'audio/ambience/soft-noise.ogg': '1ce3d836d0b9299058ea711d76b15cc244256ff5accbf3b894c1de134b50b011',
   'audio/ambience/rain-thunder.ogg': 'c2955d257e1e8a9decd115869f28b94f09e864a1098e81f3e05c54d31e933aef',
@@ -22,20 +14,28 @@ const assets = {
   'audio/ambience/rainforest.mp3': '3fb52816724ddab1b4af2c6c2106965595e228af38133b4eef4a3a6552980e10'
 };
 
+const missing = new Map();
 for (const [path, expected] of Object.entries(assets)) {
-  const destination = resolve(path);
-  try {
-    if (createHash('sha256').update(readFileSync(destination)).digest('hex') === expected) continue;
-  } catch { /* Fetch a missing bundled file. */ }
-  const response = await fetch(sourceUrls[path] || new URL(path, origin));
-  if (!response.ok) throw new Error(`Falha ao baixar ${path}: HTTP ${response.status}`);
-  const content = Buffer.from(await response.arrayBuffer());
-  const actual = createHash('sha256').update(content).digest('hex');
-  if (actual !== expected) throw new Error(`SHA-256 inválido para ${path}: ${actual}`);
-  mkdirSync(dirname(destination), {recursive: true});
-  const temporary = `${destination}.download`;
-  writeFileSync(temporary, content);
-  renameSync(temporary, destination);
+  try { if (createHash('sha256').update(readFileSync(resolve(path))).digest('hex') === expected) continue; } catch {}
+  missing.set(expected, path);
 }
-
+if (missing.size) {
+  // The public 1.4.2 release contains all approved recordings, embedded in HTML.
+  // Verify every decoded file independently; never depend on the old Site.
+  const response = await fetch('https://github.com/thiagodluz/Prisma/releases/download/v1.4.2/Prisma-jogar-offline.html');
+  if (!response.ok) throw new Error(`Falha ao recuperar áudios: HTTP ${response.status}`);
+  const html = await response.text();
+  for (const [, data] of html.matchAll(/data:audio\/(?:ogg|mpeg);base64,([A-Za-z0-9+/=]+)/g)) {
+    const bytes = Buffer.from(data, 'base64');
+    const hash = createHash('sha256').update(bytes).digest('hex');
+    const path = missing.get(hash);
+    if (!path) continue;
+    const destination = resolve(path);
+    mkdirSync(dirname(destination), {recursive: true});
+    writeFileSync(destination + '.download', bytes);
+    renameSync(destination + '.download', destination);
+    missing.delete(hash);
+  }
+  if (missing.size) throw new Error(`Áudios ausentes ou divergentes: ${[...missing.values()].join(', ')}`);
+}
 console.log(`Áudios licenciados verificados: ${Object.keys(assets).length}`);
