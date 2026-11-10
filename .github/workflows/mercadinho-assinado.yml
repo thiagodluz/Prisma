@@ -1,7 +1,7 @@
 name: APK assinado do Mercadinho
 on:
   push:
-    branches: [build/mercadinho-assinado]
+    branches: [build/mercadinho-1-0]
     paths: [.github/workflows/mercadinho-assinado.yml]
 jobs:
   build:
@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: thiagodluz/Mercadinho
-          ref: 23be1c3d4f4424af6a55d1743b02ac1a52234981
+          ref: 865624371c5ef3e5d29165ce3d1d2f93daaa20d4
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -28,7 +28,7 @@ jobs:
           sdk_manager=$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f -print -quit)
           test -n "$sdk_manager"
           "$sdk_manager" --licenses < <(yes) >/dev/null
-          "$sdk_manager" 'platforms;android-36' 'build-tools;35.0.0'
+          "$sdk_manager" 'platforms;android-36' 'build-tools;35.0.0' 'build-tools;36.0.0'
       - name: Testar e preparar
         run: |
           npm ci
@@ -66,11 +66,18 @@ jobs:
           "$verifier" verify --verbose "$apk"
           cert=$("$verifier" verify --print-certs "$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | tr '[:lower:]' '[:upper:]')
           test "$cert" = C86E47B3A2A07CF21E7BEB971F0168BC516CA834FA0940A070C7570E66D20869
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$apk" > dados-apk.txt
+          grep -F "name='br.com.thiagodluz.mercadinho'" dados-apk.txt
+          grep -F "versionCode='10'" dados-apk.txt
+          grep -F "versionName='1.0.0'" dados-apk.txt
+          unzip -p "$apk" assets/public/index.html > jogo-empacotado.html
+          grep -Fq 'pendingDrag' jogo-empacotado.html
+          grep -Fq 'Modos de jogo' jogo-empacotado.html
           unzip -tq "$apk"
-          cp "$apk" Mercadinho-0.1.6.apk
+          cp "$apk" Mercadinho-1.0.0.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: Mercadinho-0.1.6-assinado
-          path: Mercadinho-0.1.6.apk
+          name: Mercadinho-1.0.0-assinado
+          path: Mercadinho-1.0.0.apk
           if-no-files-found: error
           retention-days: 90
