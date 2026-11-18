@@ -1,0 +1,77 @@
+name: Compilar Mercadinho 1.1.0 assinado
+on:
+  push:
+    branches: [build/mercadinho-1-1-0]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: thiagodluz/Mercadinho
+          ref: a1f32c204cbc250ba41b356c5c3d3e9f10811ea7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - run: npm ci
+      - run: npm test
+      - run: npm run android:sync
+      - name: Preparar assinatura existente
+        env:
+          PRISMA_KEYSTORE_BASE64: ${{ secrets.PRISMA_KEYSTORE_BASE64 }}
+          PRISMA_KEYSTORE_PASSWORD: ${{ secrets.PRISMA_KEYSTORE_PASSWORD }}
+          PRISMA_KEY_ALIAS: ${{ secrets.PRISMA_KEY_ALIAS }}
+          PRISMA_KEY_PASSWORD: ${{ secrets.PRISMA_KEY_PASSWORD }}
+        run: |
+          test -n "$PRISMA_KEYSTORE_BASE64" && test -n "$PRISMA_KEYSTORE_PASSWORD"
+          test -n "$PRISMA_KEY_ALIAS" && test -n "$PRISMA_KEY_PASSWORD"
+          printf '%s' "$PRISMA_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/prisma-release.p12"
+          chmod 600 "$RUNNER_TEMP/prisma-release.p12"
+          echo "PRISMA_KEYSTORE_FILE=$RUNNER_TEMP/prisma-release.p12" >> "$GITHUB_ENV"
+      - name: Compilar APK
+        env:
+          PRISMA_KEYSTORE_PASSWORD: ${{ secrets.PRISMA_KEYSTORE_PASSWORD }}
+          PRISMA_KEY_ALIAS: ${{ secrets.PRISMA_KEY_ALIAS }}
+          PRISMA_KEY_PASSWORD: ${{ secrets.PRISMA_KEY_PASSWORD }}
+        run: |
+          chmod +x android/gradlew
+          cd android
+          ./gradlew assembleRelease --no-daemon
+      - name: Conferir assinatura, versão e conteúdo
+        run: |
+          apk=android/app/build/outputs/apk/release/app-release.apk
+          signer="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          "$signer" verify --verbose "$apk"
+          curl --fail --location --retry 3 https://github.com/thiagodluz/Mercadinho/releases/download/v1.0.0/Mercadinho-1.0.0.apk -o "$RUNNER_TEMP/mercadinho-1.0.apk"
+          old_cert=$("$signer" verify --print-certs "$RUNNER_TEMP/mercadinho-1.0.apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
+          new_cert=$("$signer" verify --print-certs "$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
+          test -n "$old_cert" && test "$old_cert" = "$new_cert"
+          test "$new_cert" = 'c86e47b3a2a07cf21e7beb971f0168bc516ca834fa0940a070c7570e66d20869'
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$apk" | head -1 | tee apk-package.txt
+          grep -F "name='br.com.thiagodluz.mercadinho' versionCode='11' versionName='1.1.0'" apk-package.txt
+          unzip -t "$apk"
+          unzip -p "$apk" assets/public/index.html | cmp - www/index.html
+          unzip -p "$apk" assets/public/fases.js | cmp - fases.js
+          unzip -p "$apk" assets/public/android-bridge.js | cmp - www/android-bridge.js
+          mkdir -p dist
+          cp "$apk" dist/Mercadinho-1.1.0.apk
+          sha256sum dist/Mercadinho-1.1.0.apk | tee dist/SHA256SUMS
+          printf 'source_commit=a1f32c204cbc250ba41b356c5c3d3e9f10811ea7\ncertificate_sha256=%s\n' "$new_cert" > dist/build-info.txt
+      - name: Remover chave temporária
+        if: always()
+        run: rm -f "$RUNNER_TEMP/prisma-release.p12"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Mercadinho-1.1.0-assinado
+          path: dist/
+          retention-days: 14
